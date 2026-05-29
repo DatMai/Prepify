@@ -1,0 +1,1142 @@
+{
+  "title": "TypeScript Interview Questions",
+  "subtitle": "*Top 58 câu hỏi phỏng vấn TypeScript — Fresher đến Experienced*",
+  "sections": [
+    {
+      "name": "Phần I — TypeScript Fresher (Q1–25)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "TypeScript là gì? Khác JavaScript như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "TypeScript là superset của JavaScript do Microsoft phát triển. TypeScript thêm static typing vào JavaScript, sau đó compile xuống JavaScript thuần."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "JavaScript",
+                  "TypeScript"
+                ],
+                [
+                  "Typing",
+                  "Dynamic (runtime)",
+                  "Static (compile time)"
+                ],
+                [
+                  "Error detection",
+                  "Runtime",
+                  "Compile time"
+                ],
+                [
+                  "IDE support",
+                  "Basic",
+                  "Xuất sắc (intellisense, autocomplete)"
+                ],
+                [
+                  "OOP",
+                  "Prototype-based",
+                  "Class-based + interface"
+                ],
+                [
+                  "File extension",
+                  ".js",
+                  ".ts / .tsx"
+                ],
+                [
+                  "Compile",
+                  "Không cần",
+                  "tsc -> .js"
+                ],
+                [
+                  "null safety",
+                  "Không bắt buộc",
+                  "strictNullChecks option"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// JavaScript: lỗi chỉ thấy khi chạy\n\nfunction add(a, b) { return a + b; }\n\nadd(1, '2'); // '12' - không lỗi, nhưng sai!\n\n// TypeScript: lỗi ngấm từ lúc viết code\n\nfunction add(a: number, b: number): number { return a + b; }\n\nadd(1, '2'); // Error: Argument of type 'string' is not assignable to 'number'"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "Các kiểu dữ liệu trong TypeScript?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Kiểu dữ liệu",
+                  "Mô tả"
+                ],
+                [
+                  "Primitive",
+                  "string, number, boolean",
+                  "Các kiểu JavaScript thông thường"
+                ],
+                [
+                  "Special",
+                  "null, undefined, void, never",
+                  "Trạng thái đặc biệt"
+                ],
+                [
+                  "Flexible",
+                  "any, unknown",
+                  "Tắt strict type checking (khác nhau quan trọng)"
+                ],
+                [
+                  "Object",
+                  "object, array, tuple",
+                  "Các cấu trúc dữ liệu"
+                ],
+                [
+                  "TS-specific",
+                  "enum, interface, type",
+                  "Các kiểu riêng của TypeScript"
+                ],
+                [
+                  "ES2020+",
+                  "bigint, symbol",
+                  "Javascript modern types"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "let name:    string  = 'Dat';\n\nlet age:     number  = 25;\n\nlet active:  boolean = true;\n\nlet nothing: null    = null;\n\nlet undef:   undefined = undefined;\n\nlet flexible: any     = 42;   // tắt type check\n\nlet safe:     unknown = 42;   // vẫn phải kiểm tra kiểu trước khi dùng\n\nlet arr:   number[]    = [1, 2, 3];\n\nlet tuple: [string, number] = ['Dat', 25];  // tuple: fixed types per index"
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "Type Annotation và Type Inference?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "TypeScript có thể tự suy ra kiểu (inference) hoặc anh tự khai báo (annotation)."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Type Annotation: khai báo rõ ràng\n\nlet name: string = 'Dat';\n\nfunction greet(name: string): string { return 'Hello ' + name; }\n\n// Type Inference: TypeScript tự suy ra\n\nlet age = 25;          // TS suy ra: number\n\nlet flag = true;       // TS suy ra: boolean\n\nlet msg = 'hello';     // TS suy ra: string\n\n// Inference trong function\n\nfunction double(n: number) { return n * 2; }  // return type: number (inferred)\n\n// Khi nào cần annotation:\n\n// 1. Function parameters (luôn nên annotation)\n\n// 2. Khi TS không suy ra được đúng\n\n*💡 Rule of thumb: dùng inference khi có thể, dùng annotation khi inference cho kết quả sai hoặc khi cần document rõ ràng.*"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "any vs unknown khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "any",
+                  "unknown"
+                ],
+                [
+                  "Type checking",
+                  "Tắt hoàn toàn",
+                  "Vẫn có — phải check trước khi dùng"
+                ],
+                [
+                  "Gán cho kiểu khác",
+                  "Có",
+                  "Không — phải narrow trước"
+                ],
+                [
+                  "An toàn",
+                  "Không",
+                  "Có"
+                ],
+                [
+                  "Dùng khi",
+                  "Legacy code, quick fix",
+                  "API response không biết kiểu trước"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// any: tắt type check - nguy hiểm\n\nlet a: any = 42;\n\na.toUpperCase(); // không lỗi compile - nhưng crash runtime!\n\n// unknown: safe - phải narrow trước khi dùng\n\nlet u: unknown = fetchData();\n\n// u.toUpperCase(); // Error: Object is of type 'unknown'\n\nif (typeof u === 'string') {\n\n  u.toUpperCase(); // OK - đã narrow xuống string\n\n}\n\n// Narrowing với instanceof\n\nif (u instanceof Date) {\n\n  u.toISOString(); // OK\n\n}\n\n// Type assertion (khi chắc chắn)\n\nconst str = u as string;\n\n*⚠️  Tránh dùng any — nó tắt toàn bộ lợi ích của TypeScript. Dùng unknown thay thế khi có thể.*"
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "void vs never khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "void",
+                  "never"
+                ],
+                [
+                  "Nghĩa",
+                  "Function không return gì có ích",
+                  "Function không bao giờ kết thúc"
+                ],
+                [
+                  "Return value",
+                  "undefined (implicit)",
+                  "Không return"
+                ],
+                [
+                  "Dùng khi",
+                  "Logging, side effects",
+                  "Throw exception, infinite loop"
+                ],
+                [
+                  "Sub-type của",
+                  "Không",
+                  "Mọi kiểu (assignable to everything)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// void: return undefined\n\nfunction logMessage(msg: string): void {\n\n  console.log(msg);\n\n  // không return gì (hoặc return undefined)\n\n  }\n\n// never: không bao giờ return\n\nfunction throwError(msg: string): never {\n\n  throw new Error(msg); // luôn throw\n\n  }\n\nfunction infiniteLoop(): never {\n\n  while (true) { } // luôn loop\n\n  }\n\n// never trong exhaustive check\n\ntype Shape = 'circle' | 'square';\n\nfunction getArea(shape: Shape): number {\n\n  if (shape === 'circle') return Math.PI;\n\n  if (shape === 'square') return 1;\n\n  const _exhaustive: never = shape; // nếu có Shape mới chưa xử lý -> error\n\n  return _exhaustive;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "Lợi ích của TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Early error detection: Lỗi type được phát hiện lúc compile, không phải runtime."
+            },
+            {
+              "type": "text",
+              "text": "- Better IDE support: Autocomplete, refactoring, Go-to-definition chính xác."
+            },
+            {
+              "type": "text",
+              "text": "- Self-documenting code: Type annotations là documentation sống — luôn cập nhật."
+            },
+            {
+              "type": "text",
+              "text": "- Safer refactoring: Thay đổi interface, TS báo ngay chỗ nào bị ảnh hưởng."
+            },
+            {
+              "type": "text",
+              "text": "- Team productivity: Dễ onboard member mới, hiểu code nhanh hơn."
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "Interface trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Interface định nghĩa contract — shape của một object hoặc class. Không tạo ra code thực, chỉ để type checking."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface User {\n\n  id:    number;\n\n  name:  string;\n\n  email: string;\n\n  age?:  number;       // optional\n\n  readonly createdAt: Date; // không thể sửa sau khi tạo\n\n  greet(): string;     // method signature\n\n  }\n\n// Implement interface\n\nconst user: User = {\n\n  id: 1, name: 'Dat', email: 'dat@example.com',\n\n  createdAt: new Date(),\n\n  greet() { return 'Hello ' + this.name; }\n\n};\n\n// Interface extension\n\ninterface AdminUser extends User {\n\n  role: 'admin' | 'superadmin';\n\n  permissions: string[];\n\n  }\n\n// Interface merge (Declaration Merging)\n\ninterface Window { myCustomProp: string; }\n\ninterface Window { anotherProp: number; }\n\n// kết quả: Window có cả 2 props"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Type Alias vs Interface?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "type",
+                  "interface"
+                ],
+                [
+                  "Mở rộng",
+                  "intersection (&)",
+                  "extends"
+                ],
+                [
+                  "Declaration Merging",
+                  "Không",
+                  "Có (merge tự động)"
+                ],
+                [
+                  "Primitive types",
+                  "Có (type ID = string)",
+                  "Không"
+                ],
+                [
+                  "Union types",
+                  "Có (type X = A │ B)",
+                  "Không"
+                ],
+                [
+                  "Computed properties",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "Error messages",
+                  "Có thể verbose hơn",
+                  "Thường rõ hơn"
+                ],
+                [
+                  "Dùng khi",
+                  "Union, primitives, complex",
+                  "Object shapes, class contracts"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// type alias\n\ntype ID = string | number;\n\ntype Status = 'active' | 'inactive' | 'pending';\n\ntype Point = { x: number; y: number };\n\ntype Callback = (err: Error | null, data: unknown) => void;\n\n// interface\n\ninterface Point { x: number; y: number; }\n\ninterface Shape extends Point { area(): number; }\n\n// Kết hợp\n\ntype ShapeWithColor = Shape & { color: string };\n\n*💡 Rule of thumb từ TypeScript team: dùng interface cho public API (extends dễ hơn), dùng type cho union/primitive/complex types.*"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Union Types và Intersection Types?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Union Type (|): một trong các kiểu\n\ntype StringOrNumber = string | number;\n\ntype Status = 'loading' | 'success' | 'error';\n\nfunction format(val: string | number): string {\n\n  if (typeof val === 'string') return val.toUpperCase();\n\n  return val.toFixed(2);\n\n  }\n\n// Intersection Type (&): kết hợp tất cả kiểu\n\ntype Serializable = { serialize(): string };\n\ntype Loggable    = { log(): void };\n\ntype LoggableSerializable = Serializable & Loggable;\n\n// phải có cả serialize() và log()\n\n// Thường dùng để compose interfaces\n\ntype AdminUser = User & { role: 'admin'; permissions: string[] };"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Enums trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Numeric Enum (mặc định bắt đầu từ 0)\n\nenum Direction { Up, Down, Left, Right }\n\n// Up=0, Down=1, Left=2, Right=3\n\n// String Enum (khuyến nghị - dễ debug hơn)\n\nenum Status {\n\n  Active   = 'ACTIVE',\n\n  Inactive = 'INACTIVE',\n\n  Pending  = 'PENDING'\n\n  }\n\n// Const enum (compile-time only - tối ưu hơn)\n\nconst enum Permission { Read = 1, Write = 2, Admin = 4 }\n\nconst p: Permission = Permission.Read; // compile: 1\n\n// Sử dụng\n\nfunction move(dir: Direction): void {\n\n  if (dir === Direction.Up) console.log('Moving up');\n\n  }\n\n// Reverse mapping (chỉ numeric)\n\nconsole.log(Direction[0]); // 'Up'\n\n*📌 String enums được khuyến nghị trong production vì dễ debug hơn (giá trị có nghĩa thay vì số).*"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Optional Properties và Optional Parameters?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Optional property trong interface\n\ninterface Config {\n\n  host:    string;\n\n  port?:   number;    // optional: có hoặc không\n\n  timeout?: number;\n\n  }\n\n// Optional parameter trong function\n\nfunction connect(host: string, port?: number): void {\n\n  const p = port ?? 3000;\n\n  console.log(`${host}:${p}`);\n\n  }\n\nconnect('localhost');        // OK\n\nconnect('localhost', 5432); // OK\n\n// Default parameter (khác optional)\n\nfunction connect2(host: string, port: number = 3000): void {\n\n  console.log(`${host}:${port}`);\n\n  }\n\n// Optional vs Default:\n\n// optional?: có thể undefined\n\n// default: luôn có giá trị"
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "readonly trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// readonly property: không sửa sau khi init\n\ninterface Point {\n\n  readonly x: number;\n\n  readonly y: number;\n\n  }\n\nconst p: Point = { x: 1, y: 2 };\n\n// p.x = 3; // Error: Cannot assign to 'x' because it is a read-only property\n\n// Readonly<T>: make all properties readonly\n\ntype ReadonlyUser = Readonly<User>;\n\n// readonly array\n\nconst arr: readonly number[] = [1, 2, 3];\n\n// arr.push(4); // Error\n\n// Class readonly\n\nclass Circle {\n\n  readonly radius: number;\n\n  constructor(r: number) { this.radius = r; }\n\n  // this.radius = 5; // Error sau constructor\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Tuple trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Tuple là array với số lượng và kiểu cố định cho từng vị trí."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Tuple: fixed length, fixed types per position\n\nlet person: [string, number] = ['Dat', 25];\n\nlet rgb:    [number, number, number] = [255, 128, 0];\n\n// Named tuple (rõ ràng hơn)\n\ntype UserRecord = [id: number, name: string, active: boolean];\n\n// Optional tuple elements\n\ntype Point2D3D = [x: number, y: number, z?: number];\n\n// Rest in tuple\n\ntype StringNumberBooleans = [string, number, ...boolean[]];\n\n// Destructuring\n\nconst [name, age] = person;\n\n// So sánh với array:\n\n// number[]: array số bất kỳ độ dài\n\n// [number, string]: đúng 2 phần tử, phần tử 0 là number, 1 là string"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Type Assertions là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Type assertion (như cast trong các ngôn ngữ khác) nói với TypeScript 'Tin tưởng tôi, tôi biết kiểu này chính xác.' Không có runtime effect."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Cú pháp as (khuyến nghị)\n\nconst input = document.getElementById('username') as HTMLInputElement;\n\ninput.value = 'Dat';\n\n// Cú pháp <Type> (tránh trong .tsx)\n\nconst input2 = <HTMLInputElement>document.getElementById('username');\n\n// Double assertion (khi TS từ chối)\n\nconst a = 'hello' as unknown as number; // force - nguy hiểm!\n\n// Non-null assertion (!)\n\nconst el = document.getElementById('app')!; // khẳng định không null\n\nel.innerHTML = 'Hello'; // không cần check null\n\n// Khác type assertion:\n\n// - as Type: không runtime effect\n\n// - Type casting (Java): có runtime effect\n\n// - Type guard: kiểm tra runtime thực sự\n\n*⚠️  Chỉ dùng type assertion khi thực sự chắc chắn. Sai assertion = runtime crash không có warning.*"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "noImplicitAny và các tsconfig options quan trọng?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// tsconfig.json\n\n{\n\n \"compilerOptions\": {\n\n \"strict\": true,          // bật tất cả strict checks\n\n \"noImplicitAny\": true,  // lỗi khi TS suy ra any\n\n \"strictNullChecks\": true, // null/undefined không assign cho type khác\n\n \"strictFunctionTypes\": true,\n\n \"noImplicitThis\": true,\n\n \"alwaysStrict\": true,\n\n \"target\": \"ES2020\",      // compile xuống ES version nào\n\n \"module\": \"commonjs\",\n\n \"outDir\": \"./dist\",\n\n \"rootDir\": \"./src\",\n\n \"esModuleInterop\": true  // dùng import như ES module\n\n},\n\n}\n\n*📌 Dùng **'**strict: true**'** trong project mới — nó bật tất cả strict checks, an toàn nhất.*"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Optional Chaining (?.) và Non-null Assertion (!)",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Optional chaining: không throw nếu null/undefined\n\nconst user: User | null = getUser();\n\nconst city = user?.address?.city;  // undefined nếu user null\n\nconst len  = user?.name?.length;\n\n// Method call\n\nuser?.greet();\n\n// Array index\n\nconst first = arr?.[0];\n\n// Non-null assertion: khẳng định không null (runtime risk!)\n\nconst el = document.getElementById('app')!;  // tôi chắc không null\n\nel.focus();\n\n// Khuyến nghị: dùng ?. thay vì !\n\nconst city2 = user != null ? user.address?.city : undefined;"
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": ".ts vs .tsx?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  ".ts",
+                  ".tsx"
+                ],
+                [
+                  "Nội dung",
+                  "Pure TypeScript",
+                  "TypeScript + JSX"
+                ],
+                [
+                  "Dùng khi",
+                  "Services, utilities, models",
+                  "React components"
+                ],
+                [
+                  "JSX syntax",
+                  "Không hỗ trợ",
+                  "Hỗ trợ"
+                ],
+                [
+                  "Type assertion",
+                  "<Type>x hoặc x as Type",
+                  "Chỉ as Type (tránh nhầm với JSX)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// userService.ts\n\nexport class UserService {\n\n  async getUser(id: number): Promise<User> { ... }\n\n  }\n\n// UserCard.tsx\n\nimport React from 'react';\n\ninterface Props { user: User; }\n\nconst UserCard: React.FC<Props> = ({ user }) => (\n\n  <div>{user.name}</div>\n\n);"
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Compiling TypeScript?",
+          "blocks": []
+        }
+      ]
+    },
+    {
+      "name": "-> tạo app.js.map",
+      "questions": [
+        {
+          "id": "Q19",
+          "q": "Modules trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Export named\n\nexport const PI = 3.14;\n\nexport function add(a: number, b: number): number { return a + b; }\n\nexport interface User { id: number; name: string; }\n\n// Export default\n\nexport default class Calculator { ... }\n\n// Import\n\nimport Calculator from './calculator';\n\nimport { PI, add, User } from './math';\n\nimport * as MathUtils from './math';\n\n// Re-export\n\nexport { add as sum } from './math';\n\nexport * from './utils';\n\n// Type-only import (không import runtime code)\n\nimport type { User } from './types';"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Arrow Functions trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Typed arrow function\n\nconst greet = (name: string): string => `Hello, ${name}!`;\n\n// Arrow function trong interface\n\ninterface Transformer {\n\n  transform: (input: string) => string;\n\n  }\n\n// Generic arrow function\n\nconst identity = <T>(value: T): T => value;\n\n// Trong .tsx: dùng <T,> hoặc extends unknown\n\nconst identity2 = <T,>(value: T): T => value;\n\n// Function overloads với arrow functions\n\ntype MathFn = {\n\n  (x: number): number;\n\n  (x: string): string;\n\n  };"
+            }
+          ]
+        },
+        {
+          "id": "Q21",
+          "q": "Optional Parameters trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Optional parameter: phải sau required params\n\nfunction log(message: string, level?: 'info' | 'warn' | 'error'): void {\n\n  const l = level ?? 'info';\n\n  console.log(`[${l}] ${message}`);\n\n  }\n\n// Default parameter\n\nfunction connect(host: string, port = 5432): string {\n\n  return `${host}:${port}`;\n\n  }\n\n// Rest parameters\n\nfunction sum(...numbers: number[]): number {\n\n  return numbers.reduce((a, b) => a + b, 0);\n\n  }\n\nsum(1, 2, 3, 4); // 10\n\n// Named parameters (qua destructuring)\n\nfunction createUser({ name, age = 0 }: { name: string; age?: number }): User {\n\n  return { id: Date.now(), name, age };\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Class trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Animal {\n\n  private   name:   string;    // chỉ trong class\n\n  protected sound:  string;    // class + subclass\n\n  public    species: string;   // mọi nơi (mặc định)\n\n  readonly  id:     number;\n\n  constructor(name: string, sound: string) {\n\n    this.name  = name;\n\n    this.sound = sound;\n\n    this.id    = Math.random();\n\n  }\n\n  speak(): string { return `${this.name} says ${this.sound}`; }\n\n  }\n\nclass Dog extends Animal {\n\n  private breed: string;\n\n  constructor(name: string, breed: string) {\n\n    super(name, 'Woof');  // gọi constructor cha\n\n    this.breed = breed;\n\n  }\n\n  // Override\n\n  speak(): string { return super.speak() + '!'; }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Implements vs Extends?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chích",
+                  "implements",
+                  "extends"
+                ],
+                [
+                  "Dùng với",
+                  "interface",
+                  "class hoặc interface"
+                ],
+                [
+                  "Kế thừa code",
+                  "Không",
+                  "Có"
+                ],
+                [
+                  "Mục đích",
+                  "Bắt buộc theo contract",
+                  "Tái sử dụng code"
+                ],
+                [
+                  "Nhiều cái cùng lúc",
+                  "Có (implements A, B, C)",
+                  "Không (chỉ extends 1 class)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface Flyable  { fly(): void; }\n\ninterface Swimmable { swim(): void; }\n\n// implements: tự viết lại tất cả\n\nclass Duck implements Flyable, Swimmable {\n\n  fly()  { console.log('Flying'); }\n\n  swim() { console.log('Swimming'); }\n\n  }\n\n// extends: kế thừa code từ parent\n\nclass Mallard extends Duck {\n\n  quack() { console.log('Quack!'); }\n\n  // fly() và swim() được kế thừa\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "Access Modifiers: public, private, protected?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Modifier",
+                  "Trong class",
+                  "Subclass",
+                  "Bên ngoài"
+                ],
+                [
+                  "public (mặc định)",
+                  "Có",
+                  "Có",
+                  "Có"
+                ],
+                [
+                  "private",
+                  "Có",
+                  "Không",
+                  "Không"
+                ],
+                [
+                  "protected",
+                  "Có",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "#name (JS private field)",
+                  "Có",
+                  "Không",
+                  "Không (cả runtime)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class BankAccount {\n\n  private   balance:  number = 0;   // TS private\n\n  protected owner:   string;\n\n  public    currency: string = 'USD';\n\n  #pin:     string;                  // JS private (runtime)\n\n  constructor(owner: string, pin: string) {\n\n    this.owner = owner;\n\n    this.#pin  = pin;\n\n  }\n\n  deposit(amount: number): void { this.balance += amount; }\n\n  getBalance(): number { return this.balance; }\n\n  }\n\n// Constructor shorthand (rút gọn)\n\nclass Point {\n\n  constructor(\n\n    public x: number,\n\n    private y: number\n\n  ) { }  // tự động tạo và gán properties\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "OOP trong TypeScript: 4 pillars?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Encapsulation: private/protected ẩn data, chỉ expose qua public methods."
+            },
+            {
+              "type": "text",
+              "text": "- Inheritance: extends để tái sử dụng code."
+            },
+            {
+              "type": "text",
+              "text": "- Polymorphism: Override methods — subclass tự quyết định hành vi."
+            },
+            {
+              "type": "text",
+              "text": "- Abstraction: abstract class/interface ẩn implementation, chỉ expose contract."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "abstract class Shape {\n\n  abstract area(): number;      // subclass phải implement\n\n  perimeter(): number { return 0; }  // có default\n\n  }\n\nclass Circle extends Shape {\n\n  constructor(private radius: number) { super(); }\n\n  area() { return Math.PI * this.radius ** 2; }\n\n  }\n\nclass Square extends Shape {\n\n  constructor(private side: number) { super(); }\n\n  area() { return this.side ** 2; }\n\n  }\n\n// Polymorphism\n\nconst shapes: Shape[] = [new Circle(5), new Square(4)];\n\nshapes.forEach(s => console.log(s.area()));"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — TypeScript Intermediate (Q26–42)",
+      "questions": [
+        {
+          "id": "Q26",
+          "q": "Generics trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Generics cho phép viết code linh hoạt với nhiều kiểu khác nhau mà vẫn giữ type safety."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Generic function\n\nfunction identity<T>(value: T): T { return value; }\n\nidentity<string>('hello');  // T = string\n\nidentity(42);               // T suy ra tự động = number\n\n// Generic interface\n\ninterface Repository<T> {\n\n  findById(id: number): Promise<T>;\n\n  findAll(): Promise<T[]>;\n\n  save(entity: T): Promise<T>;\n\n  delete(id: number): Promise<void>;\n\n  }\n\n// Generic class\n\nclass Stack<T> {\n\n  private items: T[] = [];\n\n  push(item: T): void   { this.items.push(item); }\n\n  pop(): T | undefined  { return this.items.pop(); }\n\n  peek(): T | undefined { return this.items[this.items.length - 1]; }\n\n  }\n\nconst stack = new Stack<number>();\n\nstack.push(1);\n\nstack.push(2);\n\nconsole.log(stack.pop()); // 2"
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Generic Constraints?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Constraint với extends\n\nfunction getLength<T extends { length: number }>(val: T): number {\n\n  return val.length;\n\n  }\n\ngetLength('hello');    // OK: string có length\n\ngetLength([1,2,3]);    // OK: array có length\n\n// getLength(42);      // Error: number không có length\n\n// Constraint kèm interface\n\ninterface Printable { print(): void; }\n\nfunction printAll<T extends Printable>(items: T[]): void {\n\n  items.forEach(item => item.print());\n\n  }\n\n// keyof constraint\n\nfunction getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {\n\n  return obj[key];\n\n  }\n\nconst user = { name: 'Dat', age: 25 };\n\ngetProperty(user, 'name'); // OK\n\n// getProperty(user, 'email'); // Error: 'email' không tồn tại\n\n// Multiple constraints\n\nfunction merge<T extends object, U extends object>(a: T, b: U): T & U {\n\n  return { ...a, ...b };\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Utility Types quan trọng?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "TypeScript có sẵn các utility types để biến đổi types mà không cần viết lại từng cái."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Utility Type",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Partial<T>",
+                  "Tất cả properties thành optional",
+                  "Partial<User> — dùng cho update payloads"
+                ],
+                [
+                  "Required<T>",
+                  "Tất cả optional thành required",
+                  "Required<Config>"
+                ],
+                [
+                  "Readonly<T>",
+                  "Tất cả properties thành readonly",
+                  "Readonly<Point>"
+                ],
+                [
+                  "Pick<T,K>",
+                  "Chọn một số properties",
+                  "Pick<User, 'id'│'name'>"
+                ],
+                [
+                  "Omit<T,K>",
+                  "Loại bỏ một số properties",
+                  "Omit<User, 'password'>"
+                ],
+                [
+                  "Record<K,V>",
+                  "Tạo object type với key/value",
+                  "Record<string, number>"
+                ],
+                [
+                  "Exclude<T,U>",
+                  "Xóa kiểu khỏi union",
+                  "Exclude<'a'│'b'│'c', 'a'>"
+                ],
+                [
+                  "Extract<T,U>",
+                  "Lấy kiểu thuộc cả 2 union",
+                  "Extract<'a'│'b', 'b'│'c'>"
+                ],
+                [
+                  "NonNullable<T>",
+                  "Xóa null và undefined",
+                  "NonNullable<string│null>"
+                ],
+                [
+                  "ReturnType<T>",
+                  "Kiểu return của function",
+                  "ReturnType<typeof fetchUser>"
+                ],
+                [
+                  "Parameters<T>",
+                  "Tuple các parameters",
+                  "Parameters<typeof add>"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface User { id: number; name: string; email: string; password: string; }\n\n// Partial: optional update\n\ntype UpdateUser = Partial<User>;\n\nconst update: UpdateUser = { name: 'New Name' }; // chỉ cần một số fields\n\n// Omit: xóa sensitive fields\n\ntype PublicUser = Omit<User, 'password'>;\n\n// Pick: chọn fields cần thiết\n\ntype UserSummary = Pick<User, 'id' | 'name'>;\n\n// Record\n\ntype UserRoles = Record<string, 'admin' | 'user' | 'guest'>;"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Type Guards là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Type guard là pattern kiểm tra runtime để narrow kiểu từ rộng xuống hẹp hơn."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// typeof guard\n\nfunction process(val: string | number) {\n\n  if (typeof val === 'string') {\n\n    val.toUpperCase();  // val: string\n\n  } else {\n\n    val.toFixed(2);     // val: number\n\n  }\n\n  }\n\n// instanceof guard\n\nfunction handleError(err: unknown) {\n\n  if (err instanceof Error) {\n\n    console.log(err.message); // err: Error\n\n  } else if (typeof err === 'string') {\n\n    console.log(err);\n\n  }\n\n  }\n\n// in operator guard\n\ninterface Bird { fly(): void; }\n\ninterface Fish { swim(): void; }\n\nfunction move(animal: Bird | Fish) {\n\n  if ('fly' in animal) {\n\n    animal.fly();   // animal: Bird\n\n  } else {\n\n    animal.swim();  // animal: Fish\n\n  }\n\n  }\n\n// Custom type predicate\n\nfunction isUser(val: unknown): val is User {\n\n  return typeof val === 'object' && val !== null && 'id' in val && 'name' in val;\n\n  }\n\nfunction processData(data: unknown) {\n\n  if (isUser(data)) {\n\n    console.log(data.name); // data: User\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "Decorators trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Decorator là higher-order function dùng cú pháp @ để modify class, method, property, parameter. Yêu cầu experimentalDecorators: true trong tsconfig."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Class decorator\n\nfunction Singleton<T extends new (...args: any[]) => {}>(constructor: T) {\n\n  let instance: T;\n\n  return class extends constructor {\n\n    constructor(...args: any[]) {\n\n      if (instance) return instance;\n\n      super(...args);\n\n      instance = this as unknown as T;\n\n    }\n\n  };\n\n  }\n\n// Method decorator\n\nfunction Log(target: any, key: string, descriptor: PropertyDescriptor) {\n\n  const original = descriptor.value;\n\n  descriptor.value = function (...args: any[]) {\n\n    console.log(`${key} called with`, args);\n\n    return original.apply(this, args);\n\n  };\n\n  return descriptor;\n\n  }\n\n// Property decorator\n\nfunction Required(target: any, key: string) {\n\n  let value = target[key];\n\n  Object.defineProperty(target, key, {\n\n    get: () => value,\n\n    set: (v) => { if (!v) throw new Error(`${key} is required`); value = v; }\n\n  });\n\n  }\n\n@Singleton\n\nclass Database {\n\n  @Log\n\n  connect(@Required url: string): void { }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Mapped Types?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Mapped types tạo kiểu mới bằng cách lặp qua properties của kiểu khác."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Tự viết Partial (tương đương built-in)\n\ntype MyPartial<T> = { [K in keyof T]?: T[K] };\n\n// Readonly\n\ntype MyReadonly<T> = { readonly [K in keyof T]: T[K] };\n\n// Nullable: thêm | null vào mọi property\n\ntype Nullable<T> = { [K in keyof T]: T[K] | null };\n\n// Flags: biến mọi property thành boolean\n\ntype Flags<T> = { [K in keyof T]: boolean };\n\n// Remapping với as (TS 4.1+)\n\ntype Getters<T> = {\n\n  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K]\n\n  };\n\n// Ví dụ:\n\n// Getters<{ name: string }> => { getName: () => string }"
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "Conditional Types?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Conditional types cho phép biểu diễn kiểu phụ thuộc vào điều kiện."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Cú pháp: T extends U ? X : Y\n\ntype IsString<T> = T extends string ? true : false;\n\ntype A = IsString<string>;  // true\n\ntype B = IsString<number>;  // false\n\n// NonNullable (tương đương built-in)\n\ntype MyNonNullable<T> = T extends null | undefined ? never : T;\n\n// Flatten array\n\ntype Flatten<T> = T extends Array<infer U> ? U : T;\n\ntype Num = Flatten<number[]>;   // number\n\ntype Str = Flatten<string>;     // string (không phải array)\n\n// infer: tự suy ra kiểu bên trong\n\ntype ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;\n\ntype R = ReturnType<() => string>; // string\n\n// Distributive conditional types\n\ntype ToArray<T> = T extends any ? T[] : never;\n\ntype StrOrNum = ToArray<string | number>; // string[] | number[]"
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Template Literal Types (TS 4.1+)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Template literal type\n\ntype Greeting = `Hello, ${string}`;\n\nconst g: Greeting = 'Hello, Dat';   // OK\n\n// const g2: Greeting = 'Hi, Dat'; // Error\n\n// Với union types\n\ntype Direction = 'left' | 'right' | 'up' | 'down';\n\ntype CSSProperty = `margin-${Direction}` | `padding-${Direction}`;\n\n// 'margin-left' | 'margin-right' | ...\n\n// Event handler naming\n\ntype EventName<T extends string> = `on${Capitalize<T>}`;\n\ntype ClickHandler = EventName<'click'>;  // 'onClick'\n\n// API endpoints\n\ntype Endpoint = `/api/${string}`;\n\n// Getter/Setter generation\n\ntype Getters<T> = {\n\n  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K]\n\n  };"
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Namespace trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Namespace (trước đây gọi là Internal Modules) nhóm các code liên quan vào một scope. Hiện tại modules (import/export) được ưu tiên hơn."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "namespace Validation {\n\n  export interface StringValidator {\n\n    isAcceptable(s: string): boolean;\n\n  }\n\n  export class LettersOnly implements StringValidator {\n\n    isAcceptable(s: string) { return /^[A-Za-z]+$/.test(s); }\n\n  }\n\n  }\n\n// Sử dụng\n\nconst validator = new Validation.LettersOnly();\n\n// Nested namespace\n\nnamespace App {\n\n  export namespace Models {\n\n    export interface User { id: number; name: string; }\n\n  }\n\n  export namespace Services {\n\n    export class UserService { ... }\n\n  }\n\n  }\n\nnote('Module (import/export) được khuyến nghị hơn namespace trong code hiện đại.');"
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Declaration Merging?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Declaration Merging cho phép có nhiều declarations cùng tên — TypeScript tự động merge chúng lại."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Interface merging (hay dùng nhất)\n\ninterface Window { myPlugin: { version: string }; }\n\ninterface Window { analytics: () => void; }\n\n// Kết quả: Window có cả myPlugin và analytics\n\n// Mở rộng third-party types\n\n// src/types/express.d.ts\n\ndeclare namespace Express {\n\n  interface Request {\n\n    user?: User;            // thêm user vào Request\n\n    requestId?: string;\n\n  }\n\n  }\n\n// function merging (overloads)\n\nfunction process(x: string): string;\n\nfunction process(x: number): number;\n\nfunction process(x: any): any {\n\n  if (typeof x === 'string') return x.toUpperCase();\n\n  return x * 2;\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Function Overloads trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Overload signatures (không có body)\n\nfunction format(val: string): string;\n\nfunction format(val: number): string;\n\nfunction format(val: Date): string;\n\n// Implementation signature (có body, không export)\n\nfunction format(val: string | number | Date): string {\n\n  if (typeof val === 'string') return val.toUpperCase();\n\n  if (typeof val === 'number') return val.toFixed(2);\n\n  return val.toISOString();\n\n  }\n\n// Sử dụng\n\nformat('hello');  // string\n\nformat(3.14);     // string\n\nformat(new Date()); // string\n\n// format(true); // Error: no matching overload\n\n// Method overloads trong class\n\nclass Calculator {\n\n  add(a: number, b: number): number;\n\n  add(a: string, b: string): string;\n\n  add(a: any, b: any): any { return a + b; }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Mixins trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Mixin là pattern kết hợp nhiều partial classes vào một class."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Base constructor type\n\ntype Constructor<T = {}> = new (...args: any[]) => T;\n\n// Mixin functions\n\nfunction Timestamped<TBase extends Constructor>(Base: TBase) {\n\n  return class extends Base {\n\n    timestamp = Date.now();\n\n  };\n\n  }\n\nfunction Activatable<TBase extends Constructor>(Base: TBase) {\n\n  return class extends Base {\n\n    isActive = false;\n\n    activate()   { this.isActive = true; }\n\n    deactivate() { this.isActive = false; }\n\n  };\n\n  }\n\n// Compose\n\nclass User { constructor(public name: string) {} }\n\nconst TimestampedUser = Timestamped(User);\n\nconst TimestampedActivatableUser = Activatable(TimestampedUser);\n\nconst user = new TimestampedActivatableUser('Dat');\n\nuser.activate();\n\nconsole.log(user.isActive);   // true\n\nconsole.log(user.timestamp);  // number"
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Conditional Types với infer?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// infer: tự số suy ra kiểu bên trong\n\ntype UnpackPromise<T> = T extends Promise<infer U> ? U : T;\n\ntype A = UnpackPromise<Promise<string>>;  // string\n\ntype B = UnpackPromise<number>;           // number\n\n// Parameters & ReturnType (built-in dùng infer)\n\ntype Params = Parameters<(a: string, b: number) => void>;\n\n// [string, number]\n\ntype Ret = ReturnType<() => Promise<User>>;\n\n// Promise<User>\n\n// InstanceType: kiểu từ constructor\n\nclass MyService { value = 42; }\n\ntype ServiceInstance = InstanceType<typeof MyService>;\n\n// MyService\n\n// First element của tuple\n\ntype Head<T extends any[]> = T extends [infer H, ...any[]] ? H : never;\n\ntype H = Head<[string, number, boolean]>; // string"
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Type-safe Event Emitter với Generics?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Typed events\n\ninterface Events {\n\n  'user:login':  { userId: string; timestamp: Date };\n\n  'user:logout': { userId: string };\n\n  'order:placed': { orderId: string; amount: number };\n\n  }\n\nclass TypedEventEmitter<TEvents extends Record<string, unknown>> {\n\n  private listeners = new Map<keyof TEvents, Function[]>();\n\n  on<K extends keyof TEvents>(event: K, handler: (data: TEvents[K]) => void) {\n\n    if (!this.listeners.has(event)) this.listeners.set(event, []);\n\n    this.listeners.get(event)!.push(handler);\n\n  }\n\n  emit<K extends keyof TEvents>(event: K, data: TEvents[K]) {\n\n    this.listeners.get(event)?.forEach(h => h(data));\n\n  }\n\n  }\n\nconst emitter = new TypedEventEmitter<Events>();\n\nemitter.on('user:login', (data) => {\n\n  console.log(data.userId);  // TypeScript knows: string\n\n  });\n\nemitter.emit('user:login', {\n\n  userId: '123', timestamp: new Date()  // type checked!\n\n  });"
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Discriminated Unions?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Discriminated union là union types chia sẻ một literal type property để TypeScript biết đang ở case nào."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Discriminated union (literal type là 'kind')\n\ntype Shape =\n\n  | { kind: 'circle';   radius: number }\n\n  | { kind: 'square';   side: number   }\n\n  | { kind: 'rectangle'; width: number; height: number };\n\nfunction area(shape: Shape): number {\n\n  switch (shape.kind) {\n\n    case 'circle':    return Math.PI * shape.radius ** 2;\n\n    case 'square':    return shape.side ** 2;\n\n    case 'rectangle': return shape.width * shape.height;\n\n    default:\n\n      const _never: never = shape; // exhaustive check\n\n      return _never;\n\n  }\n\n  }\n\n// Result type\n\ntype Result<T, E = Error> =\n\n  | { success: true;  data: T  }\n\n  | { success: false; error: E };\n\nfunction parseUser(json: string): Result<User> {\n\n  try {\n\n    return { success: true,  data: JSON.parse(json) };\n\n  } catch (e) {\n\n    return { success: false, error: e as Error };\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q41",
+          "q": "Abstract Classes?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "abstract class Repository<T> {\n\n  abstract findById(id: number): Promise<T | null>;\n\n  abstract findAll(): Promise<T[]>;\n\n  abstract save(entity: T): Promise<T>;\n\n  // Concrete method (dùng chung)\n\n  async findOrThrow(id: number): Promise<T> {\n\n    const entity = await this.findById(id);\n\n    if (!entity) throw new Error(`Entity ${id} not found`);\n\n    return entity;\n\n  }\n\n  }\n\nclass UserRepository extends Repository<User> {\n\n  async findById(id: number): Promise<User | null> {\n\n    return db.query('SELECT * FROM users WHERE id = ?', [id]);\n\n  }\n\n  async findAll(): Promise<User[]> {\n\n    return db.query('SELECT * FROM users');\n\n  }\n\n  async save(user: User): Promise<User> {\n\n    return db.query('INSERT INTO users ... RETURNING *', user);\n\n  }\n\n  }\n\n// Abstract class khác interface:\n\n// - Abstract class có thể có implementation\n\n// - Abstract class không support multiple inheritance"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Module Augmentation?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Module augmentation cho phép thêm types vào third-party modules."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Thêm type vào Express Request\n\n// src/types/express.d.ts\n\nimport { User } from './user';\n\ndeclare global {\n\n  namespace Express {\n\n    interface Request {\n\n      user?: User;\n\n      requestId?: string;\n\n      startTime?: number;\n\n    }\n\n  }\n\n  }\n\n// Thêm method vào String\n\ndeclare global {\n\n  interface String {\n\n    toTitleCase(): string;\n\n  }\n\n  }\n\nString.prototype.toTitleCase = function() {\n\n  return this.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');\n\n  };"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — TypeScript Advanced (Q43–58)",
+      "questions": [
+        {
+          "id": "Q43",
+          "q": "Conditional Types nâng cao?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// DeepReadonly\n\ntype DeepReadonly<T> = {\n\n  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K]\n\n  };\n\n// DeepPartial\n\ntype DeepPartial<T> = {\n\n  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K]\n\n  };\n\n// Paths: lấy tất cả paths của object\n\ntype Paths<T> = T extends object\n\n  ? { [K in keyof T]: K extends string\n\n    ? K | `${K}.${Paths<T[K]>}`\n\n    : never\n\n  }[keyof T]\n\n  : never;\n\n// Ví dụ\n\ntype UserPaths = Paths<{ name: string; address: { city: string } }>;\n\n// 'name' | 'address' | 'address.city'"
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Class Decorators nâng cao (NestJS pattern)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Injectable decorator\n\nconst injectMetaKey = Symbol('inject');\n\nfunction Injectable(): ClassDecorator {\n\n  return (target) => {\n\n    Reflect.defineMetadata(injectMetaKey, true, target);\n\n  };\n\n  }\n\n// Controller decorator\n\nfunction Controller(path: string): ClassDecorator {\n\n  return (target) => {\n\n    Reflect.defineMetadata('path', path, target);\n\n  };\n\n  }\n\n// Method decorator for HTTP methods\n\nfunction Get(path: string): MethodDecorator {\n\n  return (target, key, descriptor) => {\n\n    Reflect.defineMetadata('method', 'GET', target, key as string);\n\n    Reflect.defineMetadata('path',   path,  target, key as string);\n\n  };\n\n  }\n\n@Controller('/users')\n\n@Injectable()\n\nclass UserController {\n\n  @Get('/:id')\n\n  async getUser(id: string) { /* ... */ }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "Readonly và Immutable Patterns?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Object.freeze với type\n\nfunction freeze<T>(obj: T): Readonly<T> {\n\n  return Object.freeze(obj);\n\n  }\n\n// Deep freeze\n\nfunction deepFreeze<T extends object>(obj: T): Readonly<T> {\n\n  Object.getOwnPropertyNames(obj).forEach(key => {\n\n    const val = (obj as any)[key];\n\n    if (typeof val === 'object' && val !== null) deepFreeze(val);\n\n  });\n\n  return Object.freeze(obj);\n\n  }\n\n// Immutable class pattern\n\nclass ImmutablePoint {\n\n  constructor(\n\n    readonly x: number,\n\n    readonly y: number\n\n  ) {}\n\n  withX(x: number): ImmutablePoint { return new ImmutablePoint(x, this.y); }\n\n  withY(y: number): ImmutablePoint { return new ImmutablePoint(this.x, y); }\n\n  }\n\nconst p1 = new ImmutablePoint(1, 2);\n\nconst p2 = p1.withX(3); // p1 không thay đổi"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "Type-Safe Builder Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class QueryBuilder<T> {\n\n  private conditions: string[] = [];\n\n  private selectFields: (keyof T)[] = [];\n\n  private limitVal?: number;\n\n  select<K extends keyof T>(...fields: K[]): QueryBuilder<Pick<T, K>> {\n\n    this.selectFields = fields as any;\n\n    return this as any;\n\n  }\n\n  where(condition: string): this {\n\n    this.conditions.push(condition);\n\n    return this;  // return this để chain\n\n  }\n\n  limit(n: number): this {\n\n    this.limitVal = n;\n\n    return this;\n\n  }\n\n  build(): string {\n\n    const fields = this.selectFields.join(', ') || '*';\n\n    const where  = this.conditions.length ? ' WHERE ' + this.conditions.join(' AND ') : '';\n\n    const limit  = this.limitVal ? ' LIMIT ' + this.limitVal : '';\n\n    return `SELECT ${fields}${where}${limit}`;\n\n  }\n\n  }\n\nconst query = new QueryBuilder<User>()\n\n  .select('id', 'name', 'email')\n\n  .where('age > 18')\n\n  .where('active = true')\n\n  .limit(10)\n\n  .build();"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Structural Typing vs Nominal Typing?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "TypeScript dùng structural typing (duck typing) — hai kiểu tương thích nếu có cùng structure, không cần cùng tên."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Structural typing: compatible nếu cùng shape\n\ninterface Named { name: string; }\n\nclass Person { constructor(public name: string) {} }\n\nconst n: Named = new Person('Dat'); // OK! Person có name property\n\n// Nominal typing (simulate bằng brand)\n\ntype UserId   = string & { readonly brand: unique symbol };\n\ntype ProductId = string & { readonly brand: unique symbol };\n\nconst userId:    UserId    = 'user-123'   as UserId;\n\nconst productId: ProductId = 'product-456' as ProductId;\n\n// userId = productId; // Error! dù cả 2 là string\n\n// Branded types trong thực tế\n\ntype Meters = number & { readonly _brand: 'Meters' };\n\ntype Kilograms = number & { readonly _brand: 'Kilograms' };\n\nfunction toMeters(n: number): Meters { return n as Meters; }\n\nconst height = toMeters(1.8);\n\n// const weight: Kilograms = height; // Error!"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Sử dụng TypeScript với NestJS (thực tế)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "import { Injectable, NotFoundException } from '@nestjs/common';\n\nimport { InjectRepository } from '@nestjs/typeorm';\n\nimport { Repository } from 'typeorm';\n\n// DTO với class-validator\n\nimport { IsString, IsEmail, IsOptional, MinLength } from 'class-validator';\n\nclass CreateUserDto {\n\n  @IsString()\n\n  @MinLength(2)\n\n  name: string;\n\n  @IsEmail()\n\n  email: string;\n\n  @IsOptional()\n\n  @IsString()\n\n  phone?: string;\n\n  }\n\n@Injectable()\n\nclass UserService {\n\n  constructor(\n\n    @InjectRepository(User)\n\n    private userRepo: Repository<User>\n\n  ) {}\n\n  async findById(id: number): Promise<User> {\n\n    const user = await this.userRepo.findOne({ where: { id } });\n\n    if (!user) throw new NotFoundException(`User ${id} not found`);\n\n    return user;\n\n  }\n\n  async create(dto: CreateUserDto): Promise<User> {\n\n    const user = this.userRepo.create(dto);\n\n    return this.userRepo.save(user);\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "Covariance và Contravariance?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Covariance: subtype có thể dùng thay cho supertype. Contravariance: ngược lại. Quan trọng để hiểu function types."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Return types: covariant\n\ntype Animal = { name: string };\n\ntype Dog    = Animal & { breed: string };\n\ntype GetAnimal = () => Animal;\n\ntype GetDog    = () => Dog;\n\n// GetDog assignable to GetAnimal (covariant return)\n\nconst getAnimal: GetAnimal = (): Dog => ({ name: 'Rex', breed: 'Lab' }); // OK\n\n// Parameter types: contravariant\n\ntype HandleAnimal = (a: Animal) => void;\n\ntype HandleDog    = (d: Dog)    => void;\n\n// HandleAnimal assignable to HandleDog (contravariant params)\n\nconst handleDog: HandleDog = (a: Animal) => console.log(a.name); // OK\n\n// (HandleAnimal mở hơn HandleDog — chấp nhận Animal = chấp nhận Dog)\n\n// strictFunctionTypes: bật strict contravariance check"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "Variadic Tuple Types (TS 4.0+)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Variadic: spread trong tuple type\n\ntype Concat<T extends unknown[], U extends unknown[]> = [...T, ...U];\n\ntype Result = Concat<[1, 2], [3, 4]>; // [1, 2, 3, 4]\n\n// Prepend element\n\ntype Prepend<T, Arr extends unknown[]> = [T, ...Arr];\n\ntype P = Prepend<string, [number, boolean]>; // [string, number, boolean]\n\n// Function composition với variadic\n\nfunction concat<T extends unknown[], U extends unknown[]>(\n\n  a: [...T], b: [...U]\n\n): [...T, ...U] {\n\n  return [...a, ...b];\n\n  }\n\n// Partial tuple\n\ntype PartialTuple<T extends unknown[]> = { [K in keyof T]?: T[K] };"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Project References (Large Codebase)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// tsconfig.json (root)\n\n// Chia project lớn thành các packages riêng\n\n{\n\n  \"references\": [\n\n    { \"path\": \"./packages/core\" },\n\n    { \"path\": \"./packages/utils\" },\n\n    { \"path\": \"./packages/api\" }\n\n  ]\n\n  }\n\n// packages/core/tsconfig.json\n\n{\n\n  \"compilerOptions\": {\n\n    \"composite\": true,    // bắt buộc cho referenced projects\n\n    \"declarationMap\": true\n\n  }\n\n  }\n\n// Lợi ích:\n\n// - Compile từng package độc lập\n\n// - Incremental build (chỉ compile lại cái đã thay đổi)\n\n// - Type check boundary giữa packages"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Conditional Types: Distributive behavior?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Distributive: khi T là union, conditional type pân phối\n\ntype ToArray<T> = T extends any ? T[] : never;\n\ntype A = ToArray<string | number>; // string[] | number[]\n\n// Tương đương: ToArray<string> | ToArray<number>\n\n// Tắt distributive bằng cách bắng ngoặc [T]\n\ntype ToArrayNonDist<T> = [T] extends [any] ? T[] : never;\n\ntype B = ToArrayNonDist<string | number>; // (string | number)[]\n\n// Ứng dụng thực tế\n\ntype Exclude<T, U> = T extends U ? never : T;\n\ntype E = Exclude<'a' | 'b' | 'c', 'a' | 'b'>; // 'c'\n\n// Mapped type với conditional\n\ntype RequiredNonNull<T> = {\n\n  [K in keyof T]-?: NonNullable<T[K]>\n\n  };\n\n// -? xóa optional"
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Type Narrowing nâng cao?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Discriminated union narrowing\n\ntype ApiResponse<T> =\n\n  | { status: 'loading' }\n\n  | { status: 'success'; data: T }\n\n  | { status: 'error';   error: string };\n\nfunction handleResponse<T>(res: ApiResponse<T>): T | null {\n\n  switch (res.status) {\n\n    case 'loading': return null;\n\n    case 'success': return res.data;   // TypeScript biết có .data\n\n    case 'error':   throw new Error(res.error); // TypeScript biết có .error\n\n  }\n\n  }\n\n// Control flow narrowing\n\nfunction processId(id: string | null | undefined) {\n\n  if (id == null) return;  // narrow ra: id: string\n\n  id.toUpperCase();        // safe\n\n  }\n\n// Assertion function\n\nfunction assertIsString(val: unknown): asserts val is string {\n\n  if (typeof val !== 'string') throw new Error('Not a string');\n\n  }\n\nfunction process(val: unknown) {\n\n  assertIsString(val);\n\n  val.toUpperCase(); // val: string sau assertion\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Satisfies operator (TS 4.9+)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// satisfies: kiểm tra type mà không widening\n\nconst palette = {\n\n  red:   [255, 0, 0],\n\n  green: '#00ff00',\n\n  blue:  [0, 0, 255]\n\n  } satisfies Record<string, string | number[]>;\n\n// Khác với type annotation:\n\n// Mửi annotation: palette.red có type string | number[]\n\n// satisfies: palette.red có type number[] (tự suy ra)\n\npalette.red.map(x => x * 2);    // OK: TypeScript biết là number[]\n\npalette.green.toUpperCase();    // OK: TypeScript biết là string\n\n// Ví dụ khác\n\ntype Colors = 'red' | 'green' | 'blue';\n\nconst colorMap = {\n\n  red: '#FF0000',\n\n  green: '#00FF00',\n\n  blue: '#0000FF'\n\n  } satisfies Record<Colors, string>;\n\n// Thêm màu không có trong Colors -> Error"
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "const Assertions và as const?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// as const: biến lị thành literal type, readonly\n\nconst direction = 'left' as const;\n\n// type: 'left' (không phải string)\n\nconst config = {\n\n  host: 'localhost',\n\n  port: 3000\n\n  } as const;\n\n// type: { readonly host: 'localhost'; readonly port: 3000 }\n\n// Array as const\n\nconst roles = ['admin', 'user', 'guest'] as const;\n\n// type: readonly ['admin', 'user', 'guest']\n\ntype Role = typeof roles[number]; // 'admin' | 'user' | 'guest'\n\n// Khi nào dùng as const?\n\n// 1. Enum-like constants\n\n// 2. Config objects không thay đổi\n\n// 3. Route/event name arrays\n\n// 4. Khi cần literal type thay vì general type"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "Type-safe HTTP Client?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Fully typed API client\n\ntype HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';\n\ninterface ApiEndpoints {\n\n  '/users':        { GET: User[];  POST: User };\n\n  '/users/:id':    { GET: User;   PUT: User; DELETE: void };\n\n  '/orders':       { GET: Order[]; POST: Order };\n\n  }\n\ntype EndpointMethod<P extends keyof ApiEndpoints, M extends HttpMethod> =\n\n  M extends keyof ApiEndpoints[P] ? ApiEndpoints[P][M] : never;\n\nasync function apiCall<\n\n  P extends keyof ApiEndpoints,\n\n  M extends keyof ApiEndpoints[P] & HttpMethod\n\n  >(method: M, path: P): Promise<ApiEndpoints[P][M]> {\n\n  const res = await fetch(path, { method });\n\n  return res.json();\n\n  }\n\nconst users = await apiCall('GET',  '/users');   // User[]\n\nconst user  = await apiCall('POST', '/users');   // User"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "Performance Tips trong TypeScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Import type: import type để chỉ import type definitions — không import runtime code."
+            },
+            {
+              "type": "text",
+              "text": "- Incremental compilation: incremental: true trong tsconfig."
+            },
+            {
+              "type": "text",
+              "text": "- Skip lib check: skipLibCheck: true giảm thời gian check node_modules."
+            },
+            {
+              "type": "text",
+              "text": "- Isolate modules: isolatedModules: true để transpile-only mode."
+            },
+            {
+              "type": "text",
+              "text": "- Project references: Chia project lớn thành packages nhỏ."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "{\n\n  \"compilerOptions\": {\n\n    \"incremental\":   true,   // cache .tsbuildinfo\n\n    \"skipLibCheck\": true,   // skip type check d3 types\n\n    \"isolatedModules\": true, // transpile nhanh hơn\n\n    \"declaration\":    true,\n\n    \"declarationMap\": true   // jump-to-definition\n\n  }\n\n  }\n\n// import type: không emit runtime code\n\nimport type { User } from './types'; // chỉ type, không import runtime"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Advanced Pattern: Builder với Fluent Interface?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Type-safe Email Builder\n\ninterface EmailConfig {\n\n  to:      string;\n\n  subject: string;\n\n  body:    string;\n\n  from?:   string;\n\n  cc?:     string[];\n\n  }\n\ntype RequiredEmailConfig = Required<Pick<EmailConfig, 'to' | 'subject' | 'body'>>;\n\nclass EmailBuilder {\n\n  private config: Partial<EmailConfig> = {};\n\n  to(address: string):      this { this.config.to      = address;  return this; }\n\n  subject(text: string):    this { this.config.subject = text;     return this; }\n\n  body(content: string):    this { this.config.body    = content;  return this; }\n\n  from(address: string):    this { this.config.from    = address;  return this; }\n\n  cc(...addresses: string[]): this { this.config.cc    = addresses; return this; }\n\n  build(): RequiredEmailConfig & Partial<EmailConfig> {\n\n    const { to, subject, body } = this.config;\n\n    if (!to || !subject || !body) throw new Error('Missing required fields');\n\n    return this.config as RequiredEmailConfig & Partial<EmailConfig>;\n\n  }\n\n  }\n\nconst email = new EmailBuilder()\n\n  .to('dat@example.com')\n\n  .subject('Hello!')\n\n  .body('TypeScript is awesome')\n\n  .cc('boss@company.com')\n\n  .build();"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "TypeScript",
+  "color": "#0D47A1"
+}

@@ -1,0 +1,2066 @@
+{
+  "title": "Networking Interview Questions",
+  "subtitle": "*Mạng máy tính — OSI, TCP/IP, HTTP, DNS, Security và Backend*",
+  "sections": [
+    {
+      "name": "Phần I — OSI Model, TCP/IP, Cơ Bản (Q1–20)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "OSI Model là gì? 7 tầng?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "OSI (Open Systems Interconnection) Model là framework 7 tầng mô tả cách dữ liệu di chuyển qua network. Mỗi tầng có trách nhiệm cụ thể."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "OSI Model (Data flow: Sender -> Receiver):\n\n  Layer 7: Application    HTTP, HTTPS, FTP, SMTP, DNS, WebSocket\n\n  Layer 6: Presentation  Encryption, Compression, Encoding (SSL/TLS)\n\n  Layer 5: Session       Session management, Authentication\n\n  Layer 4: Transport     TCP (reliable), UDP (fast), Port numbers\n\n  Layer 3: Network       IP addressing, Routing (Router)\n\n  Layer 2: Data Link     MAC address, Frames, Error detection (Switch)\n\n  Layer 1: Physical      Bits, Cables, WiFi, Hubs\n\n  Mnemonic: 'All People Seem To Need Data Processing'\n\n  Encapsulation (Sender, top -> down):\n\n    Data -> Segment -> Packet -> Frame -> Bits\n\n  Decapsulation (Receiver, bottom -> up):\n\n    Bits -> Frame -> Packet -> Segment -> Data\n\n*💡 Câu hỏi hay: **'**HTTP hoạt động ở tầng nào?**'** — Layer 7 (Application). TLS/SSL: Layer 6. IP: Layer 3. TCP: Layer 4.*"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "TCP/IP Model khác OSI Model thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "TCP/IP Layer",
+                  "OSI Layer tương đương",
+                  "Protocols"
+                ],
+                [
+                  "Application",
+                  "Layer 5+6+7",
+                  "HTTP, HTTPS, FTP, SMTP, DNS, SSH, WebSocket"
+                ],
+                [
+                  "Transport",
+                  "Layer 4",
+                  "TCP, UDP, QUIC"
+                ],
+                [
+                  "Internet",
+                  "Layer 3",
+                  "IPv4, IPv6, ICMP, ARP"
+                ],
+                [
+                  "Network Access",
+                  "Layer 1+2",
+                  "Ethernet, WiFi, MAC, PPP"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "So sanh:\n\n  OSI:     [7][6][5] | [4] | [3] | [2][1]\n\n  TCP/IP:  [Application] | [Transport] | [Internet] | [Network Access]\n\nTCP/IP la practical model duoc dung thuc te.\n\nOSI la reference model de giao tiep va hoc tap."
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "TCP vs UDP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "TCP (Transmission Control Protocol)",
+                  "UDP (User Datagram Protocol)"
+                ],
+                [
+                  "Connection",
+                  "Connection-oriented (3-way handshake)",
+                  "Connectionless"
+                ],
+                [
+                  "Reliability",
+                  "Guaranteed delivery, ordering",
+                  "Không đảm bảo delivery"
+                ],
+                [
+                  "Error checking",
+                  "Checksum + retransmission",
+                  "Checksum only"
+                ],
+                [
+                  "Flow control",
+                  "Có (sliding window)",
+                  "Không"
+                ],
+                [
+                  "Speed",
+                  "Chậm hơn (overhead)",
+                  "Nhanh hơn"
+                ],
+                [
+                  "Order",
+                  "Guaranteed in-order",
+                  "Không guaranteed"
+                ],
+                [
+                  "Header size",
+                  "20 bytes",
+                  "8 bytes"
+                ],
+                [
+                  "Use case",
+                  "HTTP, HTTPS, SSH, FTP",
+                  "DNS, streaming, gaming, VoIP"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TCP 3-Way Handshake:\n\n  Client                    Server\n\n    |  ------ SYN -------->  |   (I want to connect, seq=x)\n\n    |  <--- SYN+ACK -------  |   (OK, seq=y, ack=x+1)\n\n    |  ------ ACK -------->  |   (Got it, ack=y+1)\n\n    |  [Connection Established]\n\n    |  ------ DATA ------->  |\n\n    |  <------ ACK --------  |\n\nTCP 4-Way Termination:\n\n    |  ------ FIN -------->  |   (I'm done sending)\n\n    |  <------ ACK --------  |\n\n    |  <------ FIN --------  |   (I'm done too)\n\n    |  ------ ACK -------->  |\n\n    [Connection Closed - TIME_WAIT]"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "IP Address: IPv4 vs IPv6?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "IPv4",
+                  "IPv6"
+                ],
+                [
+                  "Size",
+                  "32 bits (4 bytes)",
+                  "128 bits (16 bytes)"
+                ],
+                [
+                  "Format",
+                  "192.168.1.1",
+                  "2001:0db8:85a3::8a2e:0370:7334"
+                ],
+                [
+                  "Addresses",
+                  "~4.3 billion",
+                  "~340 undecillion (3.4 × 10³¸)"
+                ],
+                [
+                  "Header size",
+                  "20-60 bytes",
+                  "40 bytes (fixed)"
+                ],
+                [
+                  "Checksum",
+                  "Có",
+                  "Không (delegated to L4)"
+                ],
+                [
+                  "NAT",
+                  "Cần thiết (address shortage)",
+                  "Không cần thiết"
+                ],
+                [
+                  "Security",
+                  "Optional (IPSec optional)",
+                  "Built-in IPSec support"
+                ],
+                [
+                  "Auto-config",
+                  "DHCP",
+                  "SLAAC (Stateless Address Autoconfiguration)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Private IP Ranges (RFC 1918):\n\n  Class A: 10.0.0.0     - 10.255.255.255  (/8)\n\n  Class B: 172.16.0.0  - 172.31.255.255  (/12)\n\n  Class C: 192.168.0.0 - 192.168.255.255 (/16)\n\nSpecial addresses:\n\n  127.0.0.1    = localhost (loopback)\n\n  0.0.0.0      = all interfaces (bind)\n\n  255.255.255.255 = broadcast\n\n  169.254.x.x  = link-local (APIPA, no DHCP)"
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Subnet Mask và CIDR?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Subnet mask phân biệt phần network và phần host của IP address. CIDR (Classless Inter-Domain Routing) biểu diễn subnet mask bằng prefix length."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CIDR examples:\n\n  192.168.1.0/24:\n\n    Network: 192.168.1.0\n\n    Hosts:   192.168.1.1 - 192.168.1.254 (254 hosts)\n\n    Broadcast: 192.168.1.255\n\n    Mask:    255.255.255.0\n\n  10.0.0.0/8:   16,777,214 hosts\n\n  172.16.0.0/12:  1,048,574 hosts\n\n  192.168.0.0/16:   65,534 hosts\n\n  /30 = 255.255.255.252 = 2 usable hosts (point-to-point)\n\n  /32 = single host (route to one IP)\n\n  Useful formula: 2^(32-prefix) - 2 = usable hosts"
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "DNS — Domain Name System?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "DNS dịch hostname sang IP address. Hệ thống phân cấp (hierarchical), được cache ở nhiều cấp."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "DNS Resolution (iterative):\n\n  Browser                Recursive Resolver\n\n    |                         |\n\n    +-- query: api.example.com -->\n\n                               |-- Root Server (.)\n\n                               |   '-> NS for .com: a.gtld-servers.net\n\n                               |\n\n                               |-- .com TLD server\n\n                               |   '-> NS for example.com: ns1.example.com\n\n                               |\n\n                               |-- ns1.example.com (Authoritative)\n\n                               |   '-> A record: 93.184.216.34\n\n                               |\n\n                          93.184.216.34\n\n    <-- IP: 93.184.216.34 ------+\n\nDNS Record Types:\n\n  A     -> IPv4 address (example.com -> 1.2.3.4)\n\n  AAAA  -> IPv6 address\n\n  CNAME -> Alias (www -> example.com)\n\n  MX    -> Mail server\n\n  TXT   -> Text (SPF, DKIM, verification)\n\n  NS    -> Nameserver\n\n  PTR   -> Reverse DNS (IP -> hostname)\n\n  SRV   -> Service location (used by Kubernetes)\n\n*💡 DNS port 53. TCP cho zone transfers (large responses). UDP cho queries (**<**=512 bytes, modern: **<**=4096 bytes EDNS0). TTL quyết định bao lâu cache.*"
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "HTTP là gì? HTTP/1.1 vs HTTP/2 vs HTTP/3?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "HTTP (HyperText Transfer Protocol) là protocol lớp Application để truyền dữ liệu qua web. Stateless, request-response model."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "HTTP/1.1",
+                  "HTTP/2",
+                  "HTTP/3 (QUIC)"
+                ],
+                [
+                  "Transport",
+                  "TCP",
+                  "TCP",
+                  "UDP (QUIC)"
+                ],
+                [
+                  "Multiplexing",
+                  "Không (HOL blocking)",
+                  "Có (multiple streams)",
+                  "Có (per-stream)"
+                ],
+                [
+                  "Header compression",
+                  "Không",
+                  "HPACK",
+                  "QPACK"
+                ],
+                [
+                  "Server Push",
+                  "Không",
+                  "Có",
+                  "Có"
+                ],
+                [
+                  "TLS",
+                  "Optional",
+                  "Thường bắt buộc",
+                  "Built-in"
+                ],
+                [
+                  "Connection",
+                  "Keep-alive",
+                  "Multiplexed",
+                  "Connection migration"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "HTTP/1.1 Head-of-line blocking:\n\n  Request 1 -> [WAITING 200ms] -> Response\n\n  Request 2 ->              [WAITING for R1] -> Response\n\nHTTP/2 Multiplexing (same TCP connection):\n\n  Stream 1 -> [Frame][Frame]------->[Frame]\n\n  Stream 2 -> [Frame]--->[Frame]\n\n  Stream 3 ->     [Frame][Frame]\n\nHTTP/3 (QUIC over UDP):\n\n  - Eliminates TCP HOL blocking\n\n  - Built-in TLS 1.3\n\n  - 0-RTT connection (reconnect instantly)\n\n  - Connection migration (change IP, stay connected)"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "HTTP Methods và Status Codes?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method",
+                  "Idempotent",
+                  "Safe",
+                  "Mô tả"
+                ],
+                [
+                  "GET",
+                  "Có",
+                  "Có",
+                  "Lấy resource, không sửa"
+                ],
+                [
+                  "POST",
+                  "Không",
+                  "Không",
+                  "Tạo resource mới"
+                ],
+                [
+                  "PUT",
+                  "Có",
+                  "Không",
+                  "Thay thế toàn bộ resource"
+                ],
+                [
+                  "PATCH",
+                  "Không (nếu đưa n)",
+                  "Không",
+                  "Cập nhật một phần resource"
+                ],
+                [
+                  "DELETE",
+                  "Có",
+                  "Không",
+                  "Xóa resource"
+                ],
+                [
+                  "HEAD",
+                  "Có",
+                  "Có",
+                  "Như GET nhưng chỉ trả headers"
+                ],
+                [
+                  "OPTIONS",
+                  "Có",
+                  "Có",
+                  "CORS preflight, xem methods hỗ trợ"
+                ],
+                [
+                  "Status Code",
+                  "Nhóm",
+                  "Các mã hay gặp"
+                ],
+                [
+                  "1xx",
+                  "Informational",
+                  "100 Continue, 101 Switching Protocols (WebSocket)"
+                ],
+                [
+                  "2xx",
+                  "Success",
+                  "200 OK, 201 Created, 204 No Content"
+                ],
+                [
+                  "3xx",
+                  "Redirection",
+                  "301 Moved Permanently, 302 Found, 304 Not Modified"
+                ],
+                [
+                  "4xx",
+                  "Client Error",
+                  "400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 422 Unprocessable, 429 Too Many Requests"
+                ],
+                [
+                  "5xx",
+                  "Server Error",
+                  "500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "HTTPS và TLS Handshake?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "HTTPS = HTTP + TLS (Transport Layer Security). Mã hóa dữ liệu giữa client và server. Port 443."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TLS 1.3 Handshake (1-RTT):\n\n  Client                              Server\n\n    |  --- ClientHello ------------>  |\n\n    |  (supported ciphers, key share) |\n\n    |                                 |\n\n    |  <-- ServerHello + Finished --  |\n\n    |  (chosen cipher, key share,     |\n\n    |   certificate, server finished) |\n\n    |                                 |\n\n    |  --- Finished + HTTP GET ---->  |   <- encrypted!\n\n    |  <-- HTTP Response ------------  |\n\nTLS 1.3 vs TLS 1.2:\n\n  TLS 1.3: 1-RTT (vs 2-RTT)\n\n  TLS 1.3: 0-RTT resumption\n\n  TLS 1.3: Forward secrecy by default\n\n  TLS 1.3: Fewer cipher suites (stronger)\n\nCertificate chain:\n\n  Browser trusts Root CA\n\n  Root CA signs Intermediate CA\n\n  Intermediate CA signs Server Cert\n\n  Server presents Cert chain\n\n*📌 mTLS (Mutual TLS): cả client và server xác thực nhau qua certificates. Dùng trong microservices (service mesh: Istio).*"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "WebSocket là gì? Khác HTTP thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "WebSocket cung cấp full-duplex, persistent connection giữa client và server. Cả 2 có thể gửi message bất kỳ lúc."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "HTTP",
+                  "WebSocket"
+                ],
+                [
+                  "Connection",
+                  "Request-response, close after",
+                  "Persistent, keep-alive"
+                ],
+                [
+                  "Direction",
+                  "Client initiates only",
+                  "Bidirectional (full-duplex)"
+                ],
+                [
+                  "Overhead",
+                  "Headers mỗi request (~500 bytes)",
+                  "Headers chỉ khi connect (đến 2 bytes/frame)"
+                ],
+                [
+                  "Protocol",
+                  "http:// / https://",
+                  "ws:// / wss://"
+                ],
+                [
+                  "Port",
+                  "80 / 443",
+                  "80 / 443 (same)"
+                ],
+                [
+                  "Upgrade",
+                  "Không",
+                  "HTTP 101 Switching Protocols"
+                ],
+                [
+                  "Use case",
+                  "REST APIs, web pages",
+                  "Real-time chat, gaming, live dashboards"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "WebSocket Handshake (HTTP Upgrade):\n\n  Client: GET /chat HTTP/1.1\n\n           Upgrade: websocket\n\n           Connection: Upgrade\n\n           Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\n\n  Server: HTTP/1.1 101 Switching Protocols\n\n           Upgrade: websocket\n\n           Connection: Upgrade\n\n           Sec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=\n\n  // Now bidirectional frames, no HTTP overhead"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "REST vs gRPC vs GraphQL?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "REST",
+                  "gRPC",
+                  "GraphQL"
+                ],
+                [
+                  "Protocol",
+                  "HTTP/1.1, HTTP/2",
+                  "HTTP/2 (required)",
+                  "HTTP/1.1, HTTP/2"
+                ],
+                [
+                  "Data format",
+                  "JSON (text)",
+                  "Protobuf (binary)",
+                  "JSON (text)"
+                ],
+                [
+                  "Type safety",
+                  "Không (manual)",
+                  "Có (IDL schema)",
+                  "Có (schema)"
+                ],
+                [
+                  "Streaming",
+                  "Khó",
+                  "Native (bidirectional)",
+                  "Subscription"
+                ],
+                [
+                  "Performance",
+                  "Trung bình",
+                  "Tốt nhất (~7x faster)",
+                  "Trung bình"
+                ],
+                [
+                  "Browser support",
+                  "Tốt",
+                  "Hạn chế (grpc-web)",
+                  "Tốt"
+                ],
+                [
+                  "Over/Under fetching",
+                  "Có thể",
+                  "Không (strict schema)",
+                  "Không (client defines)"
+                ],
+                [
+                  "Use case",
+                  "Public APIs, web",
+                  "Internal microservices",
+                  "Complex queries, mobile"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "REST:  GET /users/1/orders?status=pending\n\ngRPC:  OrderService.GetUserPendingOrders({ userId: 1 })\n\nGraphQL:\n\n  query {\n\n    user(id: 1) {\n\n      orders(status: PENDING) { id, total, items { name } }\n\n    }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "Load Balancing là gì? Các algorithms?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Load balancer phân phối traffic đến nhiều servers để tăng availability và performance."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Mô tả",
+                  "Best for"
+                ],
+                [
+                  "Round Robin",
+                  "Lần lượt từng server theo thứ tự",
+                  "Servers có cùng capacity"
+                ],
+                [
+                  "Weighted Round Robin",
+                  "Round robin theo trọng số (capacity)",
+                  "Servers có khác capacity"
+                ],
+                [
+                  "Least Connections",
+                  "Gửi tới server ít connections nhất",
+                  "Long-lived connections"
+                ],
+                [
+                  "IP Hash",
+                  "Hash IP client -> cùng server",
+                  "Session affinity (sticky sessions)"
+                ],
+                [
+                  "Least Response Time",
+                  "Gửi tới server nhanh nhất",
+                  "Mixed workloads"
+                ],
+                [
+                  "Random",
+                  "Chọn ngẫu nhiên",
+                  "Simple, small clusters"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Layer 4 vs Layer 7 Load Balancing:\n\n  L4 (Transport):\n\n    - Route based on IP + port\n\n    - TCP/UDP level\n\n    - Fast, no content inspection\n\n    - Examples: AWS NLB, HAProxy L4\n\n  L7 (Application):\n\n    - Route based on HTTP headers, URL, cookies\n\n    - Content-aware routing\n\n    - Slower but smarter\n\n    - Examples: AWS ALB, NGINX, Traefik"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "NAT — Network Address Translation?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "NAT dịch private IP addresses sang public IP khi packets rời mạng nội bộ. Giải quyết vấn đề thiếu IPv4 addresses."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "NAT operation:\n\n  Private Network:          Internet:\n\n  192.168.1.10:5000 -->  Router:12.34.56.78:49152 --> Server:80\n\n  192.168.1.11:5001 -->  Router:12.34.56.78:49153 --> Server:80\n\n  NAT Table:\n\n  | Private IP:Port   | Public IP:Port        |\n\n  | 192.168.1.10:5000 | 12.34.56.78:49152     |\n\n  | 192.168.1.11:5001 | 12.34.56.78:49153     |\n\nTypes:\n\n  Static NAT:  1 private IP <-> 1 public IP\n\n  Dynamic NAT: Pool of public IPs\n\n  PAT (NAPT):  Many private IPs -> 1 public (port-based) <- most common"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Firewall và IPS/IDS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Component",
+                  "Chức năng",
+                  "Hoạt động"
+                ],
+                [
+                  "Packet Filter Firewall",
+                  "Lọc packets theo IP/port rules",
+                  "Stateless, Layer 3-4"
+                ],
+                [
+                  "Stateful Firewall",
+                  "Theo dõi connection state",
+                  "Layer 3-4, track TCP state"
+                ],
+                [
+                  "Application Firewall (WAF)",
+                  "Lọc based on app content",
+                  "Layer 7, inspect HTTP/HTTPS"
+                ],
+                [
+                  "IDS (Intrusion Detection)",
+                  "Phát hiện attack, chỉ cảnh báo",
+                  "Monitor only"
+                ],
+                [
+                  "IPS (Intrusion Prevention)",
+                  "Phát hiện + chặn attack",
+                  "Active blocking"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Zone-based Firewall:\n\n  Internet Zone (untrusted)\n\n       |\n\n  [Firewall: default deny]\n\n       |\n\n  DMZ Zone (semi-trusted): Web servers, APIs\n\n       |\n\n  [Firewall: strict rules]\n\n       |\n\n  Internal Zone (trusted): Databases, internal services\n\n  Rules: Internet -> DMZ: allow 80, 443\n\n         DMZ -> Internal: allow 5432 (PostgreSQL)\n\n         Internal -> Internet: allow (outbound)"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "VPN và Tunneling Protocols?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "VPN tạo kết nối bảo mật qua public network bằng cách đóng gói và mã hóa traffic trong một tunnel."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Protocol",
+                  "Layer",
+                  "Mô tả",
+                  "Dùng khi"
+                ],
+                [
+                  "IPSec",
+                  "Network (L3)",
+                  "Mã hóa IP packets, site-to-site",
+                  "Corporate VPN, cloud connectivity"
+                ],
+                [
+                  "SSL/TLS VPN",
+                  "Application (L7)",
+                  "HTTPS-based VPN",
+                  "Remote user access"
+                ],
+                [
+                  "WireGuard",
+                  "Network (L3)",
+                  "Modern, nhanh, đơn giản",
+                  "Modern VPN"
+                ],
+                [
+                  "OpenVPN",
+                  "Application/Network",
+                  "SSL-based, cross-platform",
+                  "General purpose"
+                ],
+                [
+                  "GRE",
+                  "Network (L3)",
+                  "Encapsulation, không encrypt",
+                  "Tunneling giữa routers"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 IPSec Tunnel Mode: toàn bộ IP packet được đóng gói trong packet mới. Transport Mode: chỉ payload được encrypt. Tunnel mode được dùng phổ biến hơn."
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "CIA Triad và Network Security?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Trụ cột",
+                  "Mô tả",
+                  "Threats",
+                  "Controls"
+                ],
+                [
+                  "Confidentiality",
+                  "Thông tin chỉ accessible bởi authorized",
+                  "Eavesdropping, MITM",
+                  "Encryption (TLS, AES)"
+                ],
+                [
+                  "Integrity",
+                  "Dữ liệu không bị thay đổi unauthorized",
+                  "Tampering, SQL injection",
+                  "HMAC, digital signatures, checksums"
+                ],
+                [
+                  "Availability",
+                  "Hệ thống luôn accessible",
+                  "DDoS, hardware failure",
+                  "Redundancy, CDN, rate limiting"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "Symmetric vs Asymmetric Encryption?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Symmetric",
+                  "Asymmetric"
+                ],
+                [
+                  "Keys",
+                  "1 key (cả encrypt và decrypt)",
+                  "2 keys (public + private)"
+                ],
+                [
+                  "Speed",
+                  "Nhanh (~1000x)",
+                  "Chậm"
+                ],
+                [
+                  "Key distribution",
+                  "Vấn đề (secure channel cần thiết)",
+                  "An toàn (public key chia sẻ tự do)"
+                ],
+                [
+                  "Algorithms",
+                  "AES-256, ChaCha20, 3DES",
+                  "RSA-2048, ECC, DSA"
+                ],
+                [
+                  "Dùng cho",
+                  "Bulk data encryption",
+                  "Key exchange, signatures"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TLS uses BOTH:\n\n  1. Asymmetric (RSA/ECDH): key exchange + authentication\n\n  2. Symmetric (AES): bulk data encryption\n\n  Why? Asymmetric is secure but slow.\n\n  -> Use asymmetric to securely exchange a symmetric key\n\n  -> Then use fast symmetric key for the actual data"
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Digital Signatures và Certificates?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Digital Signature process:\n\n  Signing (Sender):\n\n    Message -> Hash (SHA-256) -> [Encrypt with PRIVATE key] -> Signature\n\n  Verification (Receiver):\n\n    Signature -> [Decrypt with PUBLIC key] -> Hash1\n\n    Message -> Hash (SHA-256) -> Hash2\n\n    Hash1 == Hash2? -> Valid signature\n\nX.509 Certificate:\n\n  - Subject: who it belongs to (example.com)\n\n  - Issuer: who signed it (Let's Encrypt)\n\n  - Public key: subject's public key\n\n  - Validity: not before, not after\n\n  - Signature: issuer's digital signature\n\nCertificate Pinning:\n\n  App hardcodes expected certificate/public key\n\n  Prevents MITM even with rogue CAs"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "ARP — Address Resolution Protocol?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "ARP giải quyết IP address sang MAC address trong local network (Layer 2)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "ARP operation:\n\n  PC1 (192.168.1.10) wants to send to PC2 (192.168.1.20)\n\n  PC1 knows PC2's IP but not MAC address\n\n  1. PC1 broadcasts: 'Who has 192.168.1.20? Tell 192.168.1.10'\n\n     Destination MAC: FF:FF:FF:FF:FF:FF (broadcast)\n\n  2. PC2 replies: 'I am 192.168.1.20, my MAC is AA:BB:CC:DD:EE:FF'\n\n     (unicast reply)\n\n  3. PC1 caches: 192.168.1.20 -> AA:BB:CC:DD:EE:FF (ARP cache)\n\nARP Poisoning (MITM attack):\n\n  Attacker sends fake ARP replies\n\n  Victims cache attacker's MAC for gateway IP\n\n  All traffic goes through attacker"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "DHCP hoạt động như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "DHCP (Dynamic Host Configuration Protocol) tự động cấu hình IP address, subnet mask, gateway, DNS cho devices khi join network."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "DHCP DORA process:\n\n  Client          DHCP Server\n\n    |  DISCOVER -->  |  broadcast: 'Anyone have an IP for me?'\n\n    |  <-- OFFER ---  |  'I offer 192.168.1.100, valid 24h'\n\n    |  REQUEST  -->   |  'I'll take 192.168.1.100'\n\n    |  <-- ACK  ----  |  'It's yours! DNS: 8.8.8.8, GW: 192.168.1.1'\n\nDHCP lease:\n\n  - Lease time: how long IP is valid\n\n  - Renewal: at T/2, client renews with server\n\n  - Rebinding: at 7T/8, try any DHCP server\n\n  - Expiry: if not renewed, IP returned to pool"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — Routing, Switching, Advanced Protocols (Q21–40)",
+      "questions": [
+        {
+          "id": "Q21",
+          "q": "Routing — Static vs Dynamic?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Static Routing",
+                  "Dynamic Routing"
+                ],
+                [
+                  "Cấu hình",
+                  "Admin tự nhập bằng tay",
+                  "Protocol tự động học"
+                ],
+                [
+                  "Scalability",
+                  "Kém (nhiều routes = nhiều work)",
+                  "Tốt (tự động)"
+                ],
+                [
+                  "Fault tolerance",
+                  "Không tự động re-route",
+                  "Tự động khỏi phục"
+                ],
+                [
+                  "Overhead",
+                  "Không có",
+                  "Có (router-to-router communication)"
+                ],
+                [
+                  "Ví dụ",
+                  "ip route 10.0.0.0/8 via 192.168.1.1",
+                  "OSPF, BGP, EIGRP, RIP"
+                ],
+                [
+                  "Protocol",
+                  "Type",
+                  "Use case",
+                  "Algorithm"
+                ],
+                [
+                  "RIP",
+                  "Distance Vector",
+                  "Small networks",
+                  "Bellman-Ford, max 15 hops"
+                ],
+                [
+                  "OSPF",
+                  "Link State",
+                  "Enterprise, ISP",
+                  "Dijkstra, area-based"
+                ],
+                [
+                  "BGP",
+                  "Path Vector",
+                  "Internet (between ASes)",
+                  "Policy-based, best path selection"
+                ],
+                [
+                  "EIGRP",
+                  "Hybrid",
+                  "Cisco networks",
+                  "DUAL algorithm"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Switching — Cut-through vs Store-and-Forward?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Latency",
+                  "Error checking"
+                ],
+                [
+                  "Store-and-Forward",
+                  "Bộ nhớ đủ frame, kiểm tra, rồi forward",
+                  "Cao hơn",
+                  "Có (CRC check)"
+                ],
+                [
+                  "Cut-through",
+                  "Bắt đầu forward khi đọc MAC đích",
+                  "Thấp hơn",
+                  "Không (errors pass through)"
+                ],
+                [
+                  "Fragment-free",
+                  "Chờ 64 bytes trước forward",
+                  "Trung bình",
+                  "Phần lớn errors được bắt"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "VLAN — Virtual LAN?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "VLAN phân đoạn mạng logic trên cùng physical infrastructure. Tăng bảo mật và giảm broadcast domain."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "VLAN example:\n\n  Physical: 1 switch, 24 ports\n\n  Logical:\n\n    VLAN 10 (Engineering): ports 1-8\n\n    VLAN 20 (Finance):     ports 9-16\n\n    VLAN 30 (HR):          ports 17-24\n\n  Traffic trong VLAN 10 KHONG the den VLAN 20\n\n  Can router hoac L3 switch de route giua VLANs\n\n  Trunk link: carry multiple VLANs (802.1Q tagging)\n\n  Access link: single VLAN per port"
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "ICMP — Internet Control Message Protocol?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "ICMP là protocol gửi thông báo lỗi và operational messages trong IP network."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Common ICMP types:\n\n  Type 0:  Echo Reply  (ping response)\n\n  Type 3:  Destination Unreachable\n\n  Type 8:  Echo Request (ping)\n\n  Type 11: Time Exceeded (TTL expired -> traceroute)\n\nping command (ICMP Echo):\n\n  ping google.com\n\n  PING google.com (142.250.185.14): 56 bytes\n\n  64 bytes from 142.250.185.14: icmp_seq=1 ttl=117 time=10.5 ms\n\ntraceroute/tracert (uses TTL increment):\n\n  traceroute google.com\n\n  1  192.168.1.1    (gateway)     1.2 ms\n\n  2  10.10.1.1     (ISP router)  5.4 ms\n\n  3  ...\n\n  10 142.250.185.14 (google)    10.5 ms"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "CDN — Content Delivery Network?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "CDN là mạng lưới servers phân tán địa lý, serve content từ location gần user nhất. Giảm latency, tăng performance."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CDN operation:\n\n  User in HCM                  CDN PoP (Point of Presence)\n\n  requests image.jpg   --->   Singapore PoP (50ms)\n\n                          instead of: US Origin (300ms)\n\n  Cache Miss:  PoP -> Origin Server -> cache -> serve\n\n  Cache Hit:   PoP serves from cache directly\n\nCDN benefits:\n\n  - Reduce latency (serve from nearest PoP)\n\n  - Reduce origin load (cache static assets)\n\n  - DDoS protection (absorb attack traffic)\n\n  - High availability (failover between PoPs)\n\nContent types:\n\n  Static:  images, CSS, JS, videos (cache for days/weeks)\n\n  Dynamic: API responses (cache with short TTL or bypass)\n\nExamples: Cloudflare, AWS CloudFront, Fastly, Akamai"
+            }
+          ]
+        },
+        {
+          "id": "Q26",
+          "q": "Proxy và Reverse Proxy?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Forward Proxy",
+                  "Reverse Proxy"
+                ],
+                [
+                  "Vị trí",
+                  "Phía client (giữa client và internet)",
+                  "Phía server (giữa internet và servers)"
+                ],
+                [
+                  "Biết bởi",
+                  "Server (thấy IP proxy)",
+                  "Client (thấy IP proxy)"
+                ],
+                [
+                  "Mục đích",
+                  "Anonymity, access control, cache",
+                  "Load balance, SSL termination, cache"
+                ],
+                [
+                  "Ví dụ",
+                  "Corporate proxy, VPN",
+                  "NGINX, Apache, AWS ALB, Cloudflare"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Forward Proxy:\n\n  Client -> [Forward Proxy] -> Internet\n\n  - Client bị ẩn khỏi Internet\n\n  - V.d: Burp Suite (security testing), Squid proxy\n\nReverse Proxy:\n\n  Internet -> [Reverse Proxy] -> Backend Servers\n\n  - Servers bị ẩn khỏi Internet\n\n  - SSL termination: decrypt HTTPS, send HTTP to backends\n\n  - Load balancing across multiple backends\n\n  - Caching: static assets served from proxy\n\nNGINX as reverse proxy:\n\n  server {\n\n    listen 443 ssl;\n\n    location /api/ {\n\n      proxy_pass http://backend:3000;\n\n    }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Socket Programming cơ bản?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TCP Server (Node.js):\n\nconst net = require('net');\n\nconst server = net.createServer((socket) => {\n\n  socket.on('data', (data) => {\n\n    socket.write('Echo: ' + data);\n\n  });\n\n  socket.on('end', () => console.log('Client disconnected'));\n\n});\n\nserver.listen(3000, () => console.log('Listening on 3000'));\n\nUDP Client (Node.js):\n\nconst dgram = require('dgram');\n\nconst client = dgram.createSocket('udp4');\n\nclient.send('Hello', 3000, 'localhost', (err) => {\n\n  client.close();\n\n});\n\nSocket states (TCP):\n\n  LISTEN -> SYN_RCVD -> ESTABLISHED -> FIN_WAIT_1\n\n  -> FIN_WAIT_2 -> TIME_WAIT -> CLOSED"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Port Numbers quan trọng?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Port",
+                  "Protocol",
+                  "Mô tả"
+                ],
+                [
+                  "20/21",
+                  "FTP",
+                  "File Transfer (data/control)"
+                ],
+                [
+                  "22",
+                  "SSH",
+                  "Secure Shell"
+                ],
+                [
+                  "23",
+                  "Telnet",
+                  "Remote terminal (insecure)"
+                ],
+                [
+                  "25",
+                  "SMTP",
+                  "Email sending"
+                ],
+                [
+                  "53",
+                  "DNS",
+                  "Domain Name resolution (TCP+UDP)"
+                ],
+                [
+                  "80",
+                  "HTTP",
+                  "Web traffic"
+                ],
+                [
+                  "110",
+                  "POP3",
+                  "Email retrieval"
+                ],
+                [
+                  "143",
+                  "IMAP",
+                  "Email retrieval (sync)"
+                ],
+                [
+                  "443",
+                  "HTTPS",
+                  "Secure web"
+                ],
+                [
+                  "3306",
+                  "MySQL",
+                  "Database"
+                ],
+                [
+                  "5432",
+                  "PostgreSQL",
+                  "Database"
+                ],
+                [
+                  "6379",
+                  "Redis",
+                  "Cache/Message broker"
+                ],
+                [
+                  "9092",
+                  "Kafka",
+                  "Message broker"
+                ],
+                [
+                  "27017",
+                  "MongoDB",
+                  "Database"
+                ],
+                [
+                  "2181",
+                  "ZooKeeper",
+                  "Coordination service"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Bandwidth, Latency, Throughput, Jitter?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khái niệm",
+                  "Mô tả",
+                  "Đo bằng",
+                  "Ví dụ"
+                ],
+                [
+                  "Bandwidth",
+                  "Dữ liệu tối đa có thể truyền (capacity)",
+                  "Mbps, Gbps",
+                  "100Mbps broadband"
+                ],
+                [
+                  "Latency (RTT)",
+                  "Thời gian từ A đến B và quay lại",
+                  "milliseconds",
+                  "HCM->Singapore: ~50ms"
+                ],
+                [
+                  "Throughput",
+                  "Dữ liệu thực tế truyền được",
+                  "Mbps",
+                  "80Mbps trên 100Mbps link"
+                ],
+                [
+                  "Jitter",
+                  "Sự biến động của latency",
+                  "milliseconds",
+                  "VoIP: jitter < 30ms"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Goodput vs Throughput:\n\n  Throughput: total bytes received (including overhead)\n\n  Goodput:    actual useful payload data\n\nLatency components:\n\n  Propagation delay: distance / speed of light\n\n  Transmission delay: packet_size / bandwidth\n\n  Processing delay:  router CPU time\n\n  Queuing delay:     waiting in buffer\n\nBandwidth-Delay Product (BDP):\n\n  BDP = Bandwidth * RTT\n\n  = amount of data 'in flight' at any moment\n\n  100Mbps * 100ms = 10MB in flight"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "Multicast và Broadcast?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Dịa chỉ",
+                  "Ví dụ"
+                ],
+                [
+                  "Unicast",
+                  "1 sender -> 1 receiver",
+                  "Specific IP",
+                  "HTTP request"
+                ],
+                [
+                  "Broadcast",
+                  "1 sender -> tất cả trong subnet",
+                  "255.255.255.255",
+                  "ARP, DHCP Discover"
+                ],
+                [
+                  "Multicast",
+                  "1 sender -> group subscribers",
+                  "224.0.0.0/4",
+                  "Video streaming, OSPF (224.0.0.5)"
+                ],
+                [
+                  "Anycast",
+                  "1 sender -> nearest receiver",
+                  "Same IP, multiple locations",
+                  "DNS root servers, CDN"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Piggybacking trong Data Link?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Piggybacking là kỹ thuẫt kết hợp data và acknowledgment trong cùng frame khi truyền 2 chiều. Tiết kiệm bandwidth."
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "Error Detection: Checksum, CRC, Parity?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Phương pháp",
+                  "Hiệu quả",
+                  "Dùng ở"
+                ],
+                [
+                  "Parity bit",
+                  "Yếu (1-bit errors only)",
+                  "Serial communications"
+                ],
+                [
+                  "Checksum",
+                  "Trung bình",
+                  "IP, TCP, UDP headers"
+                ],
+                [
+                  "CRC",
+                  "Mạnh (burst errors)",
+                  "Ethernet frames, disk storage"
+                ],
+                [
+                  "SHA/MD5",
+                  "Rất mạnh (integrity)",
+                  "File verification, digital signatures"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Multiplexing: TDM, FDM, WDM?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Kỹ thuẫt",
+                  "Mô tả",
+                  "Dùng trong"
+                ],
+                [
+                  "TDM (Time Division)",
+                  "Chia thời gian cho mỗi user",
+                  "Digital signals, T1/E1 lines"
+                ],
+                [
+                  "FDM (Frequency Division)",
+                  "Chia tần số cho mỗi user",
+                  "Analog, cable TV, radio"
+                ],
+                [
+                  "WDM (Wavelength Division)",
+                  "Chia bước sóng cho mỗi user",
+                  "Fiber optic (DWDM, CWDM)"
+                ],
+                [
+                  "OFDM",
+                  "Sub-carriers orthogonal, no guard band",
+                  "WiFi (802.11), 4G LTE, 5G"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Network Devices: Hub, Switch, Router, Gateway?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thiết bị",
+                  "OSI Layer",
+                  "Chức năng",
+                  "Intelligence"
+                ],
+                [
+                  "Hub",
+                  "L1 (Physical)",
+                  "Repeat signals to all ports",
+                  "Không (dumb)"
+                ],
+                [
+                  "Switch",
+                  "L2 (Data Link)",
+                  "Forward based on MAC address",
+                  "MAC table (L2 aware)"
+                ],
+                [
+                  "Router",
+                  "L3 (Network)",
+                  "Route based on IP address",
+                  "Routing table (L3 aware)"
+                ],
+                [
+                  "Layer 3 Switch",
+                  "L2+L3",
+                  "Switch + routing",
+                  "Both MAC + routing table"
+                ],
+                [
+                  "Gateway",
+                  "L3-L7",
+                  "Protocol translation",
+                  "Application-aware"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Transparent Bridge?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Transparent bridge tự động xây dựng và cập nhật routing table bằng cách học MAC addresses. \"Transparent\" vì các hosts không biết nó tồn tại."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Bridge Address Learning:\n\n  Frame arrives on port 1 from MAC AA:BB:CC:11:22:33\n\n  Bridge records: AA:BB:CC:11:22:33 is on port 1\n\n  Next frame TO AA:BB:CC:11:22:33:\n\n  Bridge knows -> forward to port 1 only\n\n  Unknown destination:\n\n  Bridge floods to all ports except incoming"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Spanning Tree Protocol (STP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "STP ngăn chặn loops trong switched networks bằng cách block một số links, tạo topology không vòng (tree)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "STP election:\n\n  1. Elect Root Bridge (lowest Bridge ID)\n\n  2. Each non-root switch: find Root Port (shortest to root)\n\n  3. Each segment: elect Designated Port\n\n  4. Remaining ports: block (backup)\n\n  Convergence time: 30-50 seconds (STP)\n\n  RSTP (Rapid STP): < 1 second"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "IP Spoofing và DDoS Attacks?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Attack",
+                  "Mô tả",
+                  "Phòng chống"
+                ],
+                [
+                  "IP Spoofing",
+                  "Giả mạo source IP address",
+                  "BCP38: ISP filter packets with invalid src IP"
+                ],
+                [
+                  "SYN Flood",
+                  "Gửi nhiều SYN, không hoàn thành handshake",
+                  "SYN cookies, rate limiting"
+                ],
+                [
+                  "DDoS",
+                  "Nhiều nguồn tấn công đồng thời",
+                  "CDN, scrubbing centers, anycast"
+                ],
+                [
+                  "Smurf Attack",
+                  "Ping broadcast với spoofed src IP (victim)",
+                  "Block directed broadcasts"
+                ],
+                [
+                  "Amplification",
+                  "DNS/NTP amplify small request to large response",
+                  "Limit open resolvers, rate limit UDP"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Network Troubleshooting Tools?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tool",
+                  "Command",
+                  "Mô tả"
+                ],
+                [
+                  "ping",
+                  "ping 8.8.8.8",
+                  "Test ICMP reachability + RTT"
+                ],
+                [
+                  "traceroute",
+                  "traceroute google.com",
+                  "Trace packet path, find hops"
+                ],
+                [
+                  "nslookup",
+                  "nslookup example.com",
+                  "DNS lookup"
+                ],
+                [
+                  "dig",
+                  "dig example.com A",
+                  "Detailed DNS query"
+                ],
+                [
+                  "netstat",
+                  "netstat -tulpn",
+                  "Show open ports + connections"
+                ],
+                [
+                  "ss",
+                  "ss -tulpn",
+                  "Modern netstat replacement"
+                ],
+                [
+                  "curl",
+                  "curl -v https://api.example.com",
+                  "HTTP request with verbose output"
+                ],
+                [
+                  "tcpdump",
+                  "tcpdump -i eth0 port 80",
+                  "Capture network traffic"
+                ],
+                [
+                  "nmap",
+                  "nmap -sV 192.168.1.1",
+                  "Port scan + service detection"
+                ],
+                [
+                  "iftop",
+                  "iftop -i eth0",
+                  "Real-time bandwidth usage"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Subnet Calculator — cách chia subnet?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Network: 192.168.1.0/24 (256 IPs)\n\nNeed: 4 subnets\n\nSolution: /26 (borrow 2 bits from host part)\n\n  192.168.1.0/26:   .1  - .62   (62 hosts)\n\n  192.168.1.64/26:  .65 - .126  (62 hosts)\n\n  192.168.1.128/26: .129 - .190 (62 hosts)\n\n  192.168.1.192/26: .193 - .254 (62 hosts)\n\nVLSM (Variable Length Subnet Mask):\n\n  Mix subnet sizes: /26 for large, /30 for P2P links\n\nIP calculation:\n\n  Network:   IP & Mask\n\n  Broadcast: Network | ~Mask\n\n  First host: Network + 1\n\n  Last host:  Broadcast - 1"
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "BGP — Border Gateway Protocol?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "BGP là routing protocol của Internet, điều phối routing giữa các Autonomous Systems (AS). Được gọi là 'protocol của Internet'."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "BGP concepts:\n\n  Autonomous System (AS): group of networks under one admin\n\n  AS Number: unique identifier (1-65535 public, 64512-65534 private)\n\n  BGP Peer types:\n\n  eBGP (external): between different ASes (e.g., your ISP)\n\n  iBGP (internal): within same AS\n\n  BGP Attributes for path selection:\n\n  1. Weight (Cisco-specific, local)\n\n  2. LOCAL_PREF (prefer one exit over another)\n\n  3. AS_PATH (shortest = best)\n\n  4. ORIGIN (IGP > EGP > incomplete)\n\n  5. MED (suggest preferred entry to other AS)\n\n  BGP is policy-based, not just shortest path"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — Backend Networking, Security, Modern (Q41–58)",
+      "questions": [
+        {
+          "id": "Q41",
+          "q": "CORS — Cross-Origin Resource Sharing?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "CORS là cơ chế security của browser ngăn chặn JavaScript gọi APIs từ domain khác (cross-origin) mà không được phép."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CORS Preflight (OPTIONS):\n\n  Browser                           API Server (api.example.com)\n\n  Request to: http://app.other.com/data\n\n    |\n\n    +- OPTIONS /data HTTP/1.1 --------->\n\n       Origin: http://app.other.com\n\n       Access-Control-Request-Method: POST\n\n    <-- HTTP/1.1 200 OK ----------------\n\n        Access-Control-Allow-Origin: http://app.other.com\n\n        Access-Control-Allow-Methods: POST, GET\n\n        Access-Control-Allow-Headers: Content-Type\n\n    +- POST /data HTTP/1.1 ------------>\n\n    <-- 200 OK -------------------------\n\n// Express CORS configuration\n\nconst cors = require('cors');\n\napp.use(cors({\n\n  origin: ['https://app1.com', 'https://app2.com'],\n\n  methods: ['GET', 'POST', 'PUT', 'DELETE'],\n\n  credentials: true  // allow cookies\n\n  allowedHeaders: ['Content-Type', 'Authorization']\n\n}));\n\n*⚠️  CORS chỉ được enforce bởng browser. Server-to-server calls không bị CORS ảnh hưởng. Không dùng wildcard **'*****'** khi có credentials.*"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "JWT — JSON Web Token?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "JWT structure: header.payload.signature\n\n  Header:  { 'alg': 'HS256', 'typ': 'JWT' }\n\n  Payload: { 'sub': '1234567890', 'name': 'Dat',\n\n             'iat': 1516239022, 'exp': 1516325422 }\n\n  Signature: HMACSHA256(base64(header) + '.' + base64(payload), secret)\n\nStateless auth flow:\n\n  1. User logs in -> Server generates JWT\n\n  2. Client stores JWT (localStorage or httpOnly cookie)\n\n  3. Each request: Authorization: Bearer <jwt>\n\n  4. Server verifies signature -> extract user info\n\n   (No DB lookup needed!)\n\nJWT vs Session:\n\n  JWT:     stateless, scalable, but can't revoke before expiry\n\n  Session: stateful, revocable, but needs DB/Redis lookup\n\n*💡 Bảo mật JWT: dùng httpOnly cookie (XSS safe), ngắn access token (15min), dùng refresh token. Không lưu sensitive data trong payload (chỉ base64, không encrypt).*"
+            }
+          ]
+        },
+        {
+          "id": "Q43",
+          "q": "OAuth 2.0 và OpenID Connect?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "OAuth 2.0 Authorization Code Flow:\n\n  User    App (Client)    Auth Server    Resource Server\n\n   |          |                |                |\n\n   +- Login --+                |                |\n\n              +--- Auth Code --+                |\n\n              |    Request                      |\n\n              +--- Code ------+                |\n\n              +--- Token Req -+                |\n\n              +<-- Access Token               |\n\n              +------ API call with token ----->\n\n              +<----- Protected resource --------\n\nFlows:\n\n  Authorization Code (+ PKCE): Web + Mobile apps\n\n  Client Credentials: Server-to-server\n\n  Implicit (deprecated): SPA (replaced by PKCE)\n\nOpenID Connect (OIDC):\n\n  = OAuth 2.0 + identity layer\n\n  Returns ID Token (JWT) with user identity\n\n  Used for: 'Login with Google/Facebook'"
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Rate Limiting và Throttling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Mô tả",
+                  "Trade-off"
+                ],
+                [
+                  "Fixed Window",
+                  "Count requests in time window (e.g., 100 req/min)",
+                  "Simple, spike at window boundary"
+                ],
+                [
+                  "Sliding Window Log",
+                  "Log timestamps, count recent",
+                  "Accurate, memory-intensive"
+                ],
+                [
+                  "Sliding Window Counter",
+                  "Approximate sliding window",
+                  "Good balance"
+                ],
+                [
+                  "Token Bucket",
+                  "Tokens added at rate, each req consumes 1",
+                  "Allows bursts, smooth average"
+                ],
+                [
+                  "Leaky Bucket",
+                  "Requests processed at fixed rate",
+                  "No bursts, smooth output"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Redis Token Bucket (Node.js)\n\nasync function rateLimit(userId, limit = 100, window = 60) {\n\n  const key = `rate:${userId}`;\n\n  const now = Date.now();\n\n  const [count] = await redis.multi()\n\n    .incr(key)\n\n    .expire(key, window)\n\n    .exec();\n\n  if (count > limit) {\n\n    throw new Error('Rate limit exceeded');\n\n  }\n\n  return { remaining: limit - count };\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "HTTP Caching?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Header",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Cache-Control",
+                  "Chỉ định cách cache",
+                  "max-age=3600, public, no-store"
+                ],
+                [
+                  "ETag",
+                  "Unique identifier của resource version",
+                  "ETag: '33a64df5'"
+                ],
+                [
+                  "Last-Modified",
+                  "Thời gian thay đổi cuối",
+                  "Last-Modified: Mon, 2 Jan 2024"
+                ],
+                [
+                  "If-None-Match",
+                  "Check ETag, 304 nếu match",
+                  "If-None-Match: '33a64df5'"
+                ],
+                [
+                  "Expires",
+                  "Absolute expiry time (old)",
+                  "Expires: Thu, 31 Dec 2025"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "HTTP Cache flow:\n\n  Request 1:\n\n    GET /api/products\n\n    Response: 200 OK\n\n    Cache-Control: max-age=300, public\n\n    ETag: 'abc123'\n\n  Request 2 (after 300s):\n\n    GET /api/products\n\n    If-None-Match: 'abc123'\n\n    If unchanged:  304 Not Modified (no body, 0 bytes)\n\n    If changed:    200 OK (new data + new ETag)\n\n  Cache-Control directives:\n\n  public:    CDN + browser can cache\n\n  private:   only browser can cache\n\n  no-cache:  must revalidate before serving\n\n  no-store:  never cache\n\n  max-age=N: fresh for N seconds"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "WebSocket vs Server-Sent Events vs Long Polling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Long Polling",
+                  "SSE (Server-Sent Events)",
+                  "WebSocket"
+                ],
+                [
+                  "Direction",
+                  "Request-response",
+                  "Server -> Client only",
+                  "Bidirectional"
+                ],
+                [
+                  "Protocol",
+                  "HTTP",
+                  "HTTP",
+                  "WS"
+                ],
+                [
+                  "Connection",
+                  "Mới mỗi lần",
+                  "Persistent (one HTTP)",
+                  "Persistent"
+                ],
+                [
+                  "Overhead",
+                  "Cao",
+                  "Thấp",
+                  "Rất thấp"
+                ],
+                [
+                  "Complexity",
+                  "Thấp",
+                  "Thấp",
+                  "Trung bình"
+                ],
+                [
+                  "Browser support",
+                  "Tất cả",
+                  "Tất cả (IE: Không)",
+                  "Tất cả"
+                ],
+                [
+                  "Dùng khi",
+                  "Simple real-time",
+                  "Notifications, live feeds",
+                  "Chat, gaming, collaboration"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// SSE (Server-Sent Events) in Node.js\n\napp.get('/events', (req, res) => {\n\n  res.setHeader('Content-Type', 'text/event-stream');\n\n  res.setHeader('Cache-Control', 'no-cache');\n\n  const interval = setInterval(() => {\n\n    res.write(`data: ${JSON.stringify({ time: Date.now() })}\\n\\n`);\n\n  }, 1000);\n\n  req.on('close', () => clearInterval(interval));\n\n});\n\n// Client\n\nconst es = new EventSource('/events');\n\nes.onmessage = (event) => console.log(JSON.parse(event.data));"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Service Discovery và DNS trong Microservices?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Service Discovery patterns:\n\n  Client-Side Discovery:\n\n    Client -> Service Registry -> get IP:Port -> call service\n\n    Example: Netflix Eureka, Consul\n\n  Server-Side Discovery:\n\n    Client -> Load Balancer -> Registry lookup -> service\n\n    Example: AWS ALB + Cloud Map\n\n  DNS-Based (Kubernetes):\n\n    payment-service.default.svc.cluster.local\n\n    Kubernetes DNS resolves to ClusterIP\n\nKubernetes Service types:\n\n  ClusterIP:    internal only (DNS within cluster)\n\n  NodePort:     exposed on each node's port\n\n  LoadBalancer: external LB (cloud provider)\n\n  Headless:     no ClusterIP, direct Pod DNS"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Network Security: Common Attacks?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Attack",
+                  "Mô tả",
+                  "Phòng chống"
+                ],
+                [
+                  "Man-in-the-Middle (MITM)",
+                  "Intercept communication giữa 2 parties",
+                  "TLS, certificate pinning"
+                ],
+                [
+                  "SQL Injection",
+                  "Inject SQL qua input fields",
+                  "Prepared statements, input validation"
+                ],
+                [
+                  "XSS (Cross-Site Scripting)",
+                  "Inject malicious scripts",
+                  "CSP headers, output encoding"
+                ],
+                [
+                  "CSRF",
+                  "Force authenticated user execute actions",
+                  "CSRF tokens, SameSite cookies"
+                ],
+                [
+                  "DNS Poisoning",
+                  "Inject false DNS records",
+                  "DNSSEC, use trusted resolvers"
+                ],
+                [
+                  "ARP Spoofing",
+                  "Fake ARP replies, MITM on LAN",
+                  "Dynamic ARP inspection, static ARP"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "TCP Flow Control và Congestion Control?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TCP Flow Control (Receiver side):\n\n  Receiver advertises Window Size in each ACK\n\n  Sender can't send more than window size unacked\n\n  Receive Window (rwnd): available buffer at receiver\n\n  If rwnd = 0: sender stops until receiver notifies\n\nTCP Congestion Control (Network side):\n\n  Slow Start:\n\n    cwnd = 1 MSS\n\n    Double cwnd each RTT until ssthresh\n\n  Congestion Avoidance:\n\n    cwnd >= ssthresh: increase by 1 MSS per RTT\n\n  Fast Retransmit:\n\n    3 duplicate ACKs -> retransmit immediately\n\n    ssthresh = cwnd/2, cwnd = ssthresh\n\n  CUBIC (Linux default):\n\n    Faster recovery, optimized for high-bandwidth"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "API Gateway pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "API Gateway là single entry point cho các microservices, xử lý các cross-cutting concerns."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Client (Web, Mobile, 3rd party)\n\n        |\n\n   [API Gateway]\n\n   |  Authentication / Authorization (JWT, OAuth)\n\n   |  Rate Limiting (429 Too Many Requests)\n\n   |  Request Routing\n\n   |  SSL Termination\n\n   |  Load Balancing\n\n   |  Request/Response Transformation\n\n   |  Caching\n\n   |  Logging + Tracing (X-Request-ID)\n\n   |  Circuit Breaker\n\n   |\n\n   +-- /api/users     --> User Service :3001\n\n   +-- /api/orders    --> Order Service :3002\n\n   +-- /api/products  --> Product Service :3003\n\n   +-- /api/payments  --> Payment Service :3004\n\nExamples: Kong, AWS API Gateway, NGINX, Traefik"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "HTTP/HTTPS Headers quan trọng?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Header",
+                  "Loại",
+                  "Mục đích"
+                ],
+                [
+                  "Content-Type",
+                  "Entity",
+                  "Mô tả format: application/json, text/html"
+                ],
+                [
+                  "Authorization",
+                  "Request",
+                  "Bearer token, Basic auth"
+                ],
+                [
+                  "Accept",
+                  "Request",
+                  "Client muốn receive format nào"
+                ],
+                [
+                  "X-Request-ID",
+                  "Request/Response",
+                  "Distributed tracing ID"
+                ],
+                [
+                  "Cache-Control",
+                  "Response",
+                  "Caching directives"
+                ],
+                [
+                  "Strict-Transport-Security",
+                  "Security",
+                  "Force HTTPS (HSTS)"
+                ],
+                [
+                  "X-Content-Type-Options",
+                  "Security",
+                  "nosniff: prevent MIME sniffing"
+                ],
+                [
+                  "Content-Security-Policy",
+                  "Security",
+                  "Control scripts/styles sources"
+                ],
+                [
+                  "X-Frame-Options",
+                  "Security",
+                  "Prevent clickjacking"
+                ],
+                [
+                  "Access-Control-Allow-Origin",
+                  "CORS",
+                  "Allowed origins"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Websocket Scaling và Sticky Sessions?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Problem: WebSocket connections are stateful\n\n  User connects to Server A: WS connection\n\n  Next request -> Load Balancer -> Server B?\n\n  Server B doesn't have the WS connection -> ERROR!\n\nSolution 1: Sticky Sessions (Session Affinity)\n\n  LB routes same client to same server (IP hash)\n\n  Problem: uneven load distribution\n\nSolution 2: Shared Pub/Sub (Recommended)\n\n  All WS messages go through Redis Pub/Sub\n\n  Server A receives msg, publishes to Redis\n\n  Server B subscribed to Redis -> forwards to connected clients\n\n  [Client A] -> [Server A] -> [Redis Pub/Sub] -> [Server B] -> [Client B]\n\n  Libraries: Socket.io + socket.io-redis-adapter"
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Network Monitoring và Observability?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tool/Metric",
+                  "Mô tả",
+                  "Commands"
+                ],
+                [
+                  "ping",
+                  "ICMP roundtrip test",
+                  "ping -c 10 host"
+                ],
+                [
+                  "traceroute",
+                  "Path analysis",
+                  "traceroute host"
+                ],
+                [
+                  "netstat/ss",
+                  "Connection states",
+                  "ss -tulpn"
+                ],
+                [
+                  "tcpdump/Wireshark",
+                  "Packet capture",
+                  "tcpdump -i eth0"
+                ],
+                [
+                  "iftop/nethogs",
+                  "Bandwidth per process",
+                  "iftop -i eth0"
+                ],
+                [
+                  "Prometheus + Grafana",
+                  "Metrics dashboard",
+                  "scrape /metrics endpoint"
+                ],
+                [
+                  "ELK Stack",
+                  "Log aggregation + search",
+                  "Structured JSON logs"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "QUIC Protocol?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "QUIC là transport protocol mới của Google, chạy trên UDP thay vì TCP. Cơ sở của HTTP/3."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "QUIC feature",
+                  "Mô tả"
+                ],
+                [
+                  "0-RTT connection",
+                  "Reconnect instant với remembered server"
+                ],
+                [
+                  "Built-in TLS 1.3",
+                  "Không có separate TLS handshake overhead"
+                ],
+                [
+                  "Stream multiplexing",
+                  "Per-stream HOL blocking prevention"
+                ],
+                [
+                  "Connection migration",
+                  "Giữ kết nối khi đổi IP (WiFi -> 4G)"
+                ],
+                [
+                  "Improved loss recovery",
+                  "Per-stream, không block toàn bộ connection"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "gRPC chi tiết?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "gRPC flow:\n\n  1. Define .proto file (Interface Definition Language)\n\n  2. Generate code in any language\n\n  3. Server implements generated interface\n\n  4. Client uses generated stub\n\n// user.proto\n\nsyntax = 'proto3';\n\nservice UserService {\n\n  rpc GetUser(GetUserRequest) returns (User) {}\n\n  rpc ListUsers(ListUsersRequest) returns (stream User) {}  // streaming!\n\n  rpc CreateUser(stream CreateUserRequest) returns (User) {} // client stream\n\n  rpc Chat(stream ChatMessage) returns (stream ChatMessage) {} // bidirectional\n\n  }\n\nmessage User {\n\n  int32 id = 1;\n\n  string name = 2;\n\n  string email = 3;\n\n  }\n\ngRPC vs REST performance:\n\n  Protobuf 5-10x smaller than JSON\n\n  HTTP/2 multiplexing\n\n  -> gRPC ~7x faster than REST"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "Content Negotiation?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Content negotiation headers:\n\n  Client: Accept: application/json, text/html;q=0.9, */*;q=0.8\n\n  Server: Content-Type: application/json\n\n  Client: Accept-Encoding: gzip, deflate, br\n\n  Server: Content-Encoding: gzip\n\n  Client: Accept-Language: vi-VN, vi;q=0.9, en-US;q=0.8\n\n  Server: Content-Language: vi\n\n// Express content negotiation\n\napp.get('/data', (req, res) => {\n\n  res.format({\n\n    'application/json': () => res.json(data),\n\n    'text/html':        () => res.send(renderHTML(data)),\n\n    'text/csv':         () => res.send(toCSV(data))\n\n  });\n\n});"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "TCP Keep-Alive và Connection Pooling?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TCP Keep-Alive:\n\n  Sends probe packets when connection idle\n\n  Detect dead connections\n\n  Linux defaults: 7200s idle, 75s interval, 9 probes\n\n  Node.js:\n\n  const agent = new https.Agent({\n\n    keepAlive: true,\n\n    maxSockets: 50,\n\n    keepAliveMsecs: 30000\n\n  });\n\nConnection Pooling (PostgreSQL example):\n\n  Without pool: each query creates TCP connection (expensive!)\n\n  With pool: reuse existing connections\n\n  const pool = new Pool({\n\n    max: 10,           // max 10 connections\n\n    min: 2,            // keep 2 idle\n\n    idleTimeoutMillis: 30000,\n\n    connectionTimeoutMillis: 2000\n\n  });"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Network Best Practices cho Backend?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Best Practice",
+                  "Mô tả",
+                  "Implement bằng cách"
+                ],
+                [
+                  "Always use HTTPS",
+                  "Mã hóa mọi traffic",
+                  "TLS cert (Let's Encrypt), HSTS header"
+                ],
+                [
+                  "Connection pooling",
+                  "Tái sử dụng TCP connections",
+                  "pg pool, axios agent keepAlive"
+                ],
+                [
+                  "Timeout everywhere",
+                  "Tránh hanging requests",
+                  "axios timeout, pg query_timeout"
+                ],
+                [
+                  "Retry with backoff",
+                  "Tăng resilience",
+                  "exponential backoff + jitter"
+                ],
+                [
+                  "Circuit Breaker",
+                  "Tránh cascading failures",
+                  "opossum library, Istio"
+                ],
+                [
+                  "Rate limiting",
+                  "Bảo vệ APIs khỏi abuse",
+                  "Redis token bucket, NGINX limit_req"
+                ],
+                [
+                  "Compression",
+                  "Giảm bandwidth",
+                  "gzip, br (Brotli) - Express compression()"
+                ],
+                [
+                  "HTTP/2",
+                  "Multiplexing, faster",
+                  "Node.js http2 module, NGINX HTTP/2"
+                ],
+                [
+                  "Cache-Control headers",
+                  "Giảm unnecessary requests",
+                  "CDN + client cache strategy"
+                ],
+                [
+                  "Structured logging",
+                  "Debug network issues",
+                  "JSON logs + X-Request-ID tracing"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "Networking",
+  "color": "#0A3D62"
+}

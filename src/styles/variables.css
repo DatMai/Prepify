@@ -1,0 +1,33 @@
+:root {
+  --bg: #0e1116;
+  --bg2: #151a22;
+  --panel: #1a2029;
+  --panel2: #212935;
+  --line: #2a323f;
+  --txt: #e7ecf3;
+  --dim: #9aa6b6;
+  --faint: #6b7888;
+  --accent: #f5a623;
+  --accent2: #4aa3ff;
+  --ok: #3ecf8e;
+  --warn: #ffb454;
+  --bad: #ff6b6b;
+  --code: #0b0e13;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(74, 163, 255, .08), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(245, 166, 35, .07), transparent 55%),
+    var(--bg);
+  color: var(--txt);
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}

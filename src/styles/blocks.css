@@ -1,0 +1,82 @@
+.blk { margin: 14px 0; }
+.blk.text { color: var(--txt); font-size: 15.5px; line-height: 1.7; }
+
+pre.code {
+  background: var(--code);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0; overflow: hidden;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  position: relative;
+}
+pre.code .clabel {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, .03);
+  border-bottom: 1px solid var(--line);
+  font-size: 11px; color: var(--faint);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+pre.code code {
+  display: block; padding: 14px 16px;
+  overflow-x: auto; line-height: 1.65;
+  color: #cdd6e3; white-space: pre;
+}
+
+.run-btn {
+  background: var(--accent2); color: #04121f;
+  border: none; padding: 4px 12px; border-radius: 7px;
+  font-family: 'Outfit'; font-weight: 600; font-size: 11.5px;
+  cursor: pointer; transition: .15s;
+}
+.run-btn:hover { filter: brightness(1.12); }
+
+.run-out {
+  margin-top: -8px;
+  background: #05140d;
+  border: 1px solid rgba(62, 207, 142, .3);
+  border-left: 3px solid var(--ok);
+  border-radius: 0 0 11px 11px;
+  padding: 11px 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12.5px;
+  color: var(--ok);
+  white-space: pre-wrap;
+  display: none;
+}
+.run-out.show { display: block; }
+.run-out.err {
+  color: var(--bad);
+  border-color: rgba(255, 107, 107, .3);
+  border-left-color: var(--bad);
+  background: #160707;
+}
+
+table.qt {
+  width: 100%; border-collapse: collapse;
+  font-size: 13.5px; margin: 6px 0;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+table.qt th {
+  background: var(--panel2); color: var(--accent);
+  text-align: left; padding: 9px 13px; font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+table.qt td {
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--dim);
+}
+table.qt td:last-child { border-right: none; }
+table.qt tr:last-child td { border-bottom: none; }
+
+.note {
+  border-radius: 11px; padding: 12px 16px;
+  font-size: 14px; line-height: 1.6;
+  background: rgba(255, 180, 84, .08);
+  border: 1px solid rgba(255, 180, 84, .25);
+  border-left: 3px solid var(--warn);
+  color: #ffd9a8;
+}

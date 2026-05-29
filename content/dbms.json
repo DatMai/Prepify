@@ -1,0 +1,3831 @@
+{
+  "title": "DBMS",
+  "subtitle": "*Câu hỏi phỏng vấn Database Management System — Cơ bản đến Nâng cao*",
+  "sections": [
+    {
+      "name": "Phần I — DBMS Cơ Bản (Q1–25)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q1.  DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "DBMS (Database Management System) là phần mềm quản lý và tổ chức cơ sở dữ liệu. Nó cung cấp interface để tương tác với dữ liệu, đảm bảo tính toàn vẹn, bảo mật và quản lý concurrency."
+            },
+            {
+              "type": "text",
+              "text": "- Database Engine: Lưu trữ, truy xuất và quản lý dữ liệu."
+            },
+            {
+              "type": "text",
+              "text": "- Query Processor: Phân tích và thực thi SQL queries."
+            },
+            {
+              "type": "text",
+              "text": "- Transaction Manager: Đảm bảo ACID properties."
+            },
+            {
+              "type": "text",
+              "text": "- Security Manager: Kiểm soát truy cập, authentication và authorization."
+            },
+            {
+              "type": "text",
+              "text": "- Recovery Manager: Phục hồi dữ liệu sau sự cố."
+            },
+            {
+              "type": "text",
+              "text": "Ví dụ: MySQL, PostgreSQL, Oracle, SQL Server, SQLite."
+            },
+            {
+              "type": "text",
+              "text": "A Database Management System (DBMS) is software that manages and organizes databases, providing a structured interface for storing, retrieving, and manipulating data while ensuring integrity, security, and concurrent access."
+            },
+            {
+              "type": "text",
+              "text": "Database Engine: stores, retrieves, and manages data on disk."
+            },
+            {
+              "type": "text",
+              "text": "Query Processor: parses and executes SQL queries."
+            },
+            {
+              "type": "text",
+              "text": "Transaction Manager: enforces ACID properties for reliable operations."
+            },
+            {
+              "type": "text",
+              "text": "Security Manager: controls access via authentication and authorization."
+            },
+            {
+              "type": "text",
+              "text": "Recovery Manager: restores data after failures or crashes."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q2.  Lợi ích của DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Data Integrity: Đảm bảo dữ liệu chính xác và nhất quán qua constraints."
+            },
+            {
+              "type": "text",
+              "text": "- Data Security: Kiểm soát truy cập dữ liệu nhạy cảm theo user permissions."
+            },
+            {
+              "type": "text",
+              "text": "- Efficient Data Retrieval: Tối ưu queries và indexing, tăng tốc độ truy xuất."
+            },
+            {
+              "type": "text",
+              "text": "- Reduced Redundancy: Tránh duplicate data qua normalization."
+            },
+            {
+              "type": "text",
+              "text": "- Backup and Recovery: Cơ chế backup tự động và recovery khi có sự cố."
+            },
+            {
+              "type": "text",
+              "text": "- Concurrent Access: Nhiều users đồng thời mà không xảy ra conflicts."
+            },
+            {
+              "type": "text",
+              "text": "A DBMS provides several key advantages over traditional file-based data storage, making it the foundation of modern application development."
+            },
+            {
+              "type": "text",
+              "text": "Data Integrity: ensures accuracy and consistency through constraints."
+            },
+            {
+              "type": "text",
+              "text": "Data Security: restricts access to sensitive data by user permissions."
+            },
+            {
+              "type": "text",
+              "text": "Efficient Retrieval: speeds up data access via indexing and query optimization."
+            },
+            {
+              "type": "text",
+              "text": "Reduced Redundancy: avoids duplicate data through normalization."
+            },
+            {
+              "type": "text",
+              "text": "Backup & Recovery: provides automated backup and recovery from failures."
+            },
+            {
+              "type": "text",
+              "text": "Concurrent Access: allows multiple users to operate simultaneously without conflicts."
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "Khác nhau giữa DBMS và RDBMS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "DBMS",
+                  "RDBMS"
+                ],
+                [
+                  "Lưu trữ",
+                  "Files hoặc non-relational form",
+                  "Tables (rows và columns)"
+                ],
+                [
+                  "Relationships",
+                  "Không hỗ trợ",
+                  "Hỗ trợ qua foreign keys"
+                ],
+                [
+                  "Data Integrity",
+                  "Không enforce constraints",
+                  "Enforce qua primary/foreign keys"
+                ],
+                [
+                  "Ví dụ",
+                  "Microsoft Access, XML Database",
+                  "MySQL, Oracle, SQL Server, PostgreSQL"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "Các loại DBMS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Hierarchical DBMS",
+                  "Dữ liệu tổ chức dạng cây (parent-child)",
+                  "IBM IMS"
+                ],
+                [
+                  "Network DBMS",
+                  "Dữ liệu dạng graph, hỗ trợ many-to-many",
+                  "IDS (Integrated Data Store)"
+                ],
+                [
+                  "Relational DBMS",
+                  "Dữ liệu trong tables, quản lý qua SQL",
+                  "MySQL, PostgreSQL, Oracle"
+                ],
+                [
+                  "Object-Oriented DBMS",
+                  "Dữ liệu lưu dưới dạng objects",
+                  "ObjectDB, db4o"
+                ],
+                [
+                  "NoSQL DBMS",
+                  "Document, Key-Value, Graph, Column",
+                  "MongoDB, Redis, Cassandra"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Relation trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Relation là một table gồm rows và columns. Mỗi row (tuple) là một record, mỗi column (attribute) là một thuộc tính của entity. Relation được định nghĩa bởi schema chỉ định các attributes."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Relation: STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "-- Schema: STUDENT(ROLL_NO, NAME, AGE, BRANCH)"
+            },
+            {
+              "type": "text",
+              "text": "ROLL_NO | NAME   | AGE | BRANCH"
+            },
+            {
+              "type": "text",
+              "text": "--------|--------|-----|-------"
+            },
+            {
+              "type": "text",
+              "text": "1       | Ram    | 20  | CS"
+            },
+            {
+              "type": "text",
+              "text": "2       | Suresh | 21  | IT"
+            },
+            {
+              "type": "text",
+              "text": "3       | Priya  | 20  | CS"
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "Table, Row và Column trong DBMS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khái niệm",
+                  "Tên khác",
+                  "Mô tả"
+                ],
+                [
+                  "Table",
+                  "Relation",
+                  "Tập hợp dữ liệu tổ chức dạng lưới rows × columns"
+                ],
+                [
+                  "Row",
+                  "Tuple / Record",
+                  "Một đơn vị dữ liệu — chứa values cho mỗi attribute"
+                ],
+                [
+                  "Column",
+                  "Attribute / Field",
+                  "Một thuộc tính của entity — có data type cụ thể"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "Các thành phần chính của DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Database Engine: Lưu trữ, truy xuất, quản lý dữ liệu vật lý."
+            },
+            {
+              "type": "text",
+              "text": "- Database Schema: Cấu trúc định nghĩa tổ chức của database."
+            },
+            {
+              "type": "text",
+              "text": "- Query Processor: Phân tích và thực thi SQL queries."
+            },
+            {
+              "type": "text",
+              "text": "- Transaction Manager: Đảm bảo ACID properties của transactions."
+            },
+            {
+              "type": "text",
+              "text": "- Storage Manager: Quản lý lưu trữ vật lý trên disk."
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Primary Key là gì? Ví dụ?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Primary Key là unique identifier cho mọi record trong một table. Nó đảm bảo không có 2 records có cùng giá trị primary key và không được NULL."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE STUDENT ("
+            },
+            {
+              "type": "text",
+              "text": "ROLL_NO  INT         PRIMARY KEY,"
+            },
+            {
+              "type": "text",
+              "text": "NAME     VARCHAR(50) NOT NULL,"
+            },
+            {
+              "type": "text",
+              "text": "AGE      INT,"
+            },
+            {
+              "type": "text",
+              "text": "BRANCH   VARCHAR(20)"
+            },
+            {
+              "type": "text",
+              "text": ");"
+            },
+            {
+              "type": "text",
+              "text": "-- ROLL_NO la Primary Key: unique, NOT NULL"
+            },
+            {
+              "type": "text",
+              "text": "-- Moi hoc sinh co ROLL_NO khac nhau"
+            },
+            {
+              "type": "text",
+              "text": "- Unique: Không có 2 rows có cùng primary key."
+            },
+            {
+              "type": "text",
+              "text": "- NOT NULL: Giá trị primary key không được NULL."
+            },
+            {
+              "type": "text",
+              "text": "- Immutable: Nên tránh thay đổi primary key sau khi tạo."
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Foreign Key là gì? Ví dụ?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Foreign Key là một attribute trong một table tham chiếu đến Primary Key trong table khác. Nó tạo ra relationship giữa các tables và đảm bảo referential integrity."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE BRANCH ("
+            },
+            {
+              "type": "text",
+              "text": "BRANCH_CODE VARCHAR(5)  PRIMARY KEY,"
+            },
+            {
+              "type": "text",
+              "text": "BRANCH_NAME VARCHAR(50)"
+            },
+            {
+              "type": "text",
+              "text": ");"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE STUDENT ("
+            },
+            {
+              "type": "text",
+              "text": "ROLL_NO     INT         PRIMARY KEY,"
+            },
+            {
+              "type": "text",
+              "text": "NAME        VARCHAR(50),"
+            },
+            {
+              "type": "text",
+              "text": "BRANCH_CODE VARCHAR(5)  REFERENCES BRANCH(BRANCH_CODE)"
+            },
+            {
+              "type": "text",
+              "text": "ON DELETE CASCADE"
+            },
+            {
+              "type": "text",
+              "text": "ON UPDATE CASCADE"
+            },
+            {
+              "type": "text",
+              "text": ");"
+            },
+            {
+              "type": "text",
+              "text": "-- BRANCH_CODE trong STUDENT la Foreign Key"
+            },
+            {
+              "type": "text",
+              "text": "-- Chi nhan values ton tai trong BRANCH table"
+            },
+            {
+              "type": "note",
+              "text": "💡 ON DELETE CASCADE: khi delete record trong BRANCH, tự động delete các students thuộc branch đó. ON DELETE SET NULL: set BRANCH_CODE = NULL thay vì xóa."
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Normalization và Denormalization khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Normalization",
+                  "Denormalization"
+                ],
+                [
+                  "Mục đích",
+                  "Giảm redundancy, tăng integrity",
+                  "Tăng query performance"
+                ],
+                [
+                  "Cơ chế",
+                  "Phân chia bảng lớn thành nhỏ",
+                  "Gộp bảng, thêm redundancy"
+                ],
+                [
+                  "Redundancy",
+                  "Thấp",
+                  "Cao"
+                ],
+                [
+                  "Performance",
+                  "Chậm hơn (cần JOINs)",
+                  "Nhanh hơn (Ýt JOINs)"
+                ],
+                [
+                  "Anomalies",
+                  "Tránh insert/update/delete anomalies",
+                  "Có thể xảy ra anomalies"
+                ],
+                [
+                  "Dùng khi",
+                  "OLTP: data entry, transactions",
+                  "OLAP: reporting, analytics, data warehouse"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Candidate Key trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Candidate Key là tập hợp tối thiểu các attributes có thể uniquely identify mỗi tuple trong một relation. Một relation có thể có nhiều candidate keys, một trong số đó được chọn làm Primary Key."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Key",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Super Key",
+                  "Tập các attributes uniquely identify tuple (có thể thừa)",
+                  "(RollNo, Name), (RollNo)"
+                ],
+                [
+                  "Candidate Key",
+                  "Super key tối giản — không có attribute thừa",
+                  "RollNo, Email (cả hai đều minimal)"
+                ],
+                [
+                  "Primary Key",
+                  "Candidate key được chọn đại diện table",
+                  "RollNo được chọn"
+                ],
+                [
+                  "Alternate Key",
+                  "Candidate key không được chọn làm primary",
+                  "Email (nếu RollNo được chọn)"
+                ],
+                [
+                  "Foreign Key",
+                  "Attribute tham chiếu Primary Key table khác",
+                  "BranchCode trong STUDENT"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "SQL SELECT statement dùng để làm gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "SELECT được dùng để truy xuất dữ liệu từ một hoặc nhiều tables. Đây là câu lệnh SQL quan trọng và phần mộn nhất trong DQL (Data Query Language)."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Cú pháp cơ bản"
+            },
+            {
+              "type": "text",
+              "text": "SELECT column1, column2 FROM table_name WHERE condition;"
+            },
+            {
+              "type": "text",
+              "text": "-- Ví dụ cơ bản"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME, AGE FROM STUDENT WHERE AGE > 18;"
+            },
+            {
+              "type": "text",
+              "text": "-- Tất cả cột"
+            },
+            {
+              "type": "text",
+              "text": "SELECT * FROM STUDENT;"
+            },
+            {
+              "type": "text",
+              "text": "-- Với ORDER BY"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME, AGE FROM STUDENT ORDER BY AGE DESC;"
+            },
+            {
+              "type": "text",
+              "text": "-- Với GROUP BY"
+            },
+            {
+              "type": "text",
+              "text": "SELECT BRANCH, COUNT(*) AS total FROM STUDENT GROUP BY BRANCH;"
+            },
+            {
+              "type": "text",
+              "text": "-- Với HAVING"
+            },
+            {
+              "type": "text",
+              "text": "SELECT BRANCH, COUNT(*) FROM STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY BRANCH HAVING COUNT(*) > 5;"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "View trong DBMS là gì? Khác Table như thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "View",
+                  "Table"
+                ],
+                [
+                  "Loại",
+                  "Virtual table (không lưu data vật lý)",
+                  "Physical table (lưu data trên disk)"
+                ],
+                [
+                  "Dữ liệu",
+                  "Lấy động từ base tables",
+                  "Dữ liệu thực sự"
+                ],
+                [
+                  "Cập nhật",
+                  "Hạn chế (một số views không update được)",
+                  "Update tự do"
+                ],
+                [
+                  "Mục đích",
+                  "Bảo mật, đơn giản hóa queries",
+                  "Lưu trữ dữ liệu"
+                ],
+                [
+                  "Performance",
+                  "Chậm hơn (thiết lập từng lần query)",
+                  "Nhanh hơn"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Tạo view ẩn các cột nhạy cảm"
+            },
+            {
+              "type": "text",
+              "text": "CREATE VIEW PublicStudent AS"
+            },
+            {
+              "type": "text",
+              "text": "SELECT ROLL_NO, NAME, BRANCH FROM STUDENT;"
+            },
+            {
+              "type": "text",
+              "text": "-- Không expose SALARY hay ID_NUMBER"
+            },
+            {
+              "type": "text",
+              "text": "-- Materialized View (lưu kết quả vật lý)"
+            },
+            {
+              "type": "text",
+              "text": "CREATE MATERIALIZED VIEW SalesSummary AS"
+            },
+            {
+              "type": "text",
+              "text": "SELECT Product, SUM(Quantity) AS total"
+            },
+            {
+              "type": "text",
+              "text": "FROM Sales GROUP BY Product;"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Các loại Relationships trong DBMS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Ký hiệu",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "One-to-One (1:1)",
+                  "1 — 1",
+                  "1 record bảng A ↔ 1 record bảng B",
+                  "Person ↔ Passport"
+                ],
+                [
+                  "One-to-Many (1:M)",
+                  "1 — ∞",
+                  "1 record bảng A ↔ nhiều records bảng B",
+                  "Customer → Orders"
+                ],
+                [
+                  "Many-to-Many (M:M)",
+                  "∞ — ∞",
+                  "Nhiều records A ↔ nhiều records B",
+                  "Student ↔ Course (qua Enrollment)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 Many-to-Many được implement qua junction table (bảng trung gian). Ví dụ: Enrollment(StudentID, CourseID) giữ cả hai foreign keys."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q15.  Schema trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Schema là cấu trúc định nghĩa tổ chức dữ liệu trong database. Nó bao gồm tables, views, relationships, và constraints. Có 3 mức schema:"
+            },
+            {
+              "type": "text",
+              "text": "- External Schema (View Level): Mục độ user thấy — views và subsets của database cho từng user."
+            },
+            {
+              "type": "text",
+              "text": "- Conceptual Schema (Logical Level): Mô tả toàn bộ cấu trúc database — tables, relationships, constraints."
+            },
+            {
+              "type": "text",
+              "text": "- Internal Schema (Physical Level): Cách dữ liệu được lưu vật lý trên disk."
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Constraints trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Constraint",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "NOT NULL",
+                  "Cột không được chứa NULL",
+                  "Name VARCHAR(50) NOT NULL"
+                ],
+                [
+                  "PRIMARY KEY",
+                  "Unique + NOT NULL, identify record",
+                  "ID INT PRIMARY KEY"
+                ],
+                [
+                  "FOREIGN KEY",
+                  "Tham chiếu primary key của table khác",
+                  "BranchCode INT REFERENCES Branch(ID)"
+                ],
+                [
+                  "UNIQUE",
+                  "Tất cả values trong cột là unique",
+                  "Email VARCHAR(100) UNIQUE"
+                ],
+                [
+                  "CHECK",
+                  "Values phải đáp ứng điều kiện",
+                  "Age INT CHECK (Age >= 0 AND Age <= 150)"
+                ],
+                [
+                  "DEFAULT",
+                  "Giá trị mặc định nếu không insert",
+                  "Status VARCHAR(10) DEFAULT 'Active'"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q17.  DELETE vs TRUNCATE vs DROP khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "DELETE",
+                  "TRUNCATE",
+                  "DROP"
+                ],
+                [
+                  "Loại lệnh",
+                  "DML",
+                  "DDL (một số DBMS là DML)",
+                  "DDL"
+                ],
+                [
+                  "Xóa",
+                  "Rows theo điều kiện WHERE",
+                  "Tất cả rows",
+                  "Table + data + structure"
+                ],
+                [
+                  "WHERE clause",
+                  "Có",
+                  "Không",
+                  "Không"
+                ],
+                [
+                  "Rollback",
+                  "Có thể",
+                  "Thường không thể",
+                  "Không thể"
+                ],
+                [
+                  "Transaction log",
+                  "Log từng row",
+                  "Không log từng row",
+                  "Không log"
+                ],
+                [
+                  "Tốc độ",
+                  "Chậm (log từng row)",
+                  "Nhanh hơn DELETE",
+                  "Nhanh nhất"
+                ],
+                [
+                  "Giữ structure",
+                  "Có",
+                  "Có",
+                  "Không"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- DELETE: xóa rows có điều kiện, có thể rollback"
+            },
+            {
+              "type": "text",
+              "text": "DELETE FROM STUDENT WHERE AGE < 18;"
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK;  -- khôi phục được"
+            },
+            {
+              "type": "text",
+              "text": "A transaction is a sequence of SQL operations executed as a single logical unit — either all operations succeed and are committed, or all are rolled back on failure."
+            },
+            {
+              "type": "text",
+              "text": "BEGIN TRANSACTION: starts a new transaction block."
+            },
+            {
+              "type": "text",
+              "text": "COMMIT: permanently saves all changes made in the transaction."
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK: undoes all changes and restores the previous database state."
+            },
+            {
+              "type": "text",
+              "text": "SAVEPOINT: creates an intermediate checkpoint to enable partial rollbacks."
+            },
+            {
+              "type": "text",
+              "text": "-- TRUNCATE: xóa tất cả rows, nhanh hơn"
+            },
+            {
+              "type": "text",
+              "text": "TRUNCATE TABLE STUDENT;"
+            },
+            {
+              "type": "text",
+              "text": "-- DROP: xóa cả table"
+            },
+            {
+              "type": "text",
+              "text": "DROP TABLE STUDENT;"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q18.  Index trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Index là data structure giúp tăng tốc độ truy xuất dữ liệu, tương tự mục lục của sách. Database có thể tìm kiếm nhanh mà không cần scan toàn bộ table (FULL TABLE SCAN)."
+            },
+            {
+              "type": "text",
+              "text": "- Tăng tốc SELECT: Query theo indexed column rất nhanh."
+            },
+            {
+              "type": "text",
+              "text": "- Chậm INSERT/UPDATE/DELETE: Phải update cả index khi thay đổi data."
+            },
+            {
+              "type": "text",
+              "text": "- Tốn bộ nhớ: Index chiếm thêm disk space."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Tạo index trên cột email"
+            },
+            {
+              "type": "text",
+              "text": "CREATE INDEX idx_email ON STUDENT(EMAIL);"
+            },
+            {
+              "type": "text",
+              "text": "-- Tạo composite index"
+            },
+            {
+              "type": "text",
+              "text": "CREATE INDEX idx_name_branch ON STUDENT(NAME, BRANCH);"
+            },
+            {
+              "type": "text",
+              "text": "-- Unique index"
+            },
+            {
+              "type": "text",
+              "text": "CREATE UNIQUE INDEX idx_roll ON STUDENT(ROLL_NO);"
+            },
+            {
+              "type": "text",
+              "text": "-- Xóa index"
+            },
+            {
+              "type": "text",
+              "text": "DROP INDEX idx_email;"
+            },
+            {
+              "type": "text",
+              "text": "An index is a data structure (typically a B+ tree) that speeds up data retrieval on a table column, similar to a book's index — the database locates rows directly without a full table scan."
+            },
+            {
+              "type": "text",
+              "text": "Faster SELECT: queries on indexed columns are resolved without scanning the full table."
+            },
+            {
+              "type": "text",
+              "text": "Slower writes: INSERT/UPDATE/DELETE must also update the index structure."
+            },
+            {
+              "type": "text",
+              "text": "Extra storage: indexes consume additional disk space."
+            },
+            {
+              "type": "text",
+              "text": "When to use: create indexes on columns frequently used in WHERE, JOIN, or ORDER BY clauses."
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Vai trò của Database Administrator (DBA)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Database Design: Thiết kế cấu trúc database tối ưu."
+            },
+            {
+              "type": "text",
+              "text": "- Backup & Recovery: Đảm bảo backup định kỳ và khả năng restore khi có sự cố."
+            },
+            {
+              "type": "text",
+              "text": "- Performance Tuning: Monitor và tối ưu hiệu năng database."
+            },
+            {
+              "type": "text",
+              "text": "- Security Management: Quản lý user accounts, permissions, và policies."
+            },
+            {
+              "type": "text",
+              "text": "- Data Integrity: Đảm bảo thoạt khỏi inconsistency qua constraints."
+            },
+            {
+              "type": "text",
+              "text": "- Upgrades: Cập nhật database software và patches."
+            },
+            {
+              "type": "text",
+              "text": "- Troubleshooting: Xác định và giải quyết vấn đề database."
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Entity-Relationship Diagram (ERD) là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "ERD là sơ đồ trực quan hóa các entities trong một hệ thống và mối quan hệ giữa chúng. Dùng trong giai đoạn thiết kế database để mô hình hóa cấu trúc dữ liệu."
+            },
+            {
+              "type": "text",
+              "text": "- Entity: Object trong hệ thống (ví dụ: Student, Course, Employee)."
+            },
+            {
+              "type": "text",
+              "text": "- Attribute: Thuộc tính của entity (ví dụ: StudentID, Name, Age)."
+            },
+            {
+              "type": "text",
+              "text": "- Relationship: Mối liên hệ giữa entities (ví dụ: Student enrolls in Course)."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Ký hiệu trong ERD",
+                  "Hình dạng",
+                  "Ý nghĩa"
+                ],
+                [
+                  "Entity",
+                  "Hình chữ nhật",
+                  "Đối tượng trong hệ thống"
+                ],
+                [
+                  "Attribute",
+                  "Hình elip",
+                  "Thuộc tính của entity"
+                ],
+                [
+                  "Relationship",
+                  "Hình thoi",
+                  "Mối quan hệ giữa entities"
+                ],
+                [
+                  "Primary Key",
+                  "Elip gạch chân",
+                  "Thuộc tính là primary key"
+                ],
+                [
+                  "Weak Entity",
+                  "Chữ nhật kép",
+                  "Entity phụ thuộc vào entity khác"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q21.  Các loại JOIN trong SQL?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại JOIN",
+                  "Mô tả",
+                  "Kết quả"
+                ],
+                [
+                  "INNER JOIN",
+                  "Chỉ trả về rows match ở cả 2 tables",
+                  "Intersection của 2 tables"
+                ],
+                [
+                  "LEFT JOIN",
+                  "Tất cả rows từ left + match từ right",
+                  "All left + NULL for non-match right"
+                ],
+                [
+                  "RIGHT JOIN",
+                  "Tất cả rows từ right + match từ left",
+                  "All right + NULL for non-match left"
+                ],
+                [
+                  "FULL JOIN",
+                  "Tất cả rows từ cả 2 tables",
+                  "All rows, NULL where no match"
+                ],
+                [
+                  "CROSS JOIN",
+                  "Cartesian product của 2 tables",
+                  "n x m rows"
+                ],
+                [
+                  "SELF JOIN",
+                  "Một table join với chính nó",
+                  "Dùng aliases để phân biệt"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- INNER JOIN: chỉ students có branch"
+            },
+            {
+              "type": "text",
+              "text": "SELECT S.NAME, B.BRANCH_NAME"
+            },
+            {
+              "type": "text",
+              "text": "FROM STUDENT S"
+            },
+            {
+              "type": "text",
+              "text": "INNER JOIN BRANCH B ON S.BRANCH_CODE = B.BRANCH_CODE;"
+            },
+            {
+              "type": "text",
+              "text": "-- LEFT JOIN: tất cả students, dù không có branch"
+            },
+            {
+              "type": "text",
+              "text": "SELECT S.NAME, B.BRANCH_NAME"
+            },
+            {
+              "type": "text",
+              "text": "FROM STUDENT S"
+            },
+            {
+              "type": "text",
+              "text": "LEFT JOIN BRANCH B ON S.BRANCH_CODE = B.BRANCH_CODE;"
+            },
+            {
+              "type": "text",
+              "text": "-- SELF JOIN: tìm manager của mỗi nhan viên"
+            },
+            {
+              "type": "text",
+              "text": "SELECT E1.NAME AS Employee, E2.NAME AS Manager"
+            },
+            {
+              "type": "text",
+              "text": "FROM EMPLOYEE E1"
+            },
+            {
+              "type": "text",
+              "text": "LEFT JOIN EMPLOYEE E2 ON E1.MANAGER_ID = E2.EMP_ID;"
+            },
+            {
+              "type": "text",
+              "text": "SQL JOIN operations combine rows from two or more tables based on a related column; the type of JOIN controls which rows are included when there is no match."
+            },
+            {
+              "type": "text",
+              "text": "INNER JOIN: returns only rows that have matching values in both tables."
+            },
+            {
+              "type": "text",
+              "text": "LEFT JOIN: returns all rows from the left table plus matched rows from the right (NULL for no match)."
+            },
+            {
+              "type": "text",
+              "text": "RIGHT JOIN: returns all rows from the right table plus matched rows from the left (NULL for no match)."
+            },
+            {
+              "type": "text",
+              "text": "FULL JOIN: returns all rows from both tables, with NULLs where there is no match."
+            },
+            {
+              "type": "text",
+              "text": "CROSS JOIN: produces the Cartesian product (every combination of rows from both tables)."
+            },
+            {
+              "type": "text",
+              "text": "SELF JOIN: joins a table to itself using aliases, useful for hierarchical data."
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Subquery trong SQL là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Subquery (correlated query) là một query được lồng bên trong một query khác. Kết quả của subquery được dùng bởi outer query."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Subquery trong WHERE"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME FROM STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "WHERE AGE > (SELECT AVG(AGE) FROM STUDENT);"
+            },
+            {
+              "type": "text",
+              "text": "-- Subquery trong FROM (Derived Table)"
+            },
+            {
+              "type": "text",
+              "text": "SELECT dept, avg_sal FROM"
+            },
+            {
+              "type": "text",
+              "text": "(SELECT DEPT, AVG(SALARY) as avg_sal FROM EMPLOYEE GROUP BY DEPT) T"
+            },
+            {
+              "type": "text",
+              "text": "WHERE avg_sal > 50000;"
+            },
+            {
+              "type": "text",
+              "text": "-- Correlated subquery"
+            },
+            {
+              "type": "text",
+              "text": "SELECT E.NAME FROM EMPLOYEE E"
+            },
+            {
+              "type": "text",
+              "text": "WHERE SALARY > (SELECT AVG(SALARY) FROM EMPLOYEE"
+            },
+            {
+              "type": "text",
+              "text": "WHERE DEPT = E.DEPT);"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Subquery",
+                  "Mô tả"
+                ],
+                [
+                  "Scalar subquery",
+                  "Trả về một giá trị duy nhất"
+                ],
+                [
+                  "Single-row subquery",
+                  "Trả về một row"
+                ],
+                [
+                  "Multi-row subquery",
+                  "Trả về nhiều rows (dùng IN, ANY, ALL)"
+                ],
+                [
+                  "Correlated subquery",
+                  "Tham chiếu outer query, chạy lại mỗi row"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Aggregate Functions trong SQL?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Function",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "COUNT()",
+                  "Số rows hoặc non-NULL values",
+                  "SELECT COUNT(*) FROM STUDENT"
+                ],
+                [
+                  "SUM()",
+                  "Tổng của cột số",
+                  "SELECT SUM(SALARY) FROM EMPLOYEE"
+                ],
+                [
+                  "AVG()",
+                  "Trung bình của cột số",
+                  "SELECT AVG(AGE) FROM STUDENT"
+                ],
+                [
+                  "MAX()",
+                  "Giá trị lớn nhất",
+                  "SELECT MAX(SALARY) FROM EMPLOYEE"
+                ],
+                [
+                  "MIN()",
+                  "Giá trị nhỏ nhất",
+                  "SELECT MIN(AGE) FROM STUDENT"
+                ],
+                [
+                  "GROUP_CONCAT()",
+                  "Nối các values thành string",
+                  "SELECT GROUP_CONCAT(NAME) FROM STUDENT"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- GROUP BY + HAVING"
+            },
+            {
+              "type": "text",
+              "text": "SELECT BRANCH, COUNT(*) AS total, AVG(AGE) AS avg_age"
+            },
+            {
+              "type": "text",
+              "text": "FROM STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY BRANCH"
+            },
+            {
+              "type": "text",
+              "text": "HAVING COUNT(*) > 5"
+            },
+            {
+              "type": "text",
+              "text": "ORDER BY total DESC;"
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "WHERE vs HAVING khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "WHERE",
+                  "HAVING"
+                ],
+                [
+                  "Lọc",
+                  "Từng rows trước GROUP BY",
+                  "Groups sau GROUP BY"
+                ],
+                [
+                  "Sử dụng với",
+                  "Rows individual",
+                  "Aggregate functions"
+                ],
+                [
+                  "Thứ tự thực hiện",
+                  "Trước GROUP BY",
+                  "Sau GROUP BY"
+                ],
+                [
+                  "Aggregate functions",
+                  "Không được dùng",
+                  "Thường dùng"
+                ],
+                [
+                  "Ví dụ",
+                  "WHERE AGE > 18",
+                  "HAVING COUNT(*) > 5"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "SELECT BRANCH, COUNT(*) AS total"
+            },
+            {
+              "type": "text",
+              "text": "FROM STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "WHERE AGE > 18            -- loc truoc group"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY BRANCH"
+            },
+            {
+              "type": "text",
+              "text": "HAVING COUNT(*) > 5;       -- loc sau group"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "UNION vs UNION ALL?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "UNION",
+                  "UNION ALL"
+                ],
+                [
+                  "Duplicate rows",
+                  "Xóa rows trùng",
+                  "Giữ lại tất cả"
+                ],
+                [
+                  "Tốc độ",
+                  "Chậm hơn (cần sort/compare)",
+                  "Nhanh hơn"
+                ],
+                [
+                  "Số rows kết quả",
+                  "≤ UNION ALL",
+                  "Nhiều hơn hoặc bằng UNION"
+                ],
+                [
+                  "Dùng khi",
+                  "Cần kết quả unique",
+                  "Muốn tất cả, kể cả duplicates"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- UNION: loai bo duplicate"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME FROM STUDENTS"
+            },
+            {
+              "type": "text",
+              "text": "UNION"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME FROM TEACHERS;"
+            },
+            {
+              "type": "text",
+              "text": "-- UNION ALL: giu tat ca"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME FROM STUDENTS"
+            },
+            {
+              "type": "text",
+              "text": "UNION ALL"
+            },
+            {
+              "type": "text",
+              "text": "SELECT NAME FROM TEACHERS;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — DBMS Intermediate (Q26–50)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q26.  Transaction trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Transaction là một sequence các SQL operations được thực thi như một đơn vị duy nhất. Hoặc tất cả operations thành công (COMMIT), hoặc tất cả được rollback (ROLLBACK)."
+            },
+            {
+              "type": "text",
+              "text": "- BEGIN/START TRANSACTION: Bắt đầu transaction."
+            },
+            {
+              "type": "text",
+              "text": "- COMMIT: Lưu tất cả thay đổi vĩnh viễn."
+            },
+            {
+              "type": "text",
+              "text": "- ROLLBACK: Huỷ tất cả thay đổi, khôi phục trạng thái trước."
+            },
+            {
+              "type": "text",
+              "text": "- SAVEPOINT: Tạo mốc giữa transaction để rollback tới."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN TRANSACTION;"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Account SET balance = balance - 1000 WHERE id = 'ACC001';"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Account SET balance = balance + 1000 WHERE id = 'ACC002';"
+            },
+            {
+              "type": "text",
+              "text": "-- Nếu cả 2 thành công"
+            },
+            {
+              "type": "text",
+              "text": "COMMIT;"
+            },
+            {
+              "type": "text",
+              "text": "-- Nếu có lỗi xảy ra"
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK;"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q27.  ACID properties trong DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "ACID là 4 thuộc tính cần thiết để đảm bảo transaction processing đáng tin cậy:"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Property",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Atomicity",
+                  "Tất cả operations thành công hoặc tất cả rollback",
+                  "Transfer tiền: cả debit và credit phải xảy ra"
+                ],
+                [
+                  "Consistency",
+                  "Database chuyển từ một valid state sang valid state khác",
+                  "Balance không âm sau transfer"
+                ],
+                [
+                  "Isolation",
+                  "Transactions thực thi độc lập, intermediate state ẩn",
+                  "T2 không thấy T1 chưa COMMIT"
+                ],
+                [
+                  "Durability",
+                  "Sau COMMIT, thay đổi tồn tại dù có system failure",
+                  "Dữ liệu tồn tại sau power outage"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Cách nhớ ACID: Atomicity = All or Nothing; Consistency = Valid to Valid; Isolation = Invisible intermediate; Durability = Permanent after commit."
+            },
+            {
+              "type": "text",
+              "text": "ACID is a set of four properties that guarantee reliable transaction processing in a DBMS, ensuring data remains correct even in the event of errors or system failures."
+            },
+            {
+              "type": "text",
+              "text": "Atomicity: all operations in a transaction succeed, or none are applied (all-or-nothing)."
+            },
+            {
+              "type": "text",
+              "text": "Consistency: a transaction moves the database from one valid state to another, preserving all defined rules."
+            },
+            {
+              "type": "text",
+              "text": "Isolation: concurrent transactions execute independently; intermediate states are invisible to others."
+            },
+            {
+              "type": "text",
+              "text": "Durability: once committed, changes persist permanently even after a system failure."
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Stored Procedure trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Stored Procedure là một tập hợp các SQL statements được precompile và lưu trong database. Thực thi nhanh hơn so với gửi từng query."
+            },
+            {
+              "type": "text",
+              "text": "- Lợi ích: Tái sử dụng, bảo mật (user không cần biết cấu trúc table), giảm network traffic."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Tạo stored procedure"
+            },
+            {
+              "type": "text",
+              "text": "CREATE PROCEDURE GetStudentDetails(IN student_id INT)"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "SELECT * FROM STUDENT WHERE ROLL_NO = student_id;"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            },
+            {
+              "type": "text",
+              "text": "-- Gọi stored procedure"
+            },
+            {
+              "type": "text",
+              "text": "CALL GetStudentDetails(1);"
+            },
+            {
+              "type": "text",
+              "text": "-- Procedure với OUT parameter"
+            },
+            {
+              "type": "text",
+              "text": "CREATE PROCEDURE GetStudentCount(OUT total INT)"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "SELECT COUNT(*) INTO total FROM STUDENT;"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            },
+            {
+              "type": "text",
+              "text": "CALL GetStudentCount(@count);"
+            },
+            {
+              "type": "text",
+              "text": "SELECT @count;"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Triggers trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Trigger là stored procedure tự động thực hiện khi có sự kiện cụ thể (INSERT, UPDATE, DELETE) xảy ra trên table."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Trigger",
+                  "Stored Procedure"
+                ],
+                [
+                  "Kích hoạt",
+                  "Tự động khi có event",
+                  "Gọi thủ công"
+                ],
+                [
+                  "Gọi",
+                  "Không thể gọi trực tiếp",
+                  "Gọi bằng CALL/EXEC"
+                ],
+                [
+                  "Parameters",
+                  "Không nhận parameters",
+                  "Nhận input/output parameters"
+                ],
+                [
+                  "Dùng cho",
+                  "Audit log, enforce rules, cascade",
+                  "Business logic, tái sử dụng"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Trigger audit log khi insert student"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TRIGGER after_student_insert"
+            },
+            {
+              "type": "text",
+              "text": "AFTER INSERT ON STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "FOR EACH ROW"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "INSERT INTO AuditLog(Action, StudentID, ActionTime)"
+            },
+            {
+              "type": "text",
+              "text": "VALUES ('INSERT', NEW.ROLL_NO, NOW());"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            },
+            {
+              "type": "text",
+              "text": "-- Trigger validate trước update"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TRIGGER before_salary_update"
+            },
+            {
+              "type": "text",
+              "text": "BEFORE UPDATE ON EMPLOYEE"
+            },
+            {
+              "type": "text",
+              "text": "FOR EACH ROW"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "IF NEW.SALARY < 0 THEN"
+            },
+            {
+              "type": "text",
+              "text": "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Salary cannot be negative';"
+            },
+            {
+              "type": "text",
+              "text": "END IF;"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q30.  Indexing trong DBMS hoạt động như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Index tạo ra một data structure (thường là B+ tree) trên một hoặc nhiều columns, cho phép tìm kiếm nhanh không cần scan toàn bộ table."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Index",
+                  "Mô tả",
+                  "Khi nào dùng"
+                ],
+                [
+                  "Clustered Index",
+                  "Dữ liệu lưu theo thứ tự của index. Tối đa 1/table",
+                  "Range queries, lấy nhiều rows theo thứ tự"
+                ],
+                [
+                  "Non-clustered Index",
+                  "Pointer tới data. Nhiều index/table",
+                  "Lookup theo column cụ thể"
+                ],
+                [
+                  "Unique Index",
+                  "Không có duplicate values",
+                  "Email, username, SSN"
+                ],
+                [
+                  "Composite Index",
+                  "Index trên nhiều columns",
+                  "Queries filter theo nhiều columns"
+                ],
+                [
+                  "Full-text Index",
+                  "Tìm kiếm text content",
+                  "LIKE queries, search functionality"
+                ],
+                [
+                  "Partial Index",
+                  "Index chỉ một phần rows",
+                  "Active records, recent data"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Indexing creates a separate data structure (usually a B+ tree) on one or more columns that allows the database to find rows quickly without scanning the entire table."
+            },
+            {
+              "type": "text",
+              "text": "Clustered Index: physically orders table data by the index key; at most one per table. Best for range queries."
+            },
+            {
+              "type": "text",
+              "text": "Non-clustered Index: stores pointers to data rows; multiple allowed per table. Best for specific column lookups."
+            },
+            {
+              "type": "text",
+              "text": "Unique Index: enforces no duplicate values on the indexed column (e.g., email, SSN)."
+            },
+            {
+              "type": "text",
+              "text": "Composite Index: covers multiple columns; effective for queries filtering on those columns together."
+            },
+            {
+              "type": "text",
+              "text": "Full-text Index: optimised for LIKE and text-search queries."
+            },
+            {
+              "type": "text",
+              "text": "Partial Index: indexes only a subset of rows (e.g., active records), reducing size and maintenance cost."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q31.  Normalization là gì? Các Normal Forms?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Normalization là quá trình tổ chức dữ liệu trong database để giảm redundancy và cải thiện data integrity. Mục tiêu là tránh các anomalies khi insert, update, delete."
+            },
+            {
+              "type": "text",
+              "text": "1NF (First Normal Form): Mỗi cell chứa một giá trị atomic duy nhất. Không có repeating groups hay multi-valued attributes."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Vi pham 1NF: Subjects chua nhieu gia tri"
+            },
+            {
+              "type": "text",
+              "text": "-- STUDENT(ID, Name, Subjects) = (1, 'Ram', 'Math,Physics')"
+            },
+            {
+              "type": "text",
+              "text": "-- Dat 1NF: moi cell la atomic"
+            },
+            {
+              "type": "text",
+              "text": "-- STUDENT_SUBJECT(StudentID, Subject)"
+            },
+            {
+              "type": "text",
+              "text": "-- (1, 'Math'), (1, 'Physics')"
+            },
+            {
+              "type": "text",
+              "text": "2NF (Second Normal Form): Phai la 1NF va tat ca non-key attributes phu thuoc HOAN TOAN vao primary key (khong co partial dependency)."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Vi pham 2NF: InstructorName phu thuoc CourseID, khong phu thuoc (StudentID,CourseID)"
+            },
+            {
+              "type": "text",
+              "text": "-- StudentCourse(StudentID, CourseID, InstructorName)"
+            },
+            {
+              "type": "text",
+              "text": "-- Dat 2NF: tach thanh 2 bang"
+            },
+            {
+              "type": "text",
+              "text": "-- Enrollment(StudentID, CourseID)"
+            },
+            {
+              "type": "text",
+              "text": "-- Course(CourseID, InstructorName)"
+            },
+            {
+              "type": "text",
+              "text": "3NF (Third Normal Form): Phải là 2NF và không có transitive dependency (non-key attribute không phụ thuộc non-key attribute khác)."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Vi pham 3NF: DeptName phu thuoc DeptID (non-key)"
+            },
+            {
+              "type": "text",
+              "text": "-- Employee(EmpID, EmpName, DeptID, DeptName)"
+            },
+            {
+              "type": "text",
+              "text": "-- Dat 3NF: tach ra"
+            },
+            {
+              "type": "text",
+              "text": "-- Employee(EmpID, EmpName, DeptID)"
+            },
+            {
+              "type": "text",
+              "text": "-- Department(DeptID, DeptName)"
+            },
+            {
+              "type": "text",
+              "text": "BCNF (Boyce-Codd Normal Form): Phải là 3NF và mọi determinant phải là candidate key. Chặt hơn 3NF."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Vi pham BCNF: InstructorID xac dinh CourseID nhung InstructorID khong phai candidate key"
+            },
+            {
+              "type": "text",
+              "text": "-- Student(StudentID, CourseID, InstructorID)"
+            },
+            {
+              "type": "text",
+              "text": "-- Dat BCNF:"
+            },
+            {
+              "type": "text",
+              "text": "-- Instructor(InstructorID, CourseID)"
+            },
+            {
+              "type": "text",
+              "text": "-- Enrollment(StudentID, CourseID)"
+            },
+            {
+              "type": "text",
+              "text": "Normalization is the process of organising a database to reduce data redundancy and prevent update, insert, and delete anomalies by decomposing tables into well-structured forms."
+            },
+            {
+              "type": "text",
+              "text": "1NF: each cell holds a single atomic value; no repeating groups."
+            },
+            {
+              "type": "text",
+              "text": "2NF: satisfies 1NF and every non-key attribute is fully dependent on the entire primary key (no partial dependency)."
+            },
+            {
+              "type": "text",
+              "text": "3NF: satisfies 2NF and no non-key attribute depends on another non-key attribute (no transitive dependency)."
+            },
+            {
+              "type": "text",
+              "text": "BCNF: stricter than 3NF — every determinant must be a candidate key."
+            },
+            {
+              "type": "text",
+              "text": "When to use: apply 3NF/BCNF for OLTP systems to minimise anomalies; consider denormalisation for read-heavy OLAP workloads."
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "INNER JOIN vs OUTER JOIN khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "INNER JOIN",
+                  "OUTER JOIN (LEFT/RIGHT/FULL)"
+                ],
+                [
+                  "Kết quả",
+                  "Chỉ rows match ở cả 2 tables",
+                  "Tất cả rows từ 1 hoặc cả 2 tables"
+                ],
+                [
+                  "NULL handling",
+                  "Loại bỏ non-matching rows",
+                  "Giữ lại, NULL cho non-matching"
+                ],
+                [
+                  "Hiệu năng",
+                  "Nhanh hơn (Ýt rows hơn)",
+                  "Chậm hơn (nhiều rows hơn)"
+                ],
+                [
+                  "Dùng khi",
+                  "Chỉ cần dữ liệu intersection",
+                  "Cần giữ tất cả dữ liệu từ 1 bảng"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Data Redundancy là gì? Giảm thiểu như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Data redundancy là việc lưu trữ cùng một dữ liệu nhiều lần một cách không cần thiết. Gây tốn storage, khó duy trì consistency, và dễ gây anomalies."
+            },
+            {
+              "type": "text",
+              "text": "- Normalization: Phân chia tables dựa trên functional dependencies."
+            },
+            {
+              "type": "text",
+              "text": "- Constraints: Dùng PRIMARY KEY và UNIQUE để ngăn duplicate data."
+            },
+            {
+              "type": "text",
+              "text": "- Foreign Keys: Tham chiếu data thay vì lưu trữ nhiều lần."
+            },
+            {
+              "type": "text",
+              "text": "- Views: Thể hiện dữ liệu theo nhiều cách mà không duplicate."
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Deadlock trong DBMS là gì? Cách phòng ngừa?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Deadlock xảy ra khi 2 hoặc nhiều transactions cùng chờ nhau giải phóng resources, dẫn đến tình trạng stuck vĩnh viễn."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Deadlock scenario"
+            },
+            {
+              "type": "text",
+              "text": "-- T1: lock A, wait for B"
+            },
+            {
+              "type": "text",
+              "text": "-- T2: lock B, wait for A"
+            },
+            {
+              "type": "text",
+              "text": "T1: LOCK TABLE A; ... UPDATE A SET ..."
+            },
+            {
+              "type": "text",
+              "text": "-- T1 dang cho B"
+            },
+            {
+              "type": "text",
+              "text": "T2: LOCK TABLE B; ... UPDATE B SET ..."
+            },
+            {
+              "type": "text",
+              "text": "-- T2 dang cho A"
+            },
+            {
+              "type": "text",
+              "text": "-- Ket qua: ca hai deu bi block vinh vien!"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Phương pháp",
+                  "Mô tả"
+                ],
+                [
+                  "Lock Ordering",
+                  "Tất cả transactions acquire locks theo cùng thứ tự"
+                ],
+                [
+                  "Timeout",
+                  "Tự động rollback transaction đã chờ quá lâu"
+                ],
+                [
+                  "Deadlock Detection",
+                  "DBMS phát hiện chu trình chờ, abort một transaction"
+                ],
+                [
+                  "Two-Phase Locking (2PL)",
+                  "Growing phase acquire locks; shrinking phase release"
+                ],
+                [
+                  "Wait-Die / Wound-Wait",
+                  "Nhường ưu tiên cho transaction cũ hơn dựa trên timestamp"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Database Cursor là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Cursor là con trỏ tới result set của một query. Cho phép xử lý row-by-row — hữu ích khi cần xử lý từng record riêng lẻ."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Cursor",
+                  "Mô tả"
+                ],
+                [
+                  "Implicit Cursor",
+                  "Tự động tạo cho SELECT, INSERT, UPDATE, DELETE"
+                ],
+                [
+                  "Explicit Cursor",
+                  "Lập trình viên tự định nghĩa và quản lý"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Explicit cursor trong PL/SQL"
+            },
+            {
+              "type": "text",
+              "text": "DECLARE"
+            },
+            {
+              "type": "text",
+              "text": "CURSOR emp_cursor IS SELECT * FROM EMPLOYEE;"
+            },
+            {
+              "type": "text",
+              "text": "emp_record EMPLOYEE%ROWTYPE;"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "OPEN emp_cursor;"
+            },
+            {
+              "type": "text",
+              "text": "LOOP"
+            },
+            {
+              "type": "text",
+              "text": "FETCH emp_cursor INTO emp_record;"
+            },
+            {
+              "type": "text",
+              "text": "EXIT WHEN emp_cursor%NOTFOUND;"
+            },
+            {
+              "type": "text",
+              "text": "-- xử lý từng employee"
+            },
+            {
+              "type": "text",
+              "text": "DBMS_OUTPUT.PUT_LINE(emp_record.NAME);"
+            },
+            {
+              "type": "text",
+              "text": "END LOOP;"
+            },
+            {
+              "type": "text",
+              "text": "CLOSE emp_cursor;"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q36.  Các loại Database Locks?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Lock",
+                  "Mô tả",
+                  "Cho phép"
+                ],
+                [
+                  "Shared Lock (S)",
+                  "Nhiều transactions đọc cùng lúc",
+                  "Read-Read, cấm Read-Write"
+                ],
+                [
+                  "Exclusive Lock (X)",
+                  "Chỉ một transaction sử dụng",
+                  "Cấm tất cả locks khác"
+                ],
+                [
+                  "Update Lock (U)",
+                  "Chứng tỏ sắp update",
+                  "Tránh deadlock khi update"
+                ],
+                [
+                  "Intent Lock (IS/IX)",
+                  "Báo hiệu sắp lock rows con",
+                  "Hỗ trợ multiple granularity locking"
+                ],
+                [
+                  "Schema Lock",
+                  "Lock structure của table",
+                  "Khi ALTER TABLE"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Database locks control concurrent access to data, ensuring that transactions do not interfere with each other and maintaining data consistency."
+            },
+            {
+              "type": "text",
+              "text": "Shared Lock (S): allows multiple transactions to read simultaneously; blocks writes."
+            },
+            {
+              "type": "text",
+              "text": "Exclusive Lock (X): only one transaction can read or write; blocks all other locks."
+            },
+            {
+              "type": "text",
+              "text": "Update Lock (U): signals intent to update; prevents deadlocks caused by lock conversion."
+            },
+            {
+              "type": "text",
+              "text": "Intent Lock (IS/IX): signals that child rows will be locked, supporting hierarchical (multiple granularity) locking."
+            },
+            {
+              "type": "text",
+              "text": "Schema Lock: protects the table structure during DDL operations such as ALTER TABLE."
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Clustered vs Non-Clustered Index?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Clustered Index",
+                  "Non-Clustered Index"
+                ],
+                [
+                  "Lưu trữ",
+                  "Dữ liệu lưu theo thứ tự của index",
+                  "Cấu trúc index riêng, pointer tới data"
+                ],
+                [
+                  "Số lượng/table",
+                  "Tối đa 1",
+                  "Nhiều (lên đến 999 trong SQL Server)"
+                ],
+                [
+                  "Tốc độ range query",
+                  "Nhanh (data liên tiếp)",
+                  "Chậm hơn (random I/O)"
+                ],
+                [
+                  "Tốc độ lookup",
+                  "Nhanh",
+                  "Nhanh (với index seek)"
+                ],
+                [
+                  "Primary key",
+                  "Thường là clustered",
+                  "Không"
+                ],
+                [
+                  "Ví dụ dùng",
+                  "Queries theo date range",
+                  "Lookups theo email, phone"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q38.  COMMIT và ROLLBACK trong Transactions?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "COMMIT và ROLLBACK là hai TCL (Transaction Control Language) commands cốt lõi:"
+            },
+            {
+              "type": "text",
+              "text": "COMMIT: Lưu tất cả thay đổi trong transaction hiện tại vĩnh viễn vào database. Sau COMMIT, không thể rollback."
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK: Huỷ bỏ tất cả thay đổi trong transaction, khôi phục database về trạng thái trước khi transaction bắt đầu."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN TRANSACTION;"
+            },
+            {
+              "type": "text",
+              "text": "SAVEPOINT sp1;"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Account SET balance = balance - 500 WHERE id = 1;"
+            },
+            {
+              "type": "text",
+              "text": "SAVEPOINT sp2;"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Account SET balance = balance + 500 WHERE id = 2;"
+            },
+            {
+              "type": "text",
+              "text": "-- Rollback tới savepoint nếu cần"
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK TO SAVEPOINT sp1;"
+            },
+            {
+              "type": "text",
+              "text": "-- Hoặc commit tất cả"
+            },
+            {
+              "type": "text",
+              "text": "COMMIT;"
+            },
+            {
+              "type": "text",
+              "text": "COMMIT and ROLLBACK are the two core TCL (Transaction Control Language) commands that finalise or cancel a transaction's work."
+            },
+            {
+              "type": "text",
+              "text": "COMMIT: permanently saves all changes made in the current transaction; cannot be undone."
+            },
+            {
+              "type": "text",
+              "text": "ROLLBACK: cancels all changes in the current transaction, restoring the database to its previous state."
+            },
+            {
+              "type": "text",
+              "text": "SAVEPOINT: marks an intermediate point within a transaction; ROLLBACK TO SAVEPOINT undoes only work done after that point."
+            },
+            {
+              "type": "text",
+              "text": "Auto-commit: in many databases, each individual DML statement is auto-committed unless wrapped in an explicit transaction block."
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Superkey vs Candidate Key khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Superkey",
+                  "Candidate Key"
+                ],
+                [
+                  "Khái niệm",
+                  "Tập attributes uniquely identify tuple",
+                  "Superkey tối giản (minimal superkey)"
+                ],
+                [
+                  "Redundancy",
+                  "Có thể có attributes thừa",
+                  "Không có attribute thừa"
+                ],
+                [
+                  "Ví dụ",
+                  "(RollNo), (RollNo, Name), (RollNo, Name, Age)",
+                  "(RollNo), (Email) — cả hai minimal"
+                ],
+                [
+                  "Số lượng",
+                  "Nhiều hơn",
+                  "Ít hơn hoặc bằng superkey"
+                ],
+                [
+                  "Quan hệ",
+                  "Candidate key là superkey",
+                  "Superkey chưa chắc là candidate key"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Primary Key vs Unique Key khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Primary Key",
+                  "Unique Key"
+                ],
+                [
+                  "NULL",
+                  "Không cho phép NULL",
+                  "Cho phép NULL (một số DBMS cho nhiều NULL)"
+                ],
+                [
+                  "Số lượng/table",
+                  "Duy nhất 1",
+                  "Nhiều unique keys"
+                ],
+                [
+                  "Mục đích",
+                  "Identify chính của table",
+                  "Cần giá trị duy nhất nhưng không làm PK"
+                ],
+                [
+                  "Clustered Index",
+                  "Thường tạo clustered index",
+                  "Tạo non-clustered index"
+                ],
+                [
+                  "Ví dụ",
+                  "StudentID INT PRIMARY KEY",
+                  "Email VARCHAR UNIQUE"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q41",
+          "q": "Referential Integrity là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Referential Integrity đảm bảo relationships giữa các tables được duy trì đúng đắn. Foreign key phải match một primary key hợp lệ trong referenced table, hoặc là NULL."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Referential integrity via FOREIGN KEY"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE Orders ("
+            },
+            {
+              "type": "text",
+              "text": "OrderID    INT PRIMARY KEY,"
+            },
+            {
+              "type": "text",
+              "text": "CustomerID INT,"
+            },
+            {
+              "type": "text",
+              "text": "Amount     DECIMAL(10,2),"
+            },
+            {
+              "type": "text",
+              "text": "FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)"
+            },
+            {
+              "type": "text",
+              "text": "ON DELETE RESTRICT    -- khong xoa customer neu co orders"
+            },
+            {
+              "type": "text",
+              "text": "ON UPDATE CASCADE     -- update CustomerID tu dong lan xuong"
+            },
+            {
+              "type": "text",
+              "text": ");"
+            },
+            {
+              "type": "text",
+              "text": "-- Vi pham: insert order voi CustomerID khong ton tai"
+            },
+            {
+              "type": "text",
+              "text": "-- INSERT INTO Orders VALUES (1, 999, 100); -- ERROR!"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Concurrency Control trong DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Concurrency control đảm bảo nhiều transactions thực thi đồng thời mà không gây data inconsistency."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Kỹ thuật",
+                  "Mô tả",
+                  "Nhược điểm"
+                ],
+                [
+                  "Locking (S/X)",
+                  "Transactions acquire locks trước khi truy cập data",
+                  "Dễ deadlock, giảm concurrency"
+                ],
+                [
+                  "Two-Phase Locking (2PL)",
+                  "Growing phase + Shrinking phase",
+                  "Vẫn có thể deadlock"
+                ],
+                [
+                  "Timestamp Ordering",
+                  "Assign timestamp, thực hiện theo thứ tự",
+                  "Starvation của old transactions"
+                ],
+                [
+                  "MVCC (Multi-Version CC)",
+                  "Giữ nhiều version của data",
+                  "Tốn storage"
+                ],
+                [
+                  "Optimistic Concurrency",
+                  "Không lock, validate trước commit",
+                  "Rollback cao khi nhiều conflicts"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q43.  Transaction Log trong DBMS là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Transaction log là record ghi lại tất cả các transactions trên database. Dùng để recovery sau system failure và đảm bảo Durability (ACID)."
+            },
+            {
+              "type": "text",
+              "text": "- Thông tin lưu: Transaction ID, timestamp, data trước và sau thay đổi (before/after image)."
+            },
+            {
+              "type": "text",
+              "text": "- UNDO Log: Rollback transactions chưa commit sau crash."
+            },
+            {
+              "type": "text",
+              "text": "- REDO Log: Tái thực hiện committed transactions sau crash."
+            },
+            {
+              "type": "text",
+              "text": "- Write-Ahead Logging (WAL): Ghi log trước khi ghi data — đảm bảo recoverability."
+            },
+            {
+              "type": "text",
+              "text": "A transaction log (also called write-ahead log) records every database operation, providing the foundation for crash recovery and ensuring the Durability property of ACID."
+            },
+            {
+              "type": "text",
+              "text": "Stored data: transaction ID, timestamp, before-image and after-image of changed data."
+            },
+            {
+              "type": "text",
+              "text": "UNDO Log: used to roll back uncommitted transactions after a crash."
+            },
+            {
+              "type": "text",
+              "text": "REDO Log: used to re-apply committed transactions after a crash."
+            },
+            {
+              "type": "text",
+              "text": "Write-Ahead Logging (WAL): log entry is always written to disk before the actual data page, guaranteeing recoverability."
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Materialized View khác View thường như thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "View",
+                  "Materialized View"
+                ],
+                [
+                  "Lưu trữ data",
+                  "Không (virtual)",
+                  "Có (physical snapshot)"
+                ],
+                [
+                  "Hiệu năng",
+                  "Chậm hơn (query base tables mỗi lần)",
+                  "Nhanh hơn (query precomputed data)"
+                ],
+                [
+                  "Cập nhật",
+                  "Luôn fresh",
+                  "Cần refresh (REFRESH MATERIALIZED VIEW)"
+                ],
+                [
+                  "Dữ liệu cũ",
+                  "Không",
+                  "Có thể stale giữa các lần refresh"
+                ],
+                [
+                  "Dùng cho",
+                  "Real-time data, bảo mật",
+                  "Analytics, reporting, aggregations lớn"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Materialized View - precompute sales summary"
+            },
+            {
+              "type": "text",
+              "text": "CREATE MATERIALIZED VIEW monthly_sales AS"
+            },
+            {
+              "type": "text",
+              "text": "SELECT YEAR(order_date) AS yr,"
+            },
+            {
+              "type": "text",
+              "text": "MONTH(order_date) AS mo,"
+            },
+            {
+              "type": "text",
+              "text": "SUM(amount) AS total"
+            },
+            {
+              "type": "text",
+              "text": "FROM Orders"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY yr, mo;"
+            },
+            {
+              "type": "text",
+              "text": "-- Refresh định kỳ"
+            },
+            {
+              "type": "text",
+              "text": "REFRESH MATERIALIZED VIEW monthly_sales;"
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "ERD vs Relational Schema khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "ERD",
+                  "Relational Schema"
+                ],
+                [
+                  "Mục đích",
+                  "Conceptual design — hiểu dữ liệu",
+                  "Logical design — implement database"
+                ],
+                [
+                  "Biểu diễn",
+                  "Sơ đồ trực quan (entities, relationships)",
+                  "Tables, columns, keys, constraints"
+                ],
+                [
+                  "Audience",
+                  "Business stakeholders, analysts",
+                  "DBAs, developers"
+                ],
+                [
+                  "Giai đoạn",
+                  "Requirement gathering",
+                  "Database design/implementation"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q46.  GROUP BY trong SQL dùng để làm gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "GROUP BY nhóm các rows có cùng values trong các cột chỉ định thành summary rows, thường kết hợp với aggregate functions."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Số nhan vien moi phong ban"
+            },
+            {
+              "type": "text",
+              "text": "SELECT Department, COUNT(*) AS total"
+            },
+            {
+              "type": "text",
+              "text": "FROM Employees"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY Department;"
+            },
+            {
+              "type": "text",
+              "text": "-- Luong trung binh theo department, loc nhung dept > 3 nguoi"
+            },
+            {
+              "type": "text",
+              "text": "SELECT Department, AVG(Salary) AS avg_salary, COUNT(*) AS cnt"
+            },
+            {
+              "type": "text",
+              "text": "FROM Employees"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY Department"
+            },
+            {
+              "type": "text",
+              "text": "HAVING COUNT(*) > 3"
+            },
+            {
+              "type": "text",
+              "text": "ORDER BY avg_salary DESC;"
+            },
+            {
+              "type": "text",
+              "text": "GROUP BY groups rows that share the same values in specified columns into summary rows, typically used with aggregate functions to produce per-group statistics."
+            },
+            {
+              "type": "text",
+              "text": "Use case: count, sum, average, or find min/max values per group (e.g., total orders per customer)."
+            },
+            {
+              "type": "text",
+              "text": "With HAVING: filter groups after aggregation (WHERE filters rows before grouping; HAVING filters groups after)."
+            },
+            {
+              "type": "text",
+              "text": "Column rule: every column in SELECT must either appear in GROUP BY or be wrapped in an aggregate function."
+            },
+            {
+              "type": "text",
+              "text": "Execution order: WHERE → GROUP BY → HAVING → SELECT → ORDER BY."
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Stored Functions vs Stored Procedures khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Stored Function",
+                  "Stored Procedure"
+                ],
+                [
+                  "Return",
+                  "Phải trả về một giá trị",
+                  "Không bắt buộc return"
+                ],
+                [
+                  "Gọi",
+                  "Dùng trong SELECT/WHERE",
+                  "CALL procedure_name()"
+                ],
+                [
+                  "Side effects",
+                  "Thường không có (pure)",
+                  "Có thể INSERT/UPDATE/DELETE"
+                ],
+                [
+                  "Sử dụng",
+                  "Trong expressions, SELECT",
+                  "Standalone execution"
+                ],
+                [
+                  "Exception handling",
+                  "Hạn chế hơn",
+                  "Tốt hơn"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Stored Function: tra ve gia tri"
+            },
+            {
+              "type": "text",
+              "text": "CREATE FUNCTION GetEmployeeSalary(emp_id INT)"
+            },
+            {
+              "type": "text",
+              "text": "RETURNS DECIMAL(10,2)"
+            },
+            {
+              "type": "text",
+              "text": "DETERMINISTIC"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN"
+            },
+            {
+              "type": "text",
+              "text": "RETURN (SELECT Salary FROM Employee WHERE ID = emp_id);"
+            },
+            {
+              "type": "text",
+              "text": "END;"
+            },
+            {
+              "type": "text",
+              "text": "-- Dung trong SELECT"
+            },
+            {
+              "type": "text",
+              "text": "SELECT Name, GetEmployeeSalary(ID) AS salary FROM Employee;"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q48.  Query Optimization trong DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Query Optimizer phân tích các SQL queries và chọn execution plan hiệu quả nhất. Các kỹ thuật tối ưu:"
+            },
+            {
+              "type": "text",
+              "text": "- Index usage: Tạo index trên các columns hay dùng trong WHERE, JOIN, ORDER BY."
+            },
+            {
+              "type": "text",
+              "text": "- Query rewriting: Optimize subqueries thành JOINs, loại bỏ redundant conditions."
+            },
+            {
+              "type": "text",
+              "text": "- Statistics: Database dùng column statistics để estimate selectivity."
+            },
+            {
+              "type": "text",
+              "text": "- Execution plans: EXPLAIN/EXPLAIN ANALYZE xử lý query plan."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Xem execution plan"
+            },
+            {
+              "type": "text",
+              "text": "EXPLAIN SELECT * FROM Orders WHERE customer_id = 100;"
+            },
+            {
+              "type": "text",
+              "text": "-- EXPLAIN ANALYZE chay query va do thoi gian thuc te"
+            },
+            {
+              "type": "text",
+              "text": "EXPLAIN ANALYZE"
+            },
+            {
+              "type": "text",
+              "text": "SELECT o.id, c.name, o.amount"
+            },
+            {
+              "type": "text",
+              "text": "FROM Orders o JOIN Customers c ON o.customer_id = c.id"
+            },
+            {
+              "type": "text",
+              "text": "WHERE c.city = 'HCM' AND o.amount > 1000;"
+            },
+            {
+              "type": "text",
+              "text": "Query optimization is the process by which the DBMS's query optimizer analyses a SQL statement and selects the most efficient execution plan to minimise I/O, CPU usage, and response time."
+            },
+            {
+              "type": "text",
+              "text": "Index usage: create indexes on columns frequently used in WHERE, JOIN, and ORDER BY to avoid full table scans."
+            },
+            {
+              "type": "text",
+              "text": "Query rewriting: convert correlated subqueries to JOINs; remove redundant conditions."
+            },
+            {
+              "type": "text",
+              "text": "Statistics: the optimizer relies on column cardinality statistics to estimate selectivity; keep statistics up to date."
+            },
+            {
+              "type": "text",
+              "text": "EXPLAIN / EXPLAIN ANALYZE: inspect the execution plan and actual runtime metrics to identify bottlenecks."
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "WITH CHECK OPTION trong SQL Views?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "WITH CHECK OPTION đảm bảo mọi INSERT/UPDATE qua view phải đáp ứng điều kiện WHERE của view. Nếu vi phạm, operation bị reject."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- View chỉ hiển thị active students"
+            },
+            {
+              "type": "text",
+              "text": "CREATE VIEW ActiveStudents AS"
+            },
+            {
+              "type": "text",
+              "text": "SELECT * FROM Students WHERE Status = 'Active'"
+            },
+            {
+              "type": "text",
+              "text": "WITH CHECK OPTION;"
+            },
+            {
+              "type": "text",
+              "text": "-- INSERT qua view - chi thanh cong neu Status = 'Active'"
+            },
+            {
+              "type": "text",
+              "text": "INSERT INTO ActiveStudents VALUES (4, 'Dat', 'Active');  -- OK"
+            },
+            {
+              "type": "text",
+              "text": "INSERT INTO ActiveStudents VALUES (5, 'An', 'Inactive'); -- ERROR!"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "Các loại Database Backups?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Backup",
+                  "Mô tả",
+                  "Nhạc điểm"
+                ],
+                [
+                  "Full Backup",
+                  "Sao lưu toàn bộ database",
+                  "Tốn storage và thời gian nhất"
+                ],
+                [
+                  "Incremental Backup",
+                  "Chỉ sao lưu data thay đổi từ lần backup trước",
+                  "Restore phức tạp hơn"
+                ],
+                [
+                  "Differential Backup",
+                  "Sao lưu thay đổi từ lần full backup gần nhất",
+                  "Lớn hơn incremental"
+                ],
+                [
+                  "Transaction Log Backup",
+                  "Sao lưu transaction log",
+                  "Chỉ dùng với incremental/differential"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Best practice: Full backup hàng tuần + Differential hàng ngày + Transaction log mỗi vài giờ. Test restore định kỳ để đảm bảo backup khả dụng."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — DBMS Nâng Cao (Q51–58)",
+      "questions": [
+        {
+          "id": "Q51",
+          "q": "Query Processing Cycle trong DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Query processing cycle là quá trình biến đổi SQL query thành executable operations và trả về kết quả:"
+            },
+            {
+              "type": "text",
+              "text": "- Parsing: Kiểm tra syntax và semantics của SQL query. Xác nhận table, column names tồn tại."
+            },
+            {
+              "type": "text",
+              "text": "- Translation: Chuyển SQL thành relational algebra expression hoặc internal representation."
+            },
+            {
+              "type": "text",
+              "text": "- Optimization: Query optimizer chọn execution plan hiệu quả nhất (consider indexes, statistics, join order)."
+            },
+            {
+              "type": "text",
+              "text": "- Execution: Thực thi execution plan, truy cập data từ storage và trả về kết quả."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Qua trinh xu ly cau query nay"
+            },
+            {
+              "type": "text",
+              "text": "SELECT S.NAME, B.BRANCH_NAME"
+            },
+            {
+              "type": "text",
+              "text": "FROM STUDENT S"
+            },
+            {
+              "type": "text",
+              "text": "INNER JOIN BRANCH B ON S.BRANCH_CODE = B.BRANCH_CODE"
+            },
+            {
+              "type": "text",
+              "text": "WHERE S.AGE > 20"
+            },
+            {
+              "type": "text",
+              "text": "ORDER BY S.NAME;"
+            },
+            {
+              "type": "text",
+              "text": "-- 1. Parser: kiem tra syntax OK"
+            },
+            {
+              "type": "text",
+              "text": "-- 2. Translate: relational algebra (select, project, join)"
+            },
+            {
+              "type": "text",
+              "text": "-- 3. Optimize: dung index BRANCH_CODE? AGE index?"
+            },
+            {
+              "type": "text",
+              "text": "--    Chon join order: STUDENT (nho) join BRANCH (lon)?"
+            },
+            {
+              "type": "text",
+              "text": "-- 4. Execute: lay data, join, filter, sort, tra ve"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q52.  B-tree và B+ tree trong DBMS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "B-tree",
+                  "B+ tree"
+                ],
+                [
+                  "Lưu data",
+                  "Cả internal và leaf nodes",
+                  "Chỉ leaf nodes"
+                ],
+                [
+                  "Internal nodes",
+                  "Chứa keys + data",
+                  "Chỉ chứa keys (pointers)"
+                ],
+                [
+                  "Leaf nodes",
+                  "Chứa data",
+                  "Chứa data + linked list"
+                ],
+                [
+                  "Range queries",
+                  "Chậm hơn",
+                  "Nhanh hơn (traverse linked list)"
+                ],
+                [
+                  "Height",
+                  "Cao hơn (data ở internal)",
+                  "Thấp hơn (branching factor cao hơn)"
+                ],
+                [
+                  "Dùng trong",
+                  "File systems",
+                  "Database indexing (phổ biến hơn)"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "B+ tree được dùng phổ biến hơn trong database vì:"
+            },
+            {
+              "type": "text",
+              "text": "- Range queries hiệu quả: Traverse linked list ở leaf level để lấy range."
+            },
+            {
+              "type": "text",
+              "text": "- Uniform access: Mọi data ở cùng một depth (leaf level)."
+            },
+            {
+              "type": "text",
+              "text": "- Better cache utilization: Internal nodes chỉ chứa keys, branching factor cao hơn."
+            },
+            {
+              "type": "text",
+              "text": "B-tree and B+ tree are self-balancing tree data structures used for database indexing; B+ tree is far more common in DBMS because it enables efficient range queries via a linked-list at the leaf level."
+            },
+            {
+              "type": "text",
+              "text": "B-tree data storage: stores data records in both internal and leaf nodes, making single-key lookup faster but range queries slower."
+            },
+            {
+              "type": "text",
+              "text": "B+ tree data storage: stores data only in leaf nodes; internal nodes hold only keys (pointers), increasing branching factor."
+            },
+            {
+              "type": "text",
+              "text": "Range queries: B+ tree is faster — leaf nodes form a doubly linked list, so range traversal requires no backtracking up the tree."
+            },
+            {
+              "type": "text",
+              "text": "Tree height: B+ tree is shorter due to higher branching factor, reducing I/O operations per lookup."
+            },
+            {
+              "type": "text",
+              "text": "Use in DBMS: B+ tree is the standard structure for clustered and non-clustered indexes in MySQL InnoDB, PostgreSQL, and most relational databases."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q53.  Hashing trong DBMS hoạt động như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Hashing ánh xạ data (key) thành một fixed-size hash value dùng để xác định vị trí lưu trữ. Tối ưu cho exact-match lookups với O(1) average."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Hash function"
+            },
+            {
+              "type": "text",
+              "text": "hash(key) -> bucket_index"
+            },
+            {
+              "type": "text",
+              "text": "-- Ví dụ"
+            },
+            {
+              "type": "text",
+              "text": "-- StudentID = 123"
+            },
+            {
+              "type": "text",
+              "text": "-- hash(123) = 3 (bucket 3)"
+            },
+            {
+              "type": "text",
+              "text": "-- Record cua student 123 luu trong bucket 3"
+            },
+            {
+              "type": "text",
+              "text": "-- Khi search: hash(123) -> bucket 3 -> tim trong bucket"
+            },
+            {
+              "type": "text",
+              "text": "-- Collision: 2 keys hash vao cung bucket"
+            },
+            {
+              "type": "text",
+              "text": "-- Giai quyet: chaining (linked list), open addressing"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Kỹ thuật Collision Resolution",
+                  "Mô tả"
+                ],
+                [
+                  "Chaining (Separate Chaining)",
+                  "Mỗi bucket là linked list, append khi collision"
+                ],
+                [
+                  "Open Addressing",
+                  "Tìm bucket kế tiếp trống: linear probing, quadratic probing"
+                ],
+                [
+                  "Double Hashing",
+                  "Dùng hash function thứ 2 để tìm bucket mới"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Hashing maps a key to a fixed-size bucket index via a hash function, enabling O(1) average-case exact-match lookups — ideal when range queries are not needed."
+            },
+            {
+              "type": "text",
+              "text": "Hash function: computes hash(key) → bucket index where the record is stored or retrieved."
+            },
+            {
+              "type": "text",
+              "text": "Collision: occurs when two keys map to the same bucket; must be resolved to maintain correctness."
+            },
+            {
+              "type": "text",
+              "text": "Chaining: each bucket holds a linked list of records; simple but can degrade to O(n) on overloaded buckets."
+            },
+            {
+              "type": "text",
+              "text": "Open Addressing: probes subsequent buckets (linear, quadratic, or double hashing) until an empty slot is found."
+            },
+            {
+              "type": "text",
+              "text": "vs. B+ tree: hashing is faster for exact-match lookups; B+ tree is better for range queries and sorted access."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q54.  Data Partitioning trong DBMS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Data Partitioning là quá trình phân chia datasets lớn thành các segments nhỏ hơn (partitions) để cải thiện hiệu năng và manageability."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Partitioning",
+                  "Cơ chế",
+                  "Ví dụ"
+                ],
+                [
+                  "Horizontal Partitioning",
+                  "Phân chia theo rows (range)",
+                  "Orders 2023 và Orders 2024 trong partition khác nhau"
+                ],
+                [
+                  "Vertical Partitioning",
+                  "Phân chia theo columns",
+                  "Frequently-used columns và rarely-used columns tách riêng"
+                ],
+                [
+                  "Range Partitioning",
+                  "Dựa trên range của giá trị",
+                  "Date range, age groups"
+                ],
+                [
+                  "Hash Partitioning",
+                  "Dựa trên hash của key column",
+                  "CustomerID % 4 -> 4 partitions"
+                ],
+                [
+                  "List Partitioning",
+                  "Dựa trên danh sách giá trị cụ thể",
+                  "Region: HN, HCM, DN mỗi partition riêng"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Range Partitioning trong MySQL"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE Orders ("
+            },
+            {
+              "type": "text",
+              "text": "id INT, order_date DATE, amount DECIMAL"
+            },
+            {
+              "type": "text",
+              "text": ")"
+            },
+            {
+              "type": "text",
+              "text": "PARTITION BY RANGE (YEAR(order_date)) ("
+            },
+            {
+              "type": "text",
+              "text": "PARTITION p2022 VALUES LESS THAN (2023),"
+            },
+            {
+              "type": "text",
+              "text": "PARTITION p2023 VALUES LESS THAN (2024),"
+            },
+            {
+              "type": "text",
+              "text": "PARTITION p2024 VALUES LESS THAN (2025)"
+            },
+            {
+              "type": "text",
+              "text": ");"
+            },
+            {
+              "type": "text",
+              "text": "Data partitioning divides a large table or dataset into smaller, more manageable segments (partitions) to improve query performance, maintenance, and scalability."
+            },
+            {
+              "type": "text",
+              "text": "Horizontal partitioning: splits rows across partitions (e.g., orders by year); each partition has the same schema."
+            },
+            {
+              "type": "text",
+              "text": "Vertical partitioning: splits columns; frequently-accessed and rarely-accessed columns are stored separately."
+            },
+            {
+              "type": "text",
+              "text": "Range partitioning: assigns rows based on a value range (e.g., date ranges, age groups)."
+            },
+            {
+              "type": "text",
+              "text": "Hash partitioning: distributes rows evenly using a hash function on a key column (e.g., CustomerID % 4)."
+            },
+            {
+              "type": "text",
+              "text": "List partitioning: assigns rows based on discrete values (e.g., region = 'HN', 'HCM', 'DN')."
+            },
+            {
+              "type": "text",
+              "text": "Benefit: partition pruning allows the query engine to skip irrelevant partitions, drastically reducing I/O."
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "DBMS xử lý Data Integrity và Security như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "DBMS đảm bảo cả data integrity lẫn security qua nhiều lớp:"
+            },
+            {
+              "type": "text",
+              "text": "Data Integrity:"
+            },
+            {
+              "type": "text",
+              "text": "- Entity Integrity: Primary Key không NULL, unique."
+            },
+            {
+              "type": "text",
+              "text": "- Referential Integrity: Foreign Key phải trỏ đến valid primary key."
+            },
+            {
+              "type": "text",
+              "text": "- Domain Integrity: Values phải thuộc đúng data type và domain."
+            },
+            {
+              "type": "text",
+              "text": "- User-defined Integrity: CHECK constraints, triggers."
+            },
+            {
+              "type": "text",
+              "text": "Data Security:"
+            },
+            {
+              "type": "text",
+              "text": "- Authentication: Xác thực người dùng (username/password, OAuth)."
+            },
+            {
+              "type": "text",
+              "text": "- Authorization (RBAC): Phân quyền theo roles, GRANT/REVOKE."
+            },
+            {
+              "type": "text",
+              "text": "- Encryption: Mã hóa data at rest và in transit (TLS/SSL)."
+            },
+            {
+              "type": "text",
+              "text": "- Auditing: Ghi lại truy cập và thay đổi dữ liệu."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- GRANT/REVOKE permissions"
+            },
+            {
+              "type": "text",
+              "text": "GRANT SELECT, INSERT ON STUDENT TO user_app;"
+            },
+            {
+              "type": "text",
+              "text": "REVOKE INSERT ON STUDENT FROM user_app;"
+            },
+            {
+              "type": "text",
+              "text": "-- Row-Level Security (PostgreSQL)"
+            },
+            {
+              "type": "text",
+              "text": "CREATE POLICY student_rls ON STUDENT"
+            },
+            {
+              "type": "text",
+              "text": "USING (branch_code = current_setting('app.user_branch'));"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "DBMS khác File-based System như thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "DBMS",
+                  "File-based System"
+                ],
+                [
+                  "Tổ chức dữ liệu",
+                  "Tables với relationships",
+                  "Flat files riêng lẻ"
+                ],
+                [
+                  "Redundancy",
+                  "Thấp (normalization)",
+                  "Cao (duplicate data)"
+                ],
+                [
+                  "Integrity",
+                  "Enforce qua constraints",
+                  "Khó đảm bảo"
+                ],
+                [
+                  "Security",
+                  "Authentication + RBAC mạnh",
+                  "Chỉ file-level permissions"
+                ],
+                [
+                  "Concurrency",
+                  "Hỗ trợ multi-user an toàn",
+                  "Không có concurrency control"
+                ],
+                [
+                  "Transactions",
+                  "ACID properties",
+                  "Không có"
+                ],
+                [
+                  "Query",
+                  "SQL phức tạp",
+                  "Limited file operations"
+                ],
+                [
+                  "Scalability",
+                  "Cao",
+                  "Kém"
+                ],
+                [
+                  "Backup",
+                  "Tự động, reliable",
+                  "Thủ công"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "Isolation Levels trong Database Transactions?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Isolation level kiểm soát mức độ mà một transaction có thể bị ảnh hưởng bởi các transactions khác đang chạy đồng thời."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Isolation Level",
+                  "Dirty Read",
+                  "Non-repeatable Read",
+                  "Phantom Read",
+                  "Hiệu năng"
+                ],
+                [
+                  "READ UNCOMMITTED",
+                  "Có thể",
+                  "Có thể",
+                  "Có thể",
+                  "Cao nhất"
+                ],
+                [
+                  "READ COMMITTED",
+                  "Không",
+                  "Có thể",
+                  "Có thể",
+                  "Cao"
+                ],
+                [
+                  "REPEATABLE READ",
+                  "Không",
+                  "Không",
+                  "Có thể",
+                  "Trung bình"
+                ],
+                [
+                  "SERIALIZABLE",
+                  "Không",
+                  "Không",
+                  "Không",
+                  "Thấp nhất"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Dirty Read: Tọc transaction A đọc data được write bởi T B nhưng T B chưa commit."
+            },
+            {
+              "type": "text",
+              "text": "Non-repeatable Read: T A đọc cùng row 2 lần, kết quả khác nhau do T B đã update."
+            },
+            {
+              "type": "text",
+              "text": "Phantom Read: T A thực hiện cùng query 2 lần, số rows khác nhau do T B insert/delete."
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- Set isolation level"
+            },
+            {
+              "type": "text",
+              "text": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"
+            },
+            {
+              "type": "text",
+              "text": "-- PostgreSQL"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "SQL commands phân loại như thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Category",
+                  "Mô tả",
+                  "Commands"
+                ],
+                [
+                  "DDL (Data Definition Language)",
+                  "Define/modify cấu trúc database",
+                  "CREATE, ALTER, DROP, TRUNCATE, RENAME"
+                ],
+                [
+                  "DML (Data Manipulation Language)",
+                  "Thao tác với data",
+                  "INSERT, UPDATE, DELETE, MERGE"
+                ],
+                [
+                  "DQL (Data Query Language)",
+                  "Truy xuất data",
+                  "SELECT"
+                ],
+                [
+                  "DCL (Data Control Language)",
+                  "Kiểm soát permissions",
+                  "GRANT, REVOKE"
+                ],
+                [
+                  "TCL (Transaction Control Language)",
+                  "Quản lý transactions",
+                  "COMMIT, ROLLBACK, SAVEPOINT, SET TRANSACTION"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "*  -- SQL / Code*"
+            },
+            {
+              "type": "text",
+              "text": "-- DDL: thay doi cau truc"
+            },
+            {
+              "type": "text",
+              "text": "CREATE TABLE Employee (ID INT, Name VARCHAR(50));"
+            },
+            {
+              "type": "text",
+              "text": "ALTER TABLE Employee ADD COLUMN Salary DECIMAL;"
+            },
+            {
+              "type": "text",
+              "text": "-- DML: thao tac data"
+            },
+            {
+              "type": "text",
+              "text": "INSERT INTO Employee VALUES (1, 'Dat', 50000);"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Employee SET Salary = 55000 WHERE ID = 1;"
+            },
+            {
+              "type": "text",
+              "text": "-- DCL: phan quyen"
+            },
+            {
+              "type": "text",
+              "text": "GRANT SELECT ON Employee TO analyst_user;"
+            },
+            {
+              "type": "text",
+              "text": "REVOKE INSERT ON Employee FROM junior_dev;"
+            },
+            {
+              "type": "text",
+              "text": "-- TCL: transaction"
+            },
+            {
+              "type": "text",
+              "text": "BEGIN TRANSACTION;"
+            },
+            {
+              "type": "text",
+              "text": "UPDATE Employee SET Salary = 60000 WHERE ID = 1;"
+            },
+            {
+              "type": "text",
+              "text": "COMMIT;"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "DBMS",
+  "color": "#7B5200"
+}

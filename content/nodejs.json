@@ -1,0 +1,2159 @@
+{
+  "title": "Node.js Interview Questions",
+  "subtitle": "*Top 58+ câu hỏi phỏng vấn — Fresher đến Experienced*",
+  "sections": [
+    {
+      "name": "Phần I — Node.js Fresher (Q0–23)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q0.  JavaScript vs TypeScript — Khác nhau điểm nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "JavaScript (JS) là ngôn ngữ dynamic typing, chạy trực tiếp trên trình duyệt và Node.js. TypeScript (TS) là superset của JavaScript do Microsoft phát triển, bổ sung static typing và compile-time checking."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khía cạnh",
+                  "JavaScript",
+                  "TypeScript"
+                ],
+                [
+                  "Kiểu dữ liệu",
+                  "Dynamic typing",
+                  "Static typing"
+                ],
+                [
+                  "Kiểm tra kiểu",
+                  "Khi runtime",
+                  "Khi compile-time"
+                ],
+                [
+                  "Compilation",
+                  "Không cần",
+                  "Bắt buộc (tsc)"
+                ],
+                [
+                  "Phát hiện lỗi",
+                  "Khi runtime",
+                  "Trước runtime"
+                ],
+                [
+                  "Tooling & IDE",
+                  "Tốt",
+                  "Rất tốt"
+                ],
+                [
+                  "Khả năng mở rộng",
+                  "Khó cho dự án lớn",
+                  "Tốt cho codebase lớn"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "TypeScript cung cấp: autocomplete mạnh hơn, refactor an toàn hơn, điều hướng code tốt hơn, API rõ ràng hơn qua types và interfaces."
+            },
+            {
+              "type": "text",
+              "text": "Runtime behavior: TypeScript types chỉ tồn tại trong development. Khi runtime, cả hai đều chạy như JavaScript thuần. TypeScript không ảnh hưởng đến runtime performance."
+            },
+            {
+              "type": "text",
+              "text": "Dùng JavaScript khi:"
+            },
+            {
+              "type": "text",
+              "text": "- Viết script nhỏ hoặc prototype nhanh"
+            },
+            {
+              "type": "text",
+              "text": "- Type safety không quá quan trọng"
+            },
+            {
+              "type": "text",
+              "text": "Dùng TypeScript khi:"
+            },
+            {
+              "type": "text",
+              "text": "- Xây dựng ứng dụng lớn hoặc tồn tại lâu dài"
+            },
+            {
+              "type": "text",
+              "text": "- Làm việc theo team, cần maintain codebase phức tạp"
+            },
+            {
+              "type": "text",
+              "text": "- Giảm runtime bugs là ưu tiên"
+            },
+            {
+              "type": "text",
+              "text": "JavaScript is a dynamically typed language that runs directly in browsers and Node.js. TypeScript is a superset of JavaScript developed by Microsoft, adding static typing and compile-time checking."
+            },
+            {
+              "type": "text",
+              "text": "- Typing: JavaScript uses dynamic typing (checked at runtime); TypeScript uses static typing (checked at compile time)."
+            },
+            {
+              "type": "text",
+              "text": "- Compilation: JavaScript needs no compilation; TypeScript must be compiled via tsc."
+            },
+            {
+              "type": "text",
+              "text": "- Error detection: JavaScript surfaces errors at runtime; TypeScript catches them before runtime."
+            },
+            {
+              "type": "text",
+              "text": "- Tooling: TypeScript provides superior autocomplete, safer refactoring, better code navigation, and clearer APIs through types and interfaces."
+            },
+            {
+              "type": "text",
+              "text": "- Runtime behavior: TypeScript types exist only during development — both compile down to plain JavaScript, so TypeScript has no runtime performance cost."
+            },
+            {
+              "type": "text",
+              "text": "- Use JavaScript for: small scripts, quick prototypes, or when type safety is not critical."
+            },
+            {
+              "type": "text",
+              "text": "- Use TypeScript for: large or long-lived applications, team codebases, and when minimising runtime bugs is a priority."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q1.  Node.js hoạt động như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Node.js là JavaScript runtime environment chạy trên server, dựa trên kiến trúc single-threaded event-driven và V8 engine."
+            },
+            {
+              "type": "text",
+              "text": "- V8 Engine: Compile JavaScript thành native machine code — tốc độ cao."
+            },
+            {
+              "type": "text",
+              "text": "- Event Loop: Xử lý các tác vụ async (I/O, timers, requests) mà không block main thread."
+            },
+            {
+              "type": "text",
+              "text": "- Libuv: Thư viện C/C++ cung cấp thread pool và xử lý background tasks (file system, networking, DNS)."
+            },
+            {
+              "type": "text",
+              "text": "- Non-blocking I/O: Cho phép xử lý hàng nghìn concurrent requests hiệu quả mà không tạo thêm threads."
+            },
+            {
+              "type": "text",
+              "text": "Flow cơ bản:"
+            },
+            {
+              "type": "text",
+              "text": "- Request đến Node.js server → main thread nhận request."
+            },
+            {
+              "type": "text",
+              "text": "- Nếu gặp async operation (file read, DB query, network) → delegate xuống libuv / OS."
+            },
+            {
+              "type": "text",
+              "text": "- Main thread tiếp tục nhận request mới không bị block."
+            },
+            {
+              "type": "text",
+              "text": "- Khi async operation hoàn thành → callback đưa vào queue."
+            },
+            {
+              "type": "text",
+              "text": "- Event loop đưa callback trở lại call stack để execute khi stack rảnh."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Flow xử lý request\n\nRequest đến Node.js\n\n  → Main thread nhận request\n\n  → Nếu là async (I/O, DB, network): delegate cho libuv/OS\n\n  → Main thread tiếp tục nhận request khác (non-blocking)\n\n  → Khi async hoàn thành: callback đưa vào queue\n\n  → Event loop đưa callback lên call stack để execute\n\nNode.js is a JavaScript runtime environment running on the server, built on a single-threaded event-driven architecture and the V8 engine.\n\n- V8 Engine: Compiles JavaScript into native machine code — high speed.\n\n- Event Loop: Handles async tasks (I/O, timers, requests) without blocking the main thread.\n\n- Libuv: A C/C++ library that provides a thread pool and handles background tasks (file system, networking, DNS).\n\n- Non-blocking I/O: Allows processing thousands of concurrent requests efficiently without creating additional threads."
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "NPM là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "NPM (Node Package Manager) là package manager mặc định của Node.js, dùng để cài đặt, quản lý và chia sẻ các thư viện/dependencies cho JavaScript applications."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "npm install express           # cài package vào dependencies\n\nnpm install -D jest           # cài vào devDependencies\n\nnpm install -g nodemon        # cài global\n\nnpm update                    # cập nhật tất cả packages\n\nnpm uninstall lodash          # xóa package\n\nnpm ci                        # clean install từ package-lock.json\n\nnpm audit                     # kiểm tra security vulnerabilities\n\n*package-lock.json lưu đúng version cụ thể của tất cả dependencies — đảm bảo install giống hệt nhau trên mọi máy. Nên commit file này vào git.*\n\nNPM (Node Package Manager) is the default package manager for Node.js, used to install, manage, and share libraries/dependencies for JavaScript applications.\n\n*📌 package-lock.json stores the exact specific version of all dependencies — ensuring identical installations on every machine. This file should be committed to git.*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q3.  Tại sao Node.js là single-threaded?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Node.js là single-threaded vì được xây dựng dựa trên bản chất asynchronous và non-blocking của JavaScript. Thiết kế này giúp việc phát triển đơn giản hơn và cho phép xử lý nhiều concurrent requests hiệu quả."
+            },
+            {
+              "type": "text",
+              "text": "- Tránh race conditions: Không cần synchronization primitives (mutex, semaphore)."
+            },
+            {
+              "type": "text",
+              "text": "- Memory efficient: Không có overhead của multiple threads."
+            },
+            {
+              "type": "text",
+              "text": "- Concurrency qua async I/O: Thay vì tạo thread, Node.js delegate I/O cho OS/libuv."
+            },
+            {
+              "type": "note",
+              "text": "⚠️  Single-threaded nghĩa là CPU-intensive tasks sẽ block event loop. Dùng Worker Threads hoặc cluster cho các tác vụ nặng về CPU."
+            },
+            {
+              "type": "text",
+              "text": "Node.js is single-threaded because it was built on the asynchronous and non-blocking nature of JavaScript. This design simplifies development and allows efficient handling of many concurrent requests."
+            },
+            {
+              "type": "text",
+              "text": "- Avoid race conditions: No need for synchronization primitives (mutex, semaphore)."
+            },
+            {
+              "type": "text",
+              "text": "- Memory efficient: No overhead from multiple threads."
+            },
+            {
+              "type": "text",
+              "text": "- Concurrency via async I/O: Instead of creating threads, Node.js delegates I/O to the OS/libuv."
+            },
+            {
+              "type": "text",
+              "text": "- ⚠️  Single-threaded means CPU-intensive tasks will block the event loop. Use Worker Threads or cluster for CPU-heavy tasks."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q4.  Node.js single-threaded nhưng xử lý concurrency như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Node.js xử lý concurrency thông qua event-driven, non-blocking I/O model — không cần tạo nhiều threads."
+            },
+            {
+              "type": "text",
+              "text": "- Event loop: Chạy trên main thread, liên tục lắng nghe và xử lý events."
+            },
+            {
+              "type": "text",
+              "text": "- Non-blocking I/O: Khi gặp I/O operation, Node.js delegate cho OS/libuv và tiếp tục xử lý request khác."
+            },
+            {
+              "type": "text",
+              "text": "- Callback queue: Khi I/O hoàn thành, callback đưa vào queue → event loop execute khi call stack rảnh."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Một server xử lý 10,000 concurrent requests mà không tạo 10,000 threads!\n\nhttp.createServer((req, res) => {\n\n  db.query('SELECT * FROM users', (err, rows) => {\n\n    res.end(JSON.stringify(rows));  // execute khi DB query xong\n\n  });\n\n  // Main thread tiếp tục ngay lập tức\n\n}).listen(3000);\n\nNode.js handles concurrency through an event-driven, non-blocking I/O model — without the need to create multiple threads.\n\n- Event loop: Runs on the main thread, continuously listening for and processing events.\n\n- Non-blocking I/O: When an I/O operation is encountered, Node.js delegates it to the OS/libuv and continues processing other requests.\n\n- Callback queue: When I/O completes, the callback enters the queue → the event loop executes it when the call stack is free."
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Tại sao Node.js được ưu tiên hơn Java và PHP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Node.js",
+                  "Java / PHP"
+                ],
+                [
+                  "Concurrency model",
+                  "Non-blocking, event-driven",
+                  "Thread-per-request (tốn RAM)"
+                ],
+                [
+                  "Hiệu năng I/O",
+                  "Rất cao — non-blocking",
+                  "Java tốt; PHP chậm hơn"
+                ],
+                [
+                  "Full-stack JS",
+                  "Có — dùng cả FE lẫn BE",
+                  "Không"
+                ],
+                [
+                  "NPM Ecosystem",
+                  "2M+ packages",
+                  "Nhỏ hơn"
+                ],
+                [
+                  "Real-time apps",
+                  "Rất phù hợp (WebSocket)",
+                  "Phức tạp hơn"
+                ],
+                [
+                  "CPU-intensive",
+                  "Không phù hợp",
+                  "Java tốt hơn"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Why is Node.js preferred over Java and PHP?"
+            },
+            {
+              "type": "text",
+              "text": "- Concurrency model: Non-blocking, event-driven vs Thread-per-request (RAM-heavy)."
+            },
+            {
+              "type": "text",
+              "text": "- I/O Performance: Very high (non-blocking) vs Java OK; PHP slower."
+            },
+            {
+              "type": "text",
+              "text": "- Full-stack JS: Yes — same language for both FE and BE. Java/PHP: No."
+            },
+            {
+              "type": "text",
+              "text": "- NPM Ecosystem: 2M+ packages vs smaller ecosystem."
+            },
+            {
+              "type": "text",
+              "text": "- Real-time apps: Excellent fit (WebSocket) vs more complex with Java/PHP."
+            },
+            {
+              "type": "text",
+              "text": "- CPU-intensive: Not suitable for Node.js vs Java is better."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q6.  Khác nhau giữa Synchronous và Asynchronous functions?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Synchronous",
+                  "Asynchronous"
+                ],
+                [
+                  "Blocking",
+                  "Block execution cho đến khi xong",
+                  "Không block — các task khác chạy song song"
+                ],
+                [
+                  "Thứ tự",
+                  "Tuần tự",
+                  "Khởi động task và tiếp tục xử lý việc khác"
+                ],
+                [
+                  "Return",
+                  "Trả về kết quả ngay",
+                  "Promise, callback, hoặc event"
+                ],
+                [
+                  "Error handling",
+                  "try-catch đơn giản",
+                  "Phức tạp hơn: .catch(), try/catch trong async"
+                ],
+                [
+                  "Use case",
+                  "Simple, sequential logic",
+                  "I/O-bound: file, DB, network, API calls"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Synchronous vs Asynchronous Functions:"
+            },
+            {
+              "type": "text",
+              "text": "- Blocking: Sync blocks execution until done. Async does not block — other tasks run in parallel."
+            },
+            {
+              "type": "text",
+              "text": "- Order: Sync is sequential. Async starts a task and continues processing other work."
+            },
+            {
+              "type": "text",
+              "text": "- Return: Sync returns result immediately. Async returns a Promise, callback, or event."
+            },
+            {
+              "type": "text",
+              "text": "- Error handling: Sync uses simple try-catch. Async is more complex: .catch(), try/catch in async."
+            },
+            {
+              "type": "text",
+              "text": "- Use case: Sync for simple sequential logic. Async for I/O-bound: file, DB, network, API calls."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q7.  Modules trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Module là một block code tái sử dụng được, cung cấp chức năng cụ thể. Node.js có 3 loại modules chính:"
+            },
+            {
+              "type": "text",
+              "text": "- Built-in modules: http, fs, path, os, events, stream, crypto, dns, cluster — không cần cài đặt."
+            },
+            {
+              "type": "text",
+              "text": "- Third-party modules: Cài qua npm — express, lodash, axios, mongoose..."
+            },
+            {
+              "type": "text",
+              "text": "- Custom modules: Do lập trình viên tự viết và export."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// CommonJS (default)\n\nmodule.exports = { add: (a, b) => a + b };\n\nconst { add } = require('./math');\n\n// ES Modules\n\nexport const add = (a, b) => a + b;\n\nimport { add } from './math.js';\n\nA module is a reusable block of code that provides specific functionality. Node.js has 3 main types of modules:\n\n- Built-in modules: http, fs, path, os, events, stream, crypto, dns, cluster — no installation needed.\n\n- Third-party modules: Installed via npm — express, lodash, axios, mongoose...\n\n- Custom modules: Written and exported by the developer."
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Mục đích của keyword require trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "require() dùng để import modules (built-in, third-party, hoặc custom) vào ứng dụng Node.js."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const fs      = require('fs');\n\nconst express = require('express');\n\nconst utils   = require('./utils');\n\n*📌 require() là synchronous và cache module sau lần đầu load — các lần gọi sau trả về cached version.*\n\nrequire() is used to import modules (built-in, third-party, or custom) into a Node.js application.\n\n*📌 require() is synchronous and caches the module after the first load — subsequent calls return the cached version.*"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "V8 Engine trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "V8 là JavaScript engine open-source do Google phát triển bằng C++, cũng là engine chạy trên Google Chrome. Node.js sử dụng V8 để thực thi JavaScript bên ngoài trình duyệt."
+            },
+            {
+              "type": "text",
+              "text": "- JIT Compilation: V8 compile JavaScript sang machine code trước khi execute — nhanh hơn interpretation."
+            },
+            {
+              "type": "text",
+              "text": "- Garbage Collection: Tự động quản lý bộ nhớ — dùng generational GC (Young/Old generation)."
+            },
+            {
+              "type": "text",
+              "text": "- Optimization: V8 tự động optimize các functions được gọi nhiều lần (hot paths)."
+            },
+            {
+              "type": "text",
+              "text": "V8 is an open-source JavaScript engine developed by Google in C++, the same engine powering Google Chrome. Node.js uses V8 to execute JavaScript outside the browser."
+            },
+            {
+              "type": "text",
+              "text": "- JIT Compilation: V8 compiles JavaScript to machine code before execution — faster than interpretation."
+            },
+            {
+              "type": "text",
+              "text": "- Garbage Collection: Automatic memory management — uses generational GC (Young/Old generation)."
+            },
+            {
+              "type": "text",
+              "text": "- Optimization: V8 automatically optimizes frequently called functions (hot paths)."
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Quản lý Environment Variables trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dùng process.env để truy cập các biến môi trường. Package dotenv giúp load các biến từ file .env."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": ".env file (KHONG commit vao git!)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q11.  Control Flow trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Control flow trong Node.js là việc kiểm soát thứ tự thực thi các async operations. Vì Node.js non-blocking, tasks không luôn hoàn thành theo thứ tự bắt đầu."
+            },
+            {
+              "type": "text",
+              "text": "- Callbacks: Cách truyền thống — dễ rơi vào callback hell nếu lồng nhau nhiều."
+            },
+            {
+              "type": "text",
+              "text": "- Promises (.then/.catch): Chain async operations sạch hơn, xử lý lỗi tốt hơn."
+            },
+            {
+              "type": "text",
+              "text": "- async/await: Cú pháp gần với synchronous, dễ đọc nhất, nhưng vẫn async bên dưới."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "async function getUser(id) {\n\n  try {\n\n    const user   = await db.findUser(id);\n\n    const orders = await db.findOrders(user.id);\n\n    return { user, orders };\n\n  } catch (err) {\n\n    throw new Error('Failed: ' + err.message);\n\n  }\n\n}\n\n// Chay song song voi Promise.all\n\nconst [user, config] = await Promise.all([db.findUser(id), db.getConfig()]);\n\nControl flow in Node.js is the management of the execution order of async operations. Because Node.js is non-blocking, tasks do not always complete in the order they were started.\n\n- Callbacks: The traditional approach — prone to callback hell when deeply nested.\n\n- Promises (.then/.catch): Chains async operations more cleanly, better error handling.\n\n- async/await: Syntax closer to synchronous, most readable, but still async underneath."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q12.  Event Loop trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Event loop là cơ chế xử lý bất đồng bộ theo mô hình non-blocking I/O trên một main thread duy nhất. Khi xuất hiện tác vụ bất đồng bộ (file I/O, network), NodeJS delegate cho libuv/OS xử lý thay vì block call stack. Sau khi hoàn thành, callback được đưa vào queue và event loop đưa chúng trở lại call stack để execute."
+            },
+            {
+              "type": "text",
+              "text": "Thứ tự thực thi (cực kỳ quan trọng trong phỏng vấn):"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thứ tự",
+                  "Queue / Phase",
+                  "Nội dung"
+                ],
+                [
+                  "1",
+                  "Call Stack",
+                  "Synchronous code — ưu tiên tuyệt đối"
+                ],
+                [
+                  "2",
+                  "process.nextTick()",
+                  "Chạy ngay sau operation hiện tại — priority cao nhất"
+                ],
+                [
+                  "3",
+                  "Microtask queue",
+                  "Promise .then()/.catch() callbacks"
+                ],
+                [
+                  "4",
+                  "Macrotask queue (Timers phase)",
+                  "setTimeout() và setInterval() callbacks"
+                ],
+                [
+                  "5",
+                  "I/O callbacks",
+                  "Callbacks từ file system, network..."
+                ],
+                [
+                  "6",
+                  "Check phase",
+                  "setImmediate() callbacks"
+                ],
+                [
+                  "7",
+                  "Close callbacks",
+                  "socket.on('close', ...) v.v."
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "console.log('1');\n\nsetTimeout(()           => console.log('5 - setTimeout'),   0);\n\nPromise.resolve().then(() => console.log('3 - Promise'));\n\nprocess.nextTick(()     => console.log('2 - nextTick'));\n\nsetImmediate(()         => console.log('6 - setImmediate'));\n\nconsole.log('4');"
+            },
+            {
+              "type": "code",
+              "lang": "output",
+              "text": "// Output: 1, 4, 2 - nextTick, 3 - Promise, 5 - setTimeout, 6 - setImmediate\n\nThe event loop is the mechanism that handles asynchronous operations using a non-blocking I/O model on a single main thread. When asynchronous tasks occur, such as file I/O or network requests, Node.js delegates them to libuv or the operating system instead of blocking the call stack. Once the operations are completed, their callbacks are placed into queues, and when the call stack becomes available, the event loop pushes those callbacks back onto the call stack for execution\n\nExecution order (critical for interviews):\n\nThứ tự thực thi:\n\n- Call Stack – thực thi synchronous code\n\n- process.nextTick() queue – chạy sau current operation, trước promise, và event loop tiếp theo\n\n- Microtask queue – Promises (.then)\n\n- Macrotask queue – setTimeout, setInterval, I/O callbacks\n\n- setImmediate() – check phase của event loop\n\n- Close callbacks – socket.on(‘close’),…\n\nĐiểm 4 và 5 cũng cần lưu ý: setImmediate **về mặt kỹ thuật cũng là macrotask**, chỉ là chạy ở phase khác so với setTimeout. Tách riêng như vậy là hợp lý để nhấn mạnh sự khác biệt, không sai."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q13.  Nhược điểm chính của Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- CPU-intensive tasks: Khi chạy CPU-heavy code sẽ block event loop. Giải pháp: Worker Threads."
+            },
+            {
+              "type": "text",
+              "text": "- Callback complexity: Asynchronous code phức tạp có thể khó đọc nếu không dùng async/await đúng cách."
+            },
+            {
+              "type": "text",
+              "text": "- Rapid API changes: Ecosystem thay đổi nhanh, dễ xảy ra compatibility issues."
+            },
+            {
+              "type": "text",
+              "text": "- NoSQL preference: Thiết lập relational DB phức tạp hơn MongoDB."
+            },
+            {
+              "type": "text",
+              "text": "Main disadvantages of Node.js:"
+            },
+            {
+              "type": "text",
+              "text": "- CPU-intensive tasks: Running CPU-heavy code will block the event loop. Solution: Worker Threads."
+            },
+            {
+              "type": "text",
+              "text": "- Callback complexity: Async code can be hard to read if async/await is not used correctly."
+            },
+            {
+              "type": "text",
+              "text": "- Rapid API changes: The ecosystem changes quickly, leading to compatibility issues."
+            },
+            {
+              "type": "text",
+              "text": "- NoSQL preference: Setting up relational databases is more complex than MongoDB."
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "REPL trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "REPL (Read–Eval–Print–Loop) là interactive shell tương tự console trình duyệt — cho phép viết và test JavaScript code ngay lập tức."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "$ node           # khoi dong REPL\n\n> 2 + 2          # => 4\n\n> const x = 10\n\n> x * 3          # => 30\n\n> .help          # xem cac commands\n\n> .exit          # thoat\n\nREPL (Read–Eval–Print–Loop) is an interactive shell similar to the browser console — allowing you to write and test JavaScript code immediately."
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Cách import module trong Node.js?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// CommonJS (CJS) - default\n\nconst fs      = require('fs');\n\nconst express = require('express');\n\nconst utils   = require('./utils');\n\nmodule.exports = { myFunction };\n\n// ES Modules (ESM)\n\nimport fs         from 'fs';\n\nimport { helper } from './utils.js';\n\nexport const helper = () => {};\n\nHow to import modules in Node.js:"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Node.js khác Angular như thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Node.js",
+                  "Angular"
+                ],
+                [
+                  "Loại",
+                  "Server-side runtime environment",
+                  "Client-side frontend framework"
+                ],
+                [
+                  "Mục đích",
+                  "Backend: APIs, server, database",
+                  "Frontend: Single-Page Applications"
+                ],
+                [
+                  "Chạy ở",
+                  "Server (bất kỳ OS)",
+                  "Trình duyệt (browser)"
+                ],
+                [
+                  "Ngôn ngữ",
+                  "JavaScript",
+                  "TypeScript (chính)"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Node.js vs Angular comparison:"
+            },
+            {
+              "type": "text",
+              "text": "- Type: Node.js is a server-side runtime environment. Angular is a client-side frontend framework."
+            },
+            {
+              "type": "text",
+              "text": "- Purpose: Node.js for backend — APIs, server, database. Angular for frontend — Single-Page Applications."
+            },
+            {
+              "type": "text",
+              "text": "- Runs on: Node.js runs on the server (any OS). Angular runs in the browser."
+            },
+            {
+              "type": "text",
+              "text": "- Language: Node.js uses JavaScript. Angular primarily uses TypeScript."
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "package.json là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "package.json là file metadata của project, chứa thông tin về project, dependencies, scripts và các cấu hình khác."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "{\"name\":\"my-app\",\"version\":\"1.0.0\",\n\n  \"scripts\":{\"start\":\"node src/index.js\",\"dev\":\"nodemon src/index.js\",\"test\":\"jest\"},\n\n  \"dependencies\":{\"express\":\"^4.18.2\"},\n\n  \"devDependencies\":{\"jest\":\"^29.0.0\",\"nodemon\":\"^3.0.0\"}}\n\npackage.json is the project metadata file, containing information about the project, dependencies, scripts, and other configurations."
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Cách tạo HTTP server trong Node.js?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const http = require('http');\n\nconst server = http.createServer((req, res) => {\n\n  if (req.url === '/api/users' && req.method === 'GET') {\n\n    res.writeHead(200, { 'Content-Type': 'application/json' });\n\n    res.end(JSON.stringify({ users: [] }));\n\n  } else {\n\n    res.writeHead(404);\n\n    res.end('Not Found');\n\n  }\n\n});\n\nserver.listen(3000, () => console.log('Server running at http://localhost:3000/'));\n\n*📌 Trong thực tế production, dùng Express.js thay vì tự viết routing thủ công.*\n\n*📌 In real production, use Express.js instead of writing routing manually with http.createServer.*"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Các thư viện phổ biến nhất trong Node.js?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Library",
+                  "Loại",
+                  "Mô tả"
+                ],
+                [
+                  "Express.js",
+                  "Web framework",
+                  "Minimal, flexible — routing, middleware, REST APIs"
+                ],
+                [
+                  "Fastify",
+                  "Web framework",
+                  "Hiệu năng cao hơn Express, schema validation built-in"
+                ],
+                [
+                  "NestJS",
+                  "Web framework",
+                  "TypeScript, opinionated, DI, enterprise-grade"
+                ],
+                [
+                  "Mongoose",
+                  "ODM",
+                  "MongoDB object modeling với schema và validation"
+                ],
+                [
+                  "Prisma",
+                  "ORM",
+                  "Type-safe ORM cho PostgreSQL, MySQL, SQLite"
+                ],
+                [
+                  "Jest",
+                  "Testing",
+                  "Unit/integration testing với mocking và coverage"
+                ],
+                [
+                  "Socket.io",
+                  "Real-time",
+                  "WebSocket abstraction, bi-directional communication"
+                ],
+                [
+                  "Bull/BullMQ",
+                  "Queue",
+                  "Background job queues backed by Redis"
+                ],
+                [
+                  "Passport.js",
+                  "Auth",
+                  "Authentication middleware, nhiều strategies"
+                ],
+                [
+                  "Winston",
+                  "Logging",
+                  "Structured logging với levels và transports"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Most popular Node.js libraries:"
+            },
+            {
+              "type": "text",
+              "text": "- Express.js — Web framework: Minimal, flexible — routing, middleware, REST APIs."
+            },
+            {
+              "type": "text",
+              "text": "- Fastify — Web framework: Higher performance than Express, built-in schema validation."
+            },
+            {
+              "type": "text",
+              "text": "- NestJS — Web framework: TypeScript, opinionated, DI, enterprise-grade."
+            },
+            {
+              "type": "text",
+              "text": "- Mongoose — ODM: MongoDB object modeling with schema and validation."
+            },
+            {
+              "type": "text",
+              "text": "- Prisma — ORM: Type-safe ORM for PostgreSQL, MySQL, SQLite."
+            },
+            {
+              "type": "text",
+              "text": "- Jest — Testing: Unit/integration testing with mocking and coverage."
+            },
+            {
+              "type": "text",
+              "text": "- Socket.io — Real-time: WebSocket abstraction, bi-directional communication."
+            },
+            {
+              "type": "text",
+              "text": "- Bull/BullMQ — Queue: Background job queues backed by Redis."
+            },
+            {
+              "type": "text",
+              "text": "- Passport.js — Auth: Authentication middleware with many strategies."
+            },
+            {
+              "type": "text",
+              "text": "- Winston — Logging: Structured logging with levels and transports."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q20.  Promises trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Promise là object đại diện cho kết quả của một async operation trong tương lai. Có 3 trạng thái: pending, fulfilled, rejected."
+            },
+            {
+              "type": "text",
+              "text": "Executor function bên trong new Promise() thực ra chạy đồng bộ — bản thân Promise không tạo ra hành vi bất đồng bộ, nó chỉ đại diện cho kết quả của một thứ gì đó bất đồng bộ"
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "fetchUser(1)\n\n  .then(user   => console.log(user))\n\n  .catch(err   => console.error(err))\n\n  .finally(()  => console.log('Done'));\n\nPromise.all([p1, p2, p3])          // tat ca hoan thanh (fail fast)\n\nPromise.allSettled([p1, p2, p3])   // cho tat ca, ke ca fail\n\nPromise.race([p1, p2, p3])         // ket qua cai xong dau tien\n\nPromise.any([p1, p2, p3])          // ket qua cai fulfilled dau tien\n\nThe Promise object represents the eventual completion (or failure) of an asynchronous operation and its resulting value. It has 3 states: pending, fulfilled, rejected.\n\nPromises help avoid callback hell and can be chained with .then(), .catch(), or used with async/await.\n\n*Bonus line nếu muốn gây ấn tượng:*\n\n\"The executor function inside new Promise() actually runs synchronously — Promise itself doesn't create async behavior, it just represents the result of it.\"\n\n- Promise.all([p1,p2,p3]) — all must succeed (fail fast).\n\n- Promise.allSettled([p1,p2,p3]) — waits for all, including failures.\n\n- Promise.race([p1,p2,p3]) — result of the first to complete.\n\n- Promise.any([p1,p2,p3]) — result of the first to be fulfilled.\n\nAsync/await is sugar syntax ( syntactic sugar ) built on top of Promises that allows asynchronous JavaScript code to be written in a cleaner and more readable synchronous style without blocking the event loop."
+            }
+          ]
+        },
+        {
+          "id": "Q21",
+          "q": "Cách install, update và delete dependency?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "npm install express              # latest\n\nnpm install express@4.18.2       # specific version\n\nnpm install -D typescript        # devDependency\n\nnpm ci                           # clean install tu lock file\n\nnpm update                       # update tat ca\n\nnpm update express               # update cu the\n\nnpm uninstall express            # xoa package\n\nnpm prune                        # xoa packages khong trong package.json\n\nHow to install, update, and delete dependencies:\n\n- npm install express — install latest.\n\n- npm install express@4.18.2 — install specific version.\n\n- npm install -D typescript — install as devDependency.\n\n- npm update / npm update express — update all or specific package.\n\n- npm uninstall express — remove package.\n\n- npm prune — remove packages not listed in package.json."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q22.  Có những loại HTTP Requests nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method",
+                  "Mục đích",
+                  "Idempotent",
+                  "Ví dụ"
+                ],
+                [
+                  "GET",
+                  "Lấy dữ liệu",
+                  "Có",
+                  "GET /api/users"
+                ],
+                [
+                  "POST",
+                  "Tạo resource mới",
+                  "Không",
+                  "POST /api/users"
+                ],
+                [
+                  "PUT",
+                  "Update toàn bộ resource",
+                  "Có",
+                  "PUT /api/users/1"
+                ],
+                [
+                  "PATCH",
+                  "Update một phần resource",
+                  "Có",
+                  "PATCH /api/users/1"
+                ],
+                [
+                  "DELETE",
+                  "Xóa resource",
+                  "Có",
+                  "DELETE /api/users/1"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "HTTP Request methods:"
+            },
+            {
+              "type": "text",
+              "text": "- GET — Retrieve data. Idempotent. Example: GET /api/users."
+            },
+            {
+              "type": "text",
+              "text": "- POST — Create new resource. Not idempotent. Example: POST /api/users."
+            },
+            {
+              "type": "text",
+              "text": "- PUT — Replace entire resource. Idempotent. Example: PUT /api/users/1."
+            },
+            {
+              "type": "text",
+              "text": "- PATCH — Partial update. Idempotent. Example: PATCH /api/users/1."
+            },
+            {
+              "type": "text",
+              "text": "- DELETE — Remove resource. Idempotent. Example: DELETE /api/users/1."
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Import external libraries bằng lệnh nào?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const express = require('express');  // CommonJS\n\nimport express from 'express';       // ES Modules\n\nconst app = express();\n\napp.get('/', (req, res) => res.send('Hello!'));\n\napp.listen(3000);\n\nTo import an external library in Node.js:\n\n- CommonJS: const express = require('express');\n\n- ES Modules: import express from 'express';"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — Node.js Intermediate (Q24–42)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q24.  Event-driven programming trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Event-driven programming là paradigm nơi flow của chương trình được xác định bởi các events. Node.js xây dựng trên EventEmitter pattern."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const EventEmitter = require('events');\n\nconst emitter = new EventEmitter();\n\nemitter.on('orderPlaced', (order) => {\n\n  sendConfirmationEmail(order);\n\n});\n\nemitter.on('orderPlaced', (order) => {\n\n  updateInventory(order.items);  // nhieu listeners cung event\n\n});\n\nemitter.emit('orderPlaced', { id: 123, items: ['item1'] });\n\nemitter.once('startup', () => console.log('App started'));  // 1 lan\n\nEvent-driven programming is a paradigm where the flow of the program is determined by events. Node.js is built on the EventEmitter pattern.\n\n- emitter.on(event, listener) — subscribe to an event.\n\n- emitter.emit(event, data) — trigger an event.\n\n- emitter.once(event, listener) — subscribe once, auto-removed after first trigger."
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "Buffer trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Buffer là vùng nhớ tạm thời lưu trữ binary data. Khác với array, Buffer có size cố định và chỉ làm việc với binary data. Thường dùng khi đọc files, network streams, hoặc xử lý binary protocols."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const buf1 = Buffer.from('Hello, World!', 'utf8');\n\nconst buf2 = Buffer.alloc(10);\n\nconsole.log(buf1.toString());            // 'Hello, World!'\n\nconsole.log(buf1.toString('hex'));\n\nconsole.log(buf1.length);               // 13\n\nconst combined = Buffer.concat([buf1, buf2]);\n\nBuffer is temporary memory storage for binary data. Unlike arrays, Buffers have a fixed size and work only with binary data. Commonly used when reading files, network streams, or handling binary protocols."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q26.  Streams trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Streams là cách xử lý data theo từng chunks thay vì load toàn bộ vào memory — rất hiệu quả với files lớn, video, hoặc real-time data."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Stream",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Readable",
+                  "Dọc data theo từng chunks",
+                  "fs.createReadStream(), http.IncomingMessage"
+                ],
+                [
+                  "Writable",
+                  "Ghi data theo từng chunks",
+                  "fs.createWriteStream(), http.ServerResponse"
+                ],
+                [
+                  "Duplex",
+                  "Vừa đọc vừa ghi",
+                  "TCP socket (net.Socket)"
+                ],
+                [
+                  "Transform",
+                  "Biến đổi data khi đi qua",
+                  "zlib.createGzip(), crypto.createCipher()"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Pipe: doc file -> compress -> ghi file moi\n\nfs.createReadStream('big-file.txt')\n\n  .pipe(zlib.createGzip())\n\n  .pipe(fs.createWriteStream('big-file.txt.gz'))\n\n  .on('finish', () => console.log('Compressed!'));\n\n// Stream HTTP response (khong load toan bo file vao memory)\n\napp.get('/video', (req, res) => {\n\n  fs.createReadStream('movie.mp4').pipe(res);\n\n});\n\nStreams process data in chunks instead of loading everything into memory — very efficient for large files, video, or real-time data.\n\n- Readable — Read data in chunks. Example: fs.createReadStream(), http.IncomingMessage.\n\n- Writable — Write data in chunks. Example: fs.createWriteStream(), http.ServerResponse.\n\n- Duplex — Read and write simultaneously. Example: TCP socket (net.Socket).\n\n- Transform — Transform data as it passes through. Example: zlib.createGzip(), crypto.createCipher()."
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Crypto module trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Crypto module cung cấp các công cụ mã hóa, giải mã và hashing. Dùng để bảo mật data, xác thực mẫt khẩu và tạo tokens an toàn."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const crypto = require('crypto');\n\n// Hash - mot chieu (khong decrypt duoc)\n\nconst hash = crypto.createHash('sha256').update('password123').digest('hex');\n\n// HMAC - hash voi secret key\n\nconst hmac = crypto.createHmac('sha256','secret-key').update('data').digest('hex');\n\n// Random bytes - tao tokens an toan\n\nconst token = crypto.randomBytes(32).toString('hex');\n\n*💡 Dùng bcrypt hoặc argon2 để hash passwords — KHÔNG dùng SHA256 thẳng cho passwords vì không có salting và quá nhanh (dễ brute force).*\n\nThe crypto module provides tools for encryption, decryption, and hashing. Used to secure data, verify passwords, and create safe tokens.\n\n*💡** Use bcrypt or argon2 to hash passwords — do NOT use SHA256 directly for passwords as it lacks salting and is too fast (vulnerable to brute force).*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q28.  Callback Hell là gì? Cách giải quyết?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Callback hell là tình trạng nhiều callback lồng nhau quá sâu, tạo cấu trúc kim tự tháp, khó đọc và maintain."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// X Callback hell\n\ngetUser(id, (err, user) => {\n\n  getOrders(user.id, (err, orders) => {\n\n    getInvoice(orders[0].id, (err, invoice) => {\n\n      sendEmail(invoice, (err) => { /* cap 4 long nhau! */ });\n\n    });\n\n  });\n\n});"
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// OK async/await - sach, de doc\n\nasync function processOrder(id) {\n\n  const user    = await getUser(id);\n\n  const orders  = await getOrders(user.id);\n\n  const invoice = await getInvoice(orders[0].id);\n\n  await sendEmail(invoice);\n\n}\n\nCallback hell is the situation where many callbacks are nested too deeply, creating a pyramid structure that is hard to read and maintain.\n\n- Solution: Use async/await — syntax closest to synchronous, easiest to read and debug.\n\n- Solution: Use Promises (.then/.catch) — chain async operations cleanly.\n\n- Solution: Use named functions — avoid anonymous inline nesting."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q29.  Timers Module trong Node.js.",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- setTimeout(cb, delay): Execute callback MỘT LẦN sau delay (ms)."
+            },
+            {
+              "type": "text",
+              "text": "- setInterval(cb, delay): Execute callback LẶP LẠI sau mỗi delay (ms)."
+            },
+            {
+              "type": "text",
+              "text": "- setImmediate(cb): Execute callback Ở CHECK PHASE — sau I/O events."
+            },
+            {
+              "type": "text",
+              "text": "- process.nextTick(cb): Execute callback TRƯỚC tất cả — ưu tiên cao nhất."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const timer = setTimeout(() => console.log('after 1s'), 1000);\n\nclearTimeout(timer);\n\nconst interval = setInterval(() => checkHealth(), 30000);\n\nclearInterval(interval);\n\nprocess.nextTick(() => console.log('nextTick - runs FIRST'));\n\nsetImmediate(()    => console.log('setImmediate - after I/O'));\n\nsetTimeout(()      => console.log('setTimeout'),0);\n\nTimers Module functions:\n\n- setTimeout(cb, delay) — execute callback ONCE after delay (ms).\n\n- setInterval(cb, delay) — execute callback REPEATEDLY every delay (ms).\n\n- setImmediate(cb) — execute callback in the CHECK PHASE — after I/O events.\n\n- process.nextTick(cb) — execute callback AFTER current operation and BEFORE the promise, next event loop — highest priority."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q30.  setImmediate() vs process.nextTick() — khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "process.nextTick()",
+                  "setImmediate()"
+                ],
+                [
+                  "Phần của event loop",
+                  "nextTick queue (trước phases)",
+                  "Check phase (sau I/O callbacks)"
+                ],
+                [
+                  "Khi execute",
+                  "Ngay sau operation hiện tại",
+                  "Vòng lặp event loop tiếp theo"
+                ],
+                [
+                  "Priority",
+                  "Cao hơn — chạy trước cả Promises",
+                  "Thấp hơn nextTick"
+                ],
+                [
+                  "Nguy cơ",
+                  "Stack recursion có thể block I/O",
+                  "An toàn hơn với I/O operations"
+                ],
+                [
+                  "Dùng khi",
+                  "Cần execute ngay sau sync code",
+                  "Cần defer sang event loop cycle tiếp theo"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "⚠️  Tránh gọi process.nextTick() đệ quy! Nếu recursive, sẽ ngăn I/O callbacks chạy, khiến server bị block."
+            },
+            {
+              "type": "text",
+              "text": "process.nextTick() vs setImmediate():"
+            },
+            {
+              "type": "text",
+              "text": "- nextTick: Runs immediately after the current operation — before Promises. Risk: recursive calls can block I/O."
+            },
+            {
+              "type": "text",
+              "text": "- setImmediate: Runs in the next event loop iteration (check phase — after I/O). Safer for I/O-heavy code."
+            },
+            {
+              "type": "text",
+              "text": "- *⚠️  Avoid calling process.nextTick() recursively! It will block I/O callbacks and freeze the server.*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q31.  spawn() vs fork() — khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "spawn()",
+                  "fork()"
+                ],
+                [
+                  "Dùng cho",
+                  "Bất kỳ system command",
+                  "Chỉ cho Node.js child processes"
+                ],
+                [
+                  "Chạy",
+                  "External programs (python, bash, git...)",
+                  "JavaScript files khác"
+                ],
+                [
+                  "IPC channel",
+                  "Không tự động",
+                  "Tự động tạo (built-in)"
+                ],
+                [
+                  "Communication",
+                  "stdin/stdout/stderr streams",
+                  "Node message passing (process.send)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const { spawn, fork } = require('child_process');\n\n// spawn - chay external command\n\nconst ls = spawn('ls', ['-la']);\n\nls.stdout.on('data', data => console.log(data.toString()));\n\n// fork - tao Node.js child process voi IPC\n\nconst child = fork('./worker.js');\n\nchild.send({ task: 'process', data: largeDataset });\n\nchild.on('message', result => console.log('Result:', result));\n\nspawn() vs fork():\n\n- spawn() — for any system command (python, bash, git...). Communication via stdin/stdout/stderr streams. No IPC channel.\n\n- fork() — only for Node.js child processes (other JS files). Auto-creates IPC channel. Communication via process.send()."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q32.  CORS trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "CORS (Cross-Origin Resource Sharing) là cơ chế bảo mật dựa trên HTTP headers, cho phép hoặc chặn requests từ các origins khác (khác protocol, hostname, hoặc port)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const cors = require('cors');\n\napp.use(cors({\n\n  origin: ['https://myapp.com', 'https://admin.myapp.com'],\n\n  methods: ['GET', 'POST', 'PUT', 'DELETE'],\n\n  allowedHeaders: ['Content-Type', 'Authorization'],\n\n  credentials: true,\n\n  maxAge: 86400\n\n}));\n\nCORS (Cross-Origin Resource Sharing) is a security mechanism based on HTTP headers, allowing or blocking requests from different origins (different protocol, hostname, or port)."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q33.  Fork trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "fork() tạo child processes riêng biệt với memory và event loop riêng. Dùng để xử lý CPU-intensive tasks mà không block main thread."
+            },
+            {
+              "type": "text",
+              "text": "- Process mới: Mỗi fork() tạo một Node.js process riêng biệt — có memory riêng, event loop riêng, V8 riêng."
+            },
+            {
+              "type": "text",
+              "text": "- IPC channel: fork() tự động tạo channel giao tiếp 2 chiều qua process.send() và process.on('message')."
+            },
+            {
+              "type": "note",
+              "text": "📌 fork() khác Worker Threads: fork tạo process mới (nặng), Worker Threads dùng chung process nhưng có thread riêng (nhẹ hơn)."
+            },
+            {
+              "type": "text",
+              "text": "fork() creates separate child processes with their own memory and event loop. Used to handle CPU-intensive tasks without blocking the main thread."
+            },
+            {
+              "type": "text",
+              "text": "- New process: Each fork() creates a separate Node.js process — with its own memory, event loop, and V8."
+            },
+            {
+              "type": "text",
+              "text": "- IPC ( Inter-Process Communication ) channel: fork() automatically creates a two-way communication channel via process.send() and process.on('message')."
+            },
+            {
+              "type": "text",
+              "text": "- *📌 fork() vs Worker Threads: fork creates a new process (heavy), Worker Threads share the same process but have a separate thread (lighter).*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q34.  Ba phương pháp tránh Callback Hell?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- 1. async/await: Cú pháp gần với synchronous, dễ đọc, dễ debug. Được khuyến nghị dùng hiện đại."
+            },
+            {
+              "type": "text",
+              "text": "- 2. Promises (.then/.catch): Chain async operations theo chuỗi, xử lý lỗi tập trung."
+            },
+            {
+              "type": "text",
+              "text": "- 3. Generators (function*): Control flow mạnh mẽ nhưng cú pháp phức tạp. Ít dùng thực tế."
+            },
+            {
+              "type": "text",
+              "text": "Three methods to avoid Callback Hell:"
+            },
+            {
+              "type": "text",
+              "text": "- 1. async/await: Syntax closest to synchronous — easy to read, debug. Recommended for modern code."
+            },
+            {
+              "type": "text",
+              "text": "- 2. Promises (.then/.catch): Chain async operations in sequence, centralized error handling."
+            },
+            {
+              "type": "text",
+              "text": "- 3. Generators (function*): Powerful control flow but complex syntax. Rarely used in practice."
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "body-parser trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "body-parser là middleware parse incoming request body trước khi handler xử lý. Từ Express 4.16+, chức năng này được tích hợp sẵn trong express."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Express 4.16+ - built-in\n\napp.use(express.json());\n\napp.use(express.urlencoded({ extended: true }));\n\napp.post('/users', (req, res) => {\n\n  const { name, email } = req.body;  // da duoc parse san\n\n});\n\nbody-parser is middleware that parses the incoming request body before the handler processes it. From Express 4.16+, this functionality is built into express directly."
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "TLS Module trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "TLS module cung cấp TLS và SSL implementation dựa trên OpenSSL. Dùng để tạo secure connections trên network."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const tls = require('tls');\n\nconst fs  = require('fs');\n\nconst server = tls.createServer({\n\n  key:  fs.readFileSync('server-key.pem'),\n\n  cert: fs.readFileSync('server-cert.pem'),\n\n}, (socket) => {\n\n  socket.write('Secure connection established!');\n\n});\n\nserver.listen(8000);\n\nThe TLS module provides TLS and SSL implementation based on OpenSSL. Used to create secure connections over the network."
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Có truy cập DOM trong Node.js không?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Không. DOM (Document Object Model) là khái niệm client-side chỉ tồn tại trong trình duyệt. Node.js là server-side environment và không có browser context."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Có sẵn trong Browser",
+                  "Có sẵn trong Node.js"
+                ],
+                [
+                  "window, document, DOM",
+                  "process, __dirname, __filename"
+                ],
+                [
+                  "localStorage, sessionStorage",
+                  "fs (file system)"
+                ],
+                [
+                  "fetch API (native)",
+                  "http, https modules"
+                ],
+                [
+                  "navigator, location",
+                  "os module"
+                ],
+                [
+                  "XMLHttpRequest",
+                  "http.request(), axios"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "No. The DOM (Document Object Model) is a client-side concept that only exists in the browser. Node.js is a server-side environment with no browser context."
+            },
+            {
+              "type": "text",
+              "text": "- Available in Browser: window, document, DOM / localStorage, sessionStorage / fetch API (native) / navigator, location / XMLHttpRequest."
+            },
+            {
+              "type": "text",
+              "text": "- Available in Node.js: process, __dirname, __filename / fs (file system) / http, https modules / os module / http.request(), axios."
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Quản lý packages trong Node.js project như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- npm: Default package manager. Lưu package-lock.json."
+            },
+            {
+              "type": "text",
+              "text": "- yarn: Nhanh hơn npm (parallel installs). Lưu yarn.lock."
+            },
+            {
+              "type": "text",
+              "text": "- pnpm: Hiệu quả nhất về disk (symlinks), strict dependency isolation."
+            },
+            {
+              "type": "text",
+              "text": "Package managers for Node.js projects:"
+            },
+            {
+              "type": "text",
+              "text": "- npm: Default package manager. Stores package-lock.json."
+            },
+            {
+              "type": "text",
+              "text": "- yarn: Faster than npm (parallel installs). Stores yarn.lock."
+            },
+            {
+              "type": "text",
+              "text": "- pnpm: Most disk-efficient (symlinks), strict dependency isolation."
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Mục đích của NODE_ENV?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "NODE_ENV chỉ định môi trường chạy của ứng dụng (development, test, production), điều chỉnh các behaviors khác nhau."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "if (process.env.NODE_ENV === 'production') {\n\n  app.use(helmet());       // security headers\n\n  app.use(compression());  // gzip responses\n\n}\n\nif (process.env.NODE_ENV === 'development') {\n\n  app.use(morgan('dev'));  // verbose logging\n\n}\n\nNODE_ENV specifies the application runtime environment (development, test, production), adjusting different behaviors accordingly."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q40.  Test Pyramid trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tầng",
+                  "Loại Test",
+                  "Số lượng",
+                  "Tốc độ",
+                  "Ví dụ"
+                ],
+                [
+                  "Base (nhiều nhất)",
+                  "Unit Tests",
+                  "Nhiều (70%)",
+                  "Nhanh (ms)",
+                  "Test function add(1,2) = 3"
+                ],
+                [
+                  "Middle",
+                  "Integration Tests",
+                  "Vừa (20%)",
+                  "Trung bình (s)",
+                  "Test API route gọi tới DB"
+                ],
+                [
+                  "Top (ít nhất)",
+                  "End-to-End Tests",
+                  "Ít (10%)",
+                  "Chậm (s–min)",
+                  "Test user login flow đầy đủ"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "describe('calculateTax', () => {\n\n  it('should apply 10% tax', () => {\n\n    expect(calculateTax(100)).toBe(10);\n\n  });\n\n});\n\nit('GET /api/users returns 200', async () => {\n\n  const res = await request(app).get('/api/users');\n\n  expect(res.status).toBe(200);\n\n});\n\nThe Test Pyramid recommends:\n\n- Base (most): Unit Tests — 70% of tests. Fast (ms). Test individual functions in isolation.\n\n- Middle: Integration Tests — 20%. Medium speed (s). Test API routes calling DB.\n\n- Top (fewest): End-to-End Tests — 10%. Slow (s–min). Test full user flows."
+            }
+          ]
+        },
+        {
+          "id": "Q41",
+          "q": "Node.js vs Server-side scripting (Python) — so sánh?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Node.js",
+                  "Python (Django/FastAPI)"
+                ],
+                [
+                  "Ngôn ngữ",
+                  "JavaScript",
+                  "Python"
+                ],
+                [
+                  "Concurrency",
+                  "Non-blocking, event-driven",
+                  "Thread-based hoặc asyncio"
+                ],
+                [
+                  "Hiệu năng I/O",
+                  "Rất cao",
+                  "Tốt (asyncio)"
+                ],
+                [
+                  "CPU-intensive",
+                  "Yếu (single thread)",
+                  "Mạnh hơn"
+                ],
+                [
+                  "ML/Data Science",
+                  "Hạn chế",
+                  "Rất mạnh (TensorFlow, PyTorch)"
+                ],
+                [
+                  "Full-stack",
+                  "Có (JS cả FE lẫn BE)",
+                  "Không"
+                ],
+                [
+                  "Best for",
+                  "Real-time apps, APIs, microservices",
+                  "ML/AI, data processing"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Node.js vs Python (Django/FastAPI):"
+            },
+            {
+              "type": "text",
+              "text": "- Language: JavaScript vs Python."
+            },
+            {
+              "type": "text",
+              "text": "- Concurrency: Non-blocking event-driven vs Thread-based or asyncio."
+            },
+            {
+              "type": "text",
+              "text": "- I/O Performance: Very high vs Good (asyncio)."
+            },
+            {
+              "type": "text",
+              "text": "- CPU-intensive: Weak (single thread) vs Stronger."
+            },
+            {
+              "type": "text",
+              "text": "- ML/Data Science: Limited vs Very strong (TensorFlow, PyTorch)."
+            },
+            {
+              "type": "text",
+              "text": "- Full-stack: Yes (JS for FE and BE) vs No."
+            },
+            {
+              "type": "text",
+              "text": "- Best for: Node.js → Real-time apps, APIs, microservices. Python → ML/AI, data processing."
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Passport module trong Node.js dùng để làm gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Passport.js là authentication middleware cho Node.js, hỗ trợ 500+ strategies: local (email/password), OAuth (Google, GitHub, Facebook), JWT, v.v."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const passport      = require('passport');\n\nconst LocalStrategy = require('passport-local').Strategy;\n\npassport.use(new LocalStrategy(async (username, password, done) => {\n\n  const user = await User.findOne({ username });\n\n  if (!user) return done(null, false);\n\n  if (!await bcrypt.compare(password, user.password)) return done(null, false);\n\n  return done(null, user);\n\n}));\n\napp.post('/login',\n\n  passport.authenticate('local', { session: false }),\n\n  (req, res) => res.json({ token: generateJWT(req.user) })\n\n});\n\nPassport.js is authentication middleware for Node.js, supporting 500+ strategies: local (email/password), OAuth (Google, GitHub, Facebook), JWT, etc."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — Node.js Experienced (Q43–58)",
+      "questions": [
+        {
+          "id": "Q43",
+          "q": "Piping trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Piping là cơ chế truyền output của một stream trực tiếp vào input của stream khác. Không cần lưu toàn bộ data vào memory, hiệu quả với files lớn."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// File copy\n\nfs.createReadStream('source.txt').pipe(fs.createWriteStream('dest.txt'));\n\n// Compress file\n\nfs.createReadStream('large.log')\n\n  .pipe(zlib.createGzip())\n\n  .pipe(fs.createWriteStream('large.log.gz'));\n\n// Stream HTTP response\n\napp.get('/video', (req, res) => {\n\n  res.writeHead(200, { 'Content-Encoding': 'gzip' });\n\n  fs.createReadStream('big-file.txt').pipe(zlib.createGzip()).pipe(res);\n\n});\n\n*💡 Piping hoạt động tốt nhờ backpressure — tự động pause readable khi writable bị overloaded. Dùng pipeline() từ stream/promises để xử lý error tốt hơn.*\n\nPiping is the mechanism of passing the output of one stream directly into the input of another. No need to load all data into memory — efficient for large files.\n\n*💡** Piping works well thanks to backpressure — automatically pauses the readable when the writable is overloaded. Use pipeline() from stream/promises for better error handling.*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q44.  Cluster trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Cluster module cho phép tạo nhiều child processes (workers) để tận dụng multi-core CPUs. Tất cả workers chia sẻ cùng server port."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const cluster = require('cluster');\n\nconst http    = require('http');\n\nconst os      = require('os');\n\nif (cluster.isPrimary) {\n\n  const numCPUs = os.cpus().length;\n\n  for (let i = 0; i < numCPUs; i++) cluster.fork();\n\n  cluster.on('exit', (worker) => {\n\n    console.log('Worker ' + worker.pid + ' died. Restarting...');\n\n    cluster.fork();\n\n  });\n\n} else {\n\n  http.createServer((req, res) => {\n\n    res.end('Worker ' + process.pid + ': Hello!');\n\n  }).listen(3000);\n\n}\n\n*💡 Trong production, dùng PM2 thay vì tự viết cluster logic. PM2 có load balancing, monitoring, và zero-downtime restart sẵn có.*\n\nThe cluster module allows creating multiple child processes (workers) to take advantage of multi-core CPUs. All workers share the same server port.\n\n*💡** In production, use PM2 instead of writing cluster logic manually. PM2 provides load balancing, monitoring, and zero-downtime restart out of the box.*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q45.  Các Cluster Methods phổ biến trong Node.js?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method / Property",
+                  "Mô tả"
+                ],
+                [
+                  "cluster.fork()",
+                  "Tạo worker process mới từ primary process"
+                ],
+                [
+                  "cluster.isPrimary",
+                  "true nếu là primary process"
+                ],
+                [
+                  "cluster.isWorker",
+                  "true nếu là worker process"
+                ],
+                [
+                  "worker.send(msg)",
+                  "Gửi message giữa primary và worker"
+                ],
+                [
+                  "worker.kill()",
+                  "Terminate worker process"
+                ],
+                [
+                  "worker.process",
+                  "ChildProcess object đại diện của worker"
+                ],
+                [
+                  "cluster.workers",
+                  "Object chứa tất cả active workers"
+                ],
+                [
+                  "cluster.on('exit', cb)",
+                  "Event khi một worker exit"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Common Cluster Methods:"
+            },
+            {
+              "type": "text",
+              "text": "- cluster.fork() — Create a new worker process from the primary process."
+            },
+            {
+              "type": "text",
+              "text": "- cluster.isPrimary — true if this is the primary process."
+            },
+            {
+              "type": "text",
+              "text": "- cluster.isWorker — true if this is a worker process."
+            },
+            {
+              "type": "text",
+              "text": "- worker.send(msg) — Send a message between primary and worker."
+            },
+            {
+              "type": "text",
+              "text": "- worker.kill() — Terminate a worker process."
+            },
+            {
+              "type": "text",
+              "text": "- cluster.workers — Object containing all active workers."
+            },
+            {
+              "type": "text",
+              "text": "- cluster.on('exit', cb) — Event fired when a worker exits."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q46.  Quản lý Sessions trong Node.js như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dùng express-session middleware. Session data lưu server-side, browser chỉ lưu session ID trong cookie."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const session    = require('express-session');\n\nconst RedisStore = require('connect-redis').default;\n\napp.use(session({\n\n  store:             new RedisStore({ client: redisClient }),\n\n  secret:            process.env.SESSION_SECRET,\n\n  resave:            false,\n\n  saveUninitialized: false,\n\n  cookie: {\n\n    secure:   process.env.NODE_ENV === 'production',\n\n    httpOnly: true,\n\n    maxAge:   86400000\n\n  }\n\n}));\n\n*⚠️  Không dùng default memory store trong production — không scale, bị leak memory. Dùng Redis, MongoDB, hoặc database store.*\n\nUse express-session middleware. Session data is stored server-side; the browser only stores the session ID in a cookie.\n\n*⚠️**  **Do not use the default memory store in production — it does not scale and leaks memory. Use Redis, MongoDB, or a database store.*"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q47.  Có bao nhiêu loại API functions trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Asynchronous non-blocking APIs: Hầu hết I/O operations — file system async, network, timers. Không block event loop."
+            },
+            {
+              "type": "text",
+              "text": "- Synchronous blocking APIs: Block main thread cho đến khi hoàn thành. Dùng ở startup, CLI scripts."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Async APIs (non-blocking) - production\n\nfs.readFile('data.json', callback);\n\nawait fs.promises.readFile('data.json');\n\n// Sync APIs (blocking) - chi dung khi can\n\nconst data = fs.readFileSync('config.json');  // blocks!\n\n// OK: startup config / NOT OK: request handlers!\n\nTwo types of API functions in Node.js:\n\n- Asynchronous non-blocking APIs: Most I/O operations — async file system, network, timers. Do not block the event loop.\n\n- Synchronous blocking APIs: Block the main thread until complete. Use only at startup or in CLI scripts."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q48.  Authentication và Authorization trong Node.js — implement như thế nào?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const jwt = require('jsonwebtoken');\n\n// AUTHENTICATION\n\napp.post('/login', async (req, res) => {\n\n  const user = await User.findOne({ email: req.body.email });\n\n  if (!user || !await bcrypt.compare(req.body.password, user.hash))\n\n    return res.status(401).json({ error: 'Invalid credentials' });\n\n  const token = jwt.sign({ userId: user.id, role: user.role },\n\n    process.env.JWT_SECRET, { expiresIn: '24h' });\n\n  res.json({ token });\n\n});\n\n// AUTHENTICATION MIDDLEWARE\n\nconst authenticate = (req, res, next) => {\n\n  const token = req.headers.authorization?.split(' ')[1];\n\n  if (!token) return res.status(401).json({ error: 'No token' });\n\n  try { req.user = jwt.verify(token, process.env.JWT_SECRET); next(); }\n\n  catch { res.status(401).json({ error: 'Invalid token' }); }\n\n};\n\n// AUTHORIZATION MIDDLEWARE (RBAC)\n\nconst authorize = (...roles) => (req, res, next) => {\n\n  if (!roles.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' });\n\n  next();\n\n};\n\napp.get('/admin',   authenticate, authorize('admin'), handler);\n\napp.get('/profile', authenticate, handler);\n\nAuthentication verifies who the user is (JWT token); Authorization determines what the user is allowed to do (RBAC — Role-Based Access Control).\n\n- authenticate middleware — verifies the JWT token from the Authorization header.\n\n- authorize(...roles) middleware — checks the user's role against allowed roles."
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "Multer — Package upload file trong Node.js.",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const multer = require('multer');\n\nconst upload = multer({\n\n  storage: multer.diskStorage({\n\n    destination: (req, file, cb) => cb(null, 'uploads/'),\n\n    filename:    (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)\n\n  }),\n\n  limits: { fileSize: 5 * 1024 * 1024 },\n\n  fileFilter(req, file, cb) {\n\n    const allowed = ['image/jpeg', 'image/png', 'image/webp'];\n\n    if (!allowed.includes(file.mimetype)) return cb(new Error('Images only'));\n\n    cb(null, true);\n\n  }\n\n});\n\napp.post('/upload',  upload.single('avatar'),   handler);\n\napp.post('/gallery', upload.array('photos', 10), handler);\n\nMulter is middleware for handling multipart/form-data — used for file uploads. Supports disk storage, memory storage, file size limits, and MIME type filtering.\n\n- upload.single('field') — upload one file.\n\n- upload.array('field', max) — upload multiple files."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q50.  Kết nối Node.js với MongoDB?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const mongoose = require('mongoose');\n\nawait mongoose.connect(process.env.MONGO_URI, { maxPoolSize: 10 });\n\nconst userSchema = new mongoose.Schema({\n\n  name:  { type: String, required: true, trim: true },\n\n  email: { type: String, required: true, unique: true, lowercase: true },\n\n}, { timestamps: true });\n\nconst User  = mongoose.model('User', userSchema);\n\nconst user  = await User.create({ name: 'Dat', email: 'dat@example.com' });\n\nconst all   = await User.find().select('name email').limit(10);\n\nConnect Node.js to MongoDB using Mongoose — an ODM (Object Document Mapper) that provides schema, validation, and model abstraction.\n\n- mongoose.connect(uri) — connect to the database.\n\n- new mongoose.Schema({...}) — define document structure.\n\n- mongoose.model('Name', schema) — create a model for CRUD operations."
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Đọc Command Line Arguments trong Node.js?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// process.argv: [node_path, script_path, ...args]\n\n// node app.js --port 4000 --env production\n\nconst args = process.argv.slice(2);\n\n// ['--port', '4000', '--env', 'production']\n\nconst argv = require('minimist')(process.argv.slice(2));\n\nconsole.log(argv.port);  // 4000\n\nRead command line arguments via process.argv (raw array) or use the minimist package for named argument parsing.\n\n- process.argv: [node_path, script_path, ...args] — slice(2) to get user-provided arguments.\n\n- minimist(process.argv.slice(2)) — parses --key value flags into an object."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q52.  Redis Module trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Redis là in-memory data store cực nhanh, dùng làm cache, session store, message broker, và queue."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const { createClient } = require('redis');\n\nconst client = createClient({ url: process.env.REDIS_URL });\n\nawait client.connect();\n\nasync function getCachedUser(id) {\n\n  const cached = await client.get('user:' + id);\n\n  if (cached) return JSON.parse(cached);\n\n  const user = await db.findUser(id);\n\n  await client.setEx('user:' + id, 3600, JSON.stringify(user));\n\n  return user;\n\n}\n\nRedis is an in-memory data store — extremely fast. Used as cache, session store, message broker, and queue in Node.js applications.\n\n- client.get(key) / client.setEx(key, ttl, value) — cache read/write with TTL."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q53.  WebSocket trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "WebSocket là protocol cho phép giao tiếp hai chiều (full-duplex) thông qua một persistent connection."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const { Server } = require('socket.io');\n\nconst io = new Server(httpServer, { cors: { origin: 'https://myapp.com' } });\n\nio.on('connection', (socket) => {\n\n  socket.on('message', (data) => {\n\n    io.emit('message', { from: socket.id, text: data });\n\n  });\n\n  socket.on('joinRoom', (room) => {\n\n    socket.join(room);\n\n    io.to(room).emit('notification', socket.id + ' joined!');\n\n  });\n\n  socket.on('disconnect', () => console.log('Client disconnected'));\n\n});\n\nWebSocket is a protocol that enables two-way (full-duplex) communication over a persistent connection — ideal for real-time apps (chat, live feeds, gaming).\n\n- io.on('connection', socket) — handle new client connections.\n\n- socket.on(event, handler) — listen for client events.\n\n- io.emit(event, data) — broadcast to all connected clients.\n\n- io.to(room).emit(event, data) — broadcast to a specific room."
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Util Module trong Node.js?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- util.promisify(): Chuyển callback-based function thành Promise-based."
+            },
+            {
+              "type": "text",
+              "text": "- util.inspect(): Debug và hiển thị object chi tiết hơn."
+            },
+            {
+              "type": "text",
+              "text": "- util.format(): Format strings kiểu printf."
+            },
+            {
+              "type": "text",
+              "text": "- util.types.*: Type checking utilities (isPromise, isMap, isDate...)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const util = require('util');\n\nconst readFile = util.promisify(fs.readFile);\n\nconst data = await readFile('config.json', 'utf8');\n\nconsole.log(util.inspect(obj, { depth: null, colors: true }));\n\nutil.format('%s has %d items', 'Cart', 5);  // 'Cart has 5 items'\n\nThe util module provides utility functions for Node.js developers:\n\n- util.promisify() — converts a callback-based function into a Promise-based one.\n\n- util.inspect() — debugs and displays objects in detail.\n\n- util.format() — formats strings in printf style.\n\n- util.types.* — type checking utilities (isPromise, isMap, isDate...)."
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "DNS Module trong Node.js?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const { promises: dns } = require('dns');\n\nconst { address } = await dns.lookup('google.com');\n\nconst ips = await dns.resolve4('google.com');\n\nconst mx  = await dns.resolveMx('gmail.com');\n\nconst hostnames = await dns.reverse('8.8.8.8');\n\nThe DNS module provides functions for hostname resolution:\n\n- dns.lookup(hostname) — resolves hostname to IP using the OS resolver.\n\n- dns.resolve4(hostname) — queries DNS A records directly.\n\n- dns.resolveMx(hostname) — queries MX (mail exchange) records.\n\n- dns.reverse(ip) — reverse lookup: IP → hostname."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q56.  setImmediate() vs setTimeout() — khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "setImmediate()",
+                  "setTimeout(fn, 0)"
+                ],
+                [
+                  "Execute khi",
+                  "Check phase sau I/O callbacks",
+                  "Timer phase sau delay (tối thiểu 1ms)"
+                ],
+                [
+                  "Sau I/O callbacks",
+                  "Luôn chạy trước setTimeout(fn,0)",
+                  "Chạy sau setImmediate() trong I/O"
+                ],
+                [
+                  "Dùng khi",
+                  "Defer sau I/O, tránh block phase hiện tại",
+                  "Delay execution theo thời gian cụ thể"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "fs.readFile('file.txt', () => {\n\n  setTimeout(()   => console.log('setTimeout'),   0);\n\n  setImmediate(() => console.log('setImmediate'));\n\n});"
+            },
+            {
+              "type": "code",
+              "lang": "output",
+              "text": "// Output luon dam bao: setImmediate -> setTimeout\n\nsetImmediate() vs setTimeout(fn, 0):\n\n- setImmediate — executes in the check phase, after I/O callbacks. Always runs before setTimeout(fn,0) when inside an I/O callback.\n\n- setTimeout(fn, 0) — executes in the timers phase, after at least 1ms delay.\n\n- Use setImmediate to defer work after I/O without blocking the current phase."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q57.  Event Emitter trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "EventEmitter là class từ module events, là nền tảng của event-driven architecture trong Node.js. Hầu hết core modules (http, fs, stream) đều kế thừa từ EventEmitter."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method",
+                  "Mô tả"
+                ],
+                [
+                  "emitter.on(event, fn)",
+                  "Dăng ký listener — chạy mỗi lần event emit"
+                ],
+                [
+                  "emitter.once(event, fn)",
+                  "Dăng ký listener — chạy một lần duy nhất"
+                ],
+                [
+                  "emitter.emit(event, ...args)",
+                  "Trigger event, truyền args cho listeners"
+                ],
+                [
+                  "emitter.off(event, fn)",
+                  "Gỡ bỏ listener cụ thể"
+                ],
+                [
+                  "emitter.removeAllListeners(event)",
+                  "Gỡ tất cả listeners của event"
+                ],
+                [
+                  "emitter.listenerCount(event)",
+                  "Đếm số listeners đăng ký"
+                ],
+                [
+                  "emitter.setMaxListeners(n)",
+                  "Đặt giới hạn — tránh memory leak warning"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "⚠️  Memory leak phổ biến: đăng ký listener trong loop mà không off(). Node.js cảnh báo khi > 10 listeners cùng một event."
+            },
+            {
+              "type": "text",
+              "text": "EventEmitter is the class from the events module — the foundation of event-driven architecture in Node.js. Most core modules (http, fs, stream) inherit from it."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.on(event, fn) — register a listener that runs every time the event fires."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.once(event, fn) — register a listener that runs only once."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.emit(event, ...args) — trigger the event, passing args to listeners."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.off(event, fn) — remove a specific listener."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.removeAllListeners(event) — remove all listeners for an event."
+            },
+            {
+              "type": "text",
+              "text": "- emitter.setMaxListeners(n) — set listener limit to avoid memory leak warnings."
+            },
+            {
+              "type": "note",
+              "text": "⚠️  Common memory leak: registering listeners in a loop without calling off(). Node.js warns when > 10 listeners share the same event."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q58.  Worker Threads trong Node.js là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Worker Threads cho phép chạy JavaScript trong các threads riêng biệt — giải quyết vấn đề CPU-intensive tasks không block event loop."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Worker Threads",
+                  "Cluster / fork()"
+                ],
+                [
+                  "Bản chất",
+                  "Thread mới trong cùng process",
+                  "Process mới riêng biệt"
+                ],
+                [
+                  "Memory",
+                  "Có thể share (SharedArrayBuffer)",
+                  "Riêng hoàn toàn"
+                ],
+                [
+                  "Startup cost",
+                  "Thấp (ms)",
+                  "Cao hơn (process overhead)"
+                ],
+                [
+                  "Isolation",
+                  "Thấp hơn",
+                  "Tốt hơn — crash isolated"
+                ],
+                [
+                  "Use case",
+                  "CPU-heavy: image resize, crypto, ML",
+                  "Scale HTTP server, separate services"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');\n\nif (isMainThread) {\n\n  const worker = new Worker(__filename, { workerData: { numbers: [1,2,3,4,5] } });\n\n  worker.on('message', result => console.log('Sum:', result));\n\n} else {\n\n  const sum = workerData.numbers.reduce((a, b) => a + b, 0);\n\n  parentPort.postMessage(sum);\n\n}\n\nWorker Threads allow JavaScript to run in separate threads — solving the problem of CPU-intensive tasks blocking the event loop.\n\n• Nature: A new thread within the same process (vs. Cluster/fork which spawns a separate process).\n\n• Memory: Can share memory via SharedArrayBuffer (vs. fully isolated memory in Cluster).\n\n• Startup cost: Low (milliseconds) — lower than spawning a new process.\n\n• Isolation: Lower — a crash in a worker can affect the main thread.\n\n• Use case: CPU-heavy tasks such as image resizing, cryptography, and ML inference."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q59.  Worker Threads vs fork() — So sánh chi tiết",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Đây là hai cách để tận dụng multi-core CPU trong Node.js, nhưng hoạt động khác nhau về cơ bản."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Worker Threads",
+                  "fork() / Child Process"
+                ],
+                [
+                  "Bản chất",
+                  "Tạo thread mới",
+                  "Tạo process mới"
+                ],
+                [
+                  "Memory",
+                  "Có thể shared memory",
+                  "Memory hoàn toàn riêng"
+                ],
+                [
+                  "Event Loop",
+                  "Cùng process, thread riêng",
+                  "Event loop riêng hoàn toàn"
+                ],
+                [
+                  "V8 Engine",
+                  "Cùng Node.js process",
+                  "V8 engine instance riêng"
+                ],
+                [
+                  "Hiệu năng",
+                  "Nhẹ hơn, startup cost thấp",
+                  "Nặng hơn, startup cost cao"
+                ],
+                [
+                  "Communication",
+                  "Nhanh hơn",
+                  "Chậm hơn (IPC/message passing)"
+                ],
+                [
+                  "Isolation",
+                  "Thấp hơn",
+                  "Tốt hơn – crash isolated"
+                ],
+                [
+                  "CPU-intensive",
+                  "Rất phù hợp",
+                  "Phù hợp"
+                ],
+                [
+                  "Scaling server",
+                  "Ít dùng",
+                  "Dùng nhiều với cluster"
+                ],
+                [
+                  "True parallelism",
+                  "Có",
+                  "Có"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Worker Threads — nhiều nhân viên trong cùng công ty (share office, share tài nguyên, communication nhanh)"
+            },
+            {
+              "type": "text",
+              "text": "fork() — mở công ty con mới (runtime riêng, memory riêng, isolate mạnh, tốn tài nguyên hơn)"
+            },
+            {
+              "type": "text",
+              "text": "Both Worker Threads and fork() leverage multi-core CPUs in Node.js, but they operate fundamentally differently."
+            },
+            {
+              "type": "text",
+              "text": "- Nature: Worker Threads create a new thread within the same process; fork() spawns a completely new child process."
+            },
+            {
+              "type": "text",
+              "text": "- Memory: Worker Threads can share memory via SharedArrayBuffer; fork() processes have fully separate memory."
+            },
+            {
+              "type": "text",
+              "text": "- Event Loop: Worker Threads share the same process with their own thread; fork() gives each child its own event loop."
+            },
+            {
+              "type": "text",
+              "text": "- Performance: Worker Threads are lighter with lower startup cost; fork() is heavier with higher overhead."
+            },
+            {
+              "type": "text",
+              "text": "- Communication: Worker Threads communicate faster (shared memory); fork() uses slower IPC/message passing."
+            },
+            {
+              "type": "text",
+              "text": "- Isolation: fork() offers better isolation — a crash in a child process does not affect the parent."
+            },
+            {
+              "type": "text",
+              "text": "- Use Worker Threads for: CPU-intensive tasks (image processing, cryptography, ML inference)."
+            },
+            {
+              "type": "text",
+              "text": "- Use fork() / Cluster for: scaling HTTP servers and running independent services."
+            },
+            {
+              "type": "note",
+              "text": "💡 Interview answer: \"Worker Threads tạo nhiều threads trong cùng một process để xử lý CPU-intensive tasks hiệu quả hơn, còn fork() tạo child processes hoàn toàn riêng biệt với memory và event loop riêng.\""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "Node.js",
+  "color": "#2E7D32"
+}

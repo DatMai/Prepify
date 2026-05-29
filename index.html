@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prepify</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <h1>Prep<em>ify</em></h1>
+        <p>// study &amp; understand · interactive</p>
+      </div>
+      <div class="progress-global">
+        <div class="pg-bar"><div class="pg-fill" id="pgFill"></div></div>
+        <div class="pg-label">
+          <span id="pgText">0 / 0</span><span id="pgPct">0%</span>
+        </div>
+      </div>
+      <nav class="topics" id="topics"></nav>
+      <div class="sidebar-foot">tap câu hỏi để mở · ✓ đánh dấu đã học</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="title">
+          <h2 id="tTitle">—</h2>
+          <span id="tSub"></span>
+        </div>
+        <input class="search" id="search" placeholder="Tìm câu hỏi…" />
+        <div class="toggle" id="quizToggle">🎯 Quiz mode</div>
+        <button class="auth-btn" id="authBtn">🔑 Đăng nhập</button>
+      </div>
+      <div class="content" id="content">
+        <div class="content-inner" id="inner"></div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

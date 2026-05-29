@@ -1,0 +1,1302 @@
+{
+  "title": "JavaScript Interview Questions",
+  "subtitle": "*Top 58 câu hỏi phỏng vấn JavaScript — Basic đến Advanced*",
+  "sections": [
+    {
+      "name": "Phần I — JavaScript Cơ Bản (Q1–23)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "== và === khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "== là loose equality — so sánh sau khi convert kiểu. === là strict equality — so sánh cả giá trị và kiểu, không convert."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "console.log(1 == '1');    // true  (string '1' convert sang number 1)\n\nconsole.log(1 === '1');   // false (khác kiểu: number vs string)\n\nconsole.log(null == undefined);   // true\n\nconsole.log(null === undefined);  // false\n\nconsole.log(0 == false);  // true  (false convert sang 0)\n\nconsole.log(0 === false); // false (khác kiểu)\n\n*⚠️  Luôn dùng === trong production. == có hơn 50 edge cases đáng sợ do type coercion.*"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "Kết quả của 3 + 2 + '7' là gì?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "console.log(3 + 2 + '7');  // '57'\n\n// 3 + 2 = 5   (cả hai là number)\n\n// 5 + '7' = '57'  (string concatenation)"
+            },
+            {
+              "type": "code",
+              "lang": "output",
+              "text": "// So sánh ngược lại\n\nconsole.log('7' + 3 + 2);  // '732'\n\n// '7' + 3 = '73'  (string đưa ra trước)\n\n// '73' + 2 = '732'\n\n*💡 Quy tắc: JS đọc trái sang phải. Khi gặp string, mọi cái sau đó đều cộng chuỗi.*"
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "var, let, const khác nhau thế nào? Temporal Dead Zone là gì?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "var",
+                  "let",
+                  "const"
+                ],
+                [
+                  "Scope",
+                  "Function scope",
+                  "Block scope",
+                  "Block scope"
+                ],
+                [
+                  "Hoisting",
+                  "Có, giá trị là undefined",
+                  "Có nhưng vào TDZ",
+                  "Có nhưng vào TDZ"
+                ],
+                [
+                  "Re-declare",
+                  "Có",
+                  "Không",
+                  "Không"
+                ],
+                [
+                  "Re-assign",
+                  "Có",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "Global object",
+                  "Gắn vào window",
+                  "Không",
+                  "Không"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Temporal Dead Zone (TDZ)\n\nconsole.log(x); // undefined (var hoisted)\n\nvar x = 10;\n\nconsole.log(y); // ReferenceError: Cannot access 'y' before initialization\n\nlet y = 20;\n\n// TDZ = khoảng từ đầu scope đến dòng khai báo\n\n// let và const tồn tại nhưng không thể đọc trong TDZ"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "Hoisting trong JavaScript là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Hoisting là cơ chế JavaScript đưa các declarations lên đầu scope trước khi thực thi. Chỉ declaration được hoist, không phải initialization."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Function declaration: hoạt động được dù gọi trước\n\nsayHello(); // 'Hello!'\n\nfunction sayHello() { console.log('Hello!'); }\n\n// Function expression: KHÔNG hoạt động\n\nsayHi(); // TypeError: sayHi is not a function\n\nvar sayHi = function() { console.log('Hi!'); };\n\n// var: declaration hoisted, value không\n\nconsole.log(a); // undefined (không phải ReferenceError)\n\nvar a = 5;\n\nconsole.log(a); // 5"
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Closures trong JavaScript là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Closure là khi một function nhớ được variables từ outer scope của nó, dù outer function đã thực thi xong."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function createCounter() {\n\n  let count = 0;  // biến trong outer scope\n\n  return function() {\n\n    count++;        // nhớ count dù createCounter() đã xong\n\n    return count;\n\n  };\n\n}\n\nconst counter = createCounter();\n\nconsole.log(counter()); // 1\n\nconsole.log(counter()); // 2\n\nconsole.log(counter()); // 3\n\n// count không accessible từ bên ngoài\n\n// đó là data privacy\n\n- **Dùng closure khi: **Data privacy, module pattern, factory functions, mịmeize, event handlers."
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "Event Loop trong JavaScript là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "JavaScript single-threaded nhưng xử lý async qua event loop. Event loop liên tục kiểm tra call stack và queues."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thứ tự",
+                  "Queue / Phần",
+                  "Nội dung"
+                ],
+                [
+                  "1",
+                  "Call Stack",
+                  "Synchronous code — chạy trước tiên"
+                ],
+                [
+                  "2",
+                  "Microtask Queue",
+                  "Promise .then(), queueMicrotask() — chạy trước macrotask"
+                ],
+                [
+                  "3",
+                  "Macrotask Queue",
+                  "setTimeout, setInterval, I/O callbacks"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "console.log('1');\n\nsetTimeout(() => console.log('4'), 0);\n\nPromise.resolve().then(() => console.log('3'));\n\nconsole.log('2');"
+            },
+            {
+              "type": "code",
+              "lang": "output",
+              "text": "// Output: 1, 2, 3, 4\n\n// 1,2: synchronous (call stack)\n\n// 3: microtask (Promise) - truoc macrotask\n\n// 4: macrotask (setTimeout)"
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "this keyword trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "this lưu context của execution hiện tại. Giá trị của this phụ thuộc vào cách gọi function, không phải cách viết."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// 1. Global\n\nconsole.log(this); // window (browser) / {} (Node.js)\n\n// 2. Object method\n\nconst obj = { name: 'JS', say() { console.log(this.name); } };\n\nobj.say(); // 'JS'\n\n// 3. Regular function\n\nfunction test() { console.log(this); }\n\ntest(); // window (non-strict) / undefined (strict mode)\n\n// 4. Arrow function (inherit this tu outer scope)\n\nconst obj2 = {\n\n  name: 'JS',\n\n  say: () => console.log(this.name)  // this = outer scope\n\n};\n\nobj2.say(); // undefined (arrow không có this riêng)\n\n// 5. Constructor\n\nfunction Person(name) { this.name = name; }\n\nconst p = new Person('Dat');\n\nconsole.log(p.name); // 'Dat'"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Prototype và Prototype Chain?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Mỗi object trong JavaScript có một prototype. Khi tìm kiếm property, JS đi thử lên chuỗi prototype đến khi tìm thấy hoặc gặp null."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const animal = { breathes: true };\n\nconst dog = Object.create(animal);\n\ndog.barks = true;\n\nconsole.log(dog.barks);    // true  (own property)\n\nconsole.log(dog.breathes); // true  (từ prototype)\n\nconsole.log(dog.flies);    // undefined (không tìm thấy)\n\n// Chuỗi: dog -> animal -> Object.prototype -> null\n\n// Class syntax (sugar để viết prototype dễ hơn)\n\nclass Animal { breathe() { return 'breathing'; } }\n\nclass Dog extends Animal { bark() { return 'woof'; } }\n\nconst d = new Dog();\n\nconsole.log(d.bark());    // 'woof'\n\nconsole.log(d.breathe()); // 'breathing' (từ prototype chain)"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Truthy và Falsy values trong JavaScript?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Falsy values (chỉ có 6 cái)",
+                  "Truthy (tất cả còn lại)"
+                ],
+                [
+                  "false",
+                  "true"
+                ],
+                [
+                  "0 và -0",
+                  "Any non-zero number (1, -1, 0.5)"
+                ],
+                [
+                  "'' (empty string)",
+                  "Any non-empty string ('0', 'false', ' ')"
+                ],
+                [
+                  "null",
+                  "Array rỗng [] (không phải falsy!)"
+                ],
+                [
+                  "undefined",
+                  "Object rỗng {} (không phải falsy!)"
+                ],
+                [
+                  "NaN",
+                  "Symbol, BigInt khống phải 0n"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Cac truong hop dac biet hay nham\n\nconsole.log(Boolean([]));       // true  (mảng rỗng = truthy!)\n\nconsole.log(Boolean({}));       // true  (object rỗng = truthy!)\n\nconsole.log(Boolean('0'));      // true  (string '0' = truthy!)\n\nconsole.log(Boolean('false'));  // true  (string 'false' = truthy!)"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Scope trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Global Scope: Truy cập được ở mọi nơi."
+            },
+            {
+              "type": "text",
+              "text": "- Function Scope: Chỉ trong function đó — var."
+            },
+            {
+              "type": "text",
+              "text": "- Block Scope: Chỉ trong block {} — let và const."
+            },
+            {
+              "type": "text",
+              "text": "- Lexical Scope: Inner function nhìn thấy variables của outer function nơi nó được định nghĩa (không phải nơi gọi)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "let global = 'global';\n\nfunction outer() {\n\n  let x = 'outer';\n\n  function inner() {\n\n    let y = 'inner';\n\n    console.log(global); // 'global' (lexical scope)\n\n    console.log(x);      // 'outer'  (lexical scope)\n\n    console.log(y);      // 'inner'\n\n  }\n\n  inner();\n\n  // console.log(y); // ReferenceError: y not defined\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "null vs undefined?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "null",
+                  "undefined"
+                ],
+                [
+                  "Nghĩa",
+                  "Cố ý gán 'rỗng'",
+                  "Chưa được gán giá trị"
+                ],
+                [
+                  "typeof",
+                  "'object' (bug lịch sử!)",
+                  "'undefined'"
+                ],
+                [
+                  "Khi nào xảy ra",
+                  "Lập trình viên tự gán",
+                  "JS tự gán khi chưa init"
+                ],
+                [
+                  "So sánh",
+                  "null == undefined: true",
+                  "null === undefined: false"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "let a;             // undefined (chưa gán)\n\nlet b = null;      // null (cố ý rỗng)\n\nfunction foo(x) { return x; }\n\nfoo();             // undefined (tham số không truyền)\n\nconst obj = {};\n\nobj.name;          // undefined (property không tồn tại)"
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "typeof null === 'object' — tại sao?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Là một bug lịch sử từ JavaScript phía bản 1.0 năm 1995. Trong bộ nửd của engine gốc, type tag của null được encode giống object. Bug này không thể fix vì sẽ phá vỡ các website cũ trên internet."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "typeof null        // 'object'  (bug!)\n\ntypeof undefined   // 'undefined'\n\ntypeof 42          // 'number'\n\ntypeof 'str'       // 'string'\n\ntypeof true        // 'boolean'\n\ntypeof Symbol()    // 'symbol'\n\ntypeof {}          // 'object'\n\ntypeof []          // 'object'  (array cũng là object!)\n\ntypeof function(){} // 'function'\n\n// Cách check null đúng:\n\nvalue === null\n\nvalue == null  // match cả null và undefined"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Higher-Order Functions là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Higher-order function là function nhận function khác làm argument, hoặc return một function."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Nhan function lam argument\n\nconst nums = [1, 2, 3, 4, 5];\n\nnums.map(x => x * 2);          // [2, 4, 6, 8, 10]\n\nnums.filter(x => x % 2 === 0); // [2, 4]\n\nnums.reduce((acc, x) => acc + x, 0); // 15\n\n// Return function\n\nfunction multiply(factor) {\n\n  return (number) => number * factor;\n\n}\n\nconst double = multiply(2);\n\nconst triple = multiply(3);\n\nconsole.log(double(5)); // 10\n\nconsole.log(triple(5)); // 15\n\n// Compose functions\n\nconst compose = (f, g) => x => f(g(x));\n\nconst add1 = x => x + 1;\n\nconst times2 = x => x * 2;\n\nconst add1ThenDouble = compose(times2, add1);\n\nconsole.log(add1ThenDouble(3)); // 8"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "call(), apply(), bind() khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method",
+                  "Gọi ngay?",
+                  "Arguments",
+                  "Dùng khi"
+                ],
+                [
+                  "call(thisArg, a, b)",
+                  "Có",
+                  "Từng cái riêng lẻ",
+                  "Biết số lượng args"
+                ],
+                [
+                  "apply(thisArg, [a,b])",
+                  "Có",
+                  "Mảng",
+                  "Có sẵn array args"
+                ],
+                [
+                  "bind(thisArg, a)",
+                  "Không",
+                  "Từng cái (pre-fill)",
+                  "Tạo function mới với this cố định"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function greet(greeting, punct) {\n\n  return `${greeting}, ${this.name}${punct}`;\n\n}\n\nconst user = { name: 'Dat' };\n\ngreet.call(user,  'Hello', '!');   // 'Hello, Dat!'\n\ngreet.apply(user, ['Hello', '!']); // 'Hello, Dat!'\n\nconst greetDat = greet.bind(user, 'Hello');\n\ngreetDat('!');  // 'Hello, Dat!'\n\ngreetDat('?');  // 'Hello, Dat?'"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Template Literals là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Template literals dùng backtick ` thay vì quotes. Hỗ trợ interpolation, multi-line, và tagged templates."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const name = 'Dat';\n\nconst age  = 25;\n\n// Interpolation\n\nconsole.log(`Hello, ${name}! You are ${age} years old.`);\n\n// Multi-line (không cần \\n)\n\nconst html = `\n\n  <div>\n\n    <p>${name}</p>\n\n  </div>\n\n`;\n\n// Expression trong ${}\n\nconsole.log(`${2 + 2} = ${2 === 2 ? 'equal' : 'not equal'}`); // 4 = equal\n\n// Tagged template\n\nfunction tag(strings, ...values) {\n\n  return strings.map((str, i) => str + (values[i] || '')).join('');\n\n}\n\ntag`Hello ${name}, you are ${age}`;"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Spread và Rest operator?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Cả hai dùng cú pháp ... nhưng ngược nhau: spread mở rộng, rest gứp lại."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// SPREAD: trải ra\n\nconst arr1 = [1, 2, 3];\n\nconst arr2 = [...arr1, 4, 5];     // [1, 2, 3, 4, 5]\n\nconst obj1 = { a: 1, b: 2 };\n\nconst obj2 = { ...obj1, c: 3 };  // { a: 1, b: 2, c: 3 }\n\n// Clone (shallow)\n\nconst clone = [...arr1];\n\n// REST: gộp lại\n\nfunction sum(...numbers) {\n\n  return numbers.reduce((a, b) => a + b, 0);\n\n}\n\nsum(1, 2, 3, 4); // 10\n\n// Destructuring với rest\n\nconst [first, ...rest] = [1, 2, 3, 4];\n\n// first = 1, rest = [2, 3, 4]"
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "Destructuring trong JavaScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Array destructuring\n\nconst [a, b, c] = [1, 2, 3];\n\nconst [x, , z] = [1, 2, 3]; // bỏ qua 2\n\nconst [p = 10, q = 20] = [5]; // default values: p=5, q=20\n\n// Object destructuring\n\nconst { name, age } = { name: 'Dat', age: 25 };\n\n// Rename\n\nconst { name: userName } = { name: 'Dat' }; // userName = 'Dat'\n\n// Nested\n\nconst { address: { city } } = { address: { city: 'HCM' } };\n\n// Function params\n\nfunction greet({ name, age = 0 }) {\n\n  console.log(`${name}, ${age}`);\n\n}\n\ngreet({ name: 'Dat', age: 25 });"
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Arrow Functions khác Regular Functions thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Regular Function",
+                  "Arrow Function"
+                ],
+                [
+                  "this",
+                  "Dynamic (dựa vào cách gọi)",
+                  "Lexical (inherit từ outer)"
+                ],
+                [
+                  "arguments object",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "Dùng làm constructor",
+                  "Có (với new)",
+                  "Không"
+                ],
+                [
+                  "prototype property",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "yield (Generator)",
+                  "Có",
+                  "Không"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Arrow function không có this riêng\n\nconst timer = {\n\n  seconds: 0,\n\n  start() {\n\n    // Arrow: this = timer object (lexical)\n\n    setInterval(() => this.seconds++, 1000);\n\n  },\n\n  startWrong() {\n\n    // Regular: this = undefined (strict) hoặc window\n\n    setInterval(function() { this.seconds++; }, 1000); // lỗi!\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Map vs forEach khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "map()",
+                  "forEach()"
+                ],
+                [
+                  "Return",
+                  "Mảng mới",
+                  "undefined"
+                ],
+                [
+                  "Chainable",
+                  "Có (.filter(), .reduce()...)",
+                  "Không"
+                ],
+                [
+                  "Mutation",
+                  "Không (tạo mảng mới)",
+                  "Tùy logic bên trong"
+                ],
+                [
+                  "Dùng khi",
+                  "Transform data",
+                  "Side effects (log, DOM update)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const nums = [1, 2, 3];\n\n// map: transform va return\n\nconst doubled = nums.map(x => x * 2);  // [2, 4, 6]\n\n// forEach: side effect, khong return\n\nnums.forEach(x => console.log(x));     // 1 2 3\n\n// Chaining voi map\n\nconst result = [1, 2, 3, 4, 5]\n\n  .filter(x => x % 2 === 0)  // [2, 4]\n\n  .map(x => x * 10);         // [20, 40]"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Nullish Coalescing (??) và Optional Chaining (?.)",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Nullish Coalescing: trả về right khi left là null/undefined\n\nconsole.log(null ?? 'default');      // 'default'\n\nconsole.log(undefined ?? 'default'); // 'default'\n\nconsole.log(false ?? 'default');     // false (không phải null/undefined)\n\nconsole.log(0 ?? 'default');         // 0     (không phải null/undefined)\n\n// Khác || : || dùng falsy, ?? chỉ dùng nullish\n\nconst val = 0;\n\nconsole.log(val || 'default');  // 'default' (0 là falsy)\n\nconsole.log(val ?? 'default');  // 0         (0 không phải null/undefined)\n\n// Optional Chaining: tránh TypeError\n\nconst user = null;\n\nconsole.log(user?.name);          // undefined (không throw)\n\nconsole.log(user?.address?.city); // undefined\n\nconsole.log(user?.getName?.());   // undefined (method call an toàn)\n\n// Kết hợp\n\nconst city = user?.address?.city ?? 'Unknown';"
+            }
+          ]
+        },
+        {
+          "id": "Q21",
+          "q": "Memoization là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Memoization là kỹ thuẫt cache kết quả của function dựa trên inputs. Lần sau gọi với cùng input — trả về cache thay vì tính lại."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function memoize(fn) {\n\n  const cache = new Map();\n\n  return function(...args) {\n\n    const key = JSON.stringify(args);\n\n    if (cache.has(key)) {\n\n      console.log('cache hit');\n\n      return cache.get(key);\n\n    }\n\n    const result = fn.apply(this, args);\n\n    cache.set(key, result);\n\n    return result;\n\n  };\n\n}\n\n// Ví dụ: fibonacci tối ưu\n\nconst fib = memoize(function(n) {\n\n  if (n <= 1) return n;\n\n  return fib(n - 1) + fib(n - 2);\n\n});\n\nconsole.log(fib(40)); // nhanh\n\nconsole.log(fib(40)); // cache hit, instant"
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Global Variables — vấn đề gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Name collisions: Nhiều scripts cùng dùng biến đồng tên, ghi đè lẫn nhau."
+            },
+            {
+              "type": "text",
+              "text": "- Hard to debug: Khó biết ai đang sửa biến đó."
+            },
+            {
+              "type": "text",
+              "text": "- Memory leaks: Tồn tại suốt vòng đời app, không được GC."
+            },
+            {
+              "type": "text",
+              "text": "- Tight coupling: Code phụ thuộc lẫn nhau, khó test."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Xấu: global variable\n\nlet count = 0;\n\nfunction increment() { count++; }\n\n// Tốt: đóng gói trong module hoặc closure\n\nconst counter = (() => {\n\n  let count = 0;\n\n  return {\n\n    increment: () => ++count,\n\n    get: () => count\n\n  };\n\n})();"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "isNaN() vs Number.isNaN()?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// isNaN(): convert sang number rồi kiểm tra\n\nisNaN('foo');       // true  ('foo' -> NaN)\n\nisNaN(undefined);   // true  (undefined -> NaN)\n\nisNaN('');          // false ('' -> 0)\n\nisNaN(null);        // false (null -> 0)\n\n// Number.isNaN(): chỉ true khi đúng là NaN, không convert\n\nNumber.isNaN('foo');     // false (string, không phải NaN)\n\nNumber.isNaN(undefined); // false\n\nNumber.isNaN(NaN);       // true\n\nNumber.isNaN(0/0);       // true\n\n*💡 Dùng Number.isNaN() trong production — an toàn hơn, không có surprise từ type coercion.*"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — JavaScript Intermediate (Q24–42)",
+      "questions": [
+        {
+          "id": "Q24",
+          "q": "Promise trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Promise là object đại diện cho kết quả của một async operation. Có 3 trạng thái: pending, fulfilled, rejected."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Tạo Promise\n\nconst fetchData = () => new Promise((resolve, reject) => {\n\n  setTimeout(() => {\n\n    const success = true;\n\n    if (success) resolve({ data: 'result' });\n\n    else reject(new Error('Failed'));\n\n  }, 1000);\n\n});\n\n// Dùng Promise\n\nfetchData()\n\n  .then(data  => console.log(data))\n\n  .catch(err  => console.error(err))\n\n  .finally(()  => console.log('done'));\n\n// Promise combinators\n\nPromise.all([p1, p2, p3])          // chờ tất cả (fail fast)\n\nPromise.allSettled([p1, p2, p3])   // chờ tất cả dù fail\n\nPromise.race([p1, p2, p3])         // kết quả cái xong đầu\n\nPromise.any([p1, p2, p3])          // kết quả cái fulfilled đầu"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "async/await hoạt động thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "async/await là cú pháp đượng đến của Promises, giúp viết async code trông như synchronous."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Promise chain\n\nfunction getUser(id) {\n\n  return fetch(`/api/users/${id}`)\n\n    .then(res => res.json())\n\n    .then(user => fetch(`/api/orders/${user.id}`))\n\n    .then(res => res.json());\n\n}\n\n// Async/await — sạch hơn\n\nasync function getUser(id) {\n\n  try {\n\n    const res  = await fetch(`/api/users/${id}`);\n\n    const user = await res.json();\n\n    const ordersRes = await fetch(`/api/orders/${user.id}`);\n\n    return await ordersRes.json();\n\n  } catch (err) {\n\n    console.error('Error:', err);\n\n    throw err;\n\n  }\n\n}\n\n// Chạy song song\n\nconst [user, products] = await Promise.all([\n\n  fetchUser(1),\n\n  fetchProducts()\n\n]);  // nhanh hơn chạy tuần tự"
+            }
+          ]
+        },
+        {
+          "id": "Q26",
+          "q": "Callback Hell và cách giải quyết?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Callback hell\n\ngetUser(id, (err, user) => {\n\n  getOrders(user.id, (err, orders) => {\n\n    getInvoice(orders[0].id, (err, invoice) => {\n\n      sendEmail(invoice, (err) => {\n\n        // cấp 4 lồng nhau!\n\n      });\n\n    });\n\n  });\n\n});\n\n// Giải pháp: async/await\n\nasync function process(id) {\n\n  const user    = await getUser(id);\n\n  const orders  = await getOrders(user.id);\n\n  const invoice = await getInvoice(orders[0].id);\n\n  await sendEmail(invoice);\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Event Delegation là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Thay vì gắn event listener cho từng element con, gắn một listener cho element cha và dùng event bubbling."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Xấu: gắn cho từng button (nếu có 1000 buttons?)\n\ndocument.querySelectorAll('.btn').forEach(btn => {\n\n  btn.addEventListener('click', handleClick);\n\n});\n\n// Tốt: gắn một lần cho container\n\ndocument.getElementById('container').addEventListener('click', (e) => {\n\n  if (e.target.matches('.btn')) {\n\n    handleClick(e);\n\n  }\n\n});\n\n// Lợi ích:\n\n// - ít memory hơn (1 listener thay vì n)\n\n// - Tự động xử lý elements được thêm sau"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Deep Copy vs Shallow Copy?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// SHALLOW COPY: chỉ copy một lớp nông\n\nconst original = { a: 1, nested: { b: 2 } };\n\nconst shallow1 = { ...original };\n\nconst shallow2 = Object.assign({}, original);\n\nshallow1.nested.b = 99;\n\nconsole.log(original.nested.b); // 99 (bị ảnh hưởng!)\n\n// DEEP COPY: copy toàn bộ các lớp\n\n// Cách 1: JSON (không dùng được với functions, undefined, Date...)\n\nconst deep1 = JSON.parse(JSON.stringify(original));\n\n// Cách 2: structuredClone (modern, hỗ trợ Date, Map, Set...)\n\nconst deep2 = structuredClone(original);\n\n// Cách 3: Lodash cloneDeep\n\nconst deep3 = _.cloneDeep(original);"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Immutability trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Immutability nghĩa là sau khi tạo, object không được thay đổi. Giúp code predictable hơn, tránh side effects."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Object.freeze: ngăn sửa (chỉ shallow)\n\nconst config = Object.freeze({ host: 'localhost', port: 3000 });\n\nconfig.port = 9000; // silent fail (non-strict) / TypeError (strict)\n\n// Immutable update pattern (Redux style)\n\nconst state = { user: 'Dat', count: 0 };\n\nconst newState = { ...state, count: state.count + 1 }; // không sửa state cũ\n\n// const không có nghĩa là immutable!\n\nconst arr = [1, 2, 3];\n\narr.push(4); // vẫn được! const chỉ ngăn re-assign\n\n// Immutable array methods (ES2023)\n\nconst sorted = arr.toSorted();   // trả về mảng mới\n\nconst reversed = arr.toReversed(); // không mutate original"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "WeakMap và WeakSet khác Map/Set thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Map / Set",
+                  "WeakMap / WeakSet"
+                ],
+                [
+                  "Key type",
+                  "Mọi giá trị",
+                  "Chỉ objects"
+                ],
+                [
+                  "Garbage collection",
+                  "Giữ key alive",
+                  "Không cần — key có thể bị GC"
+                ],
+                [
+                  "Iterable",
+                  "Có (.forEach, .keys)",
+                  "Không"
+                ],
+                [
+                  "Size",
+                  ".size",
+                  "Không có .size"
+                ],
+                [
+                  "Dùng khi",
+                  "General cache",
+                  "Associate metadata với objects"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// WeakMap: cache metadata ma khong giu object alive\n\nconst cache = new WeakMap();\n\nfunction process(element) {\n\n  if (cache.has(element)) return cache.get(element);\n\n  const result = heavyComputation(element);\n\n  cache.set(element, result);\n\n  return result;\n\n}\n\n// Khi element bi remove khoi DOM\n\n// WeakMap tu dong release cache entry (GC friendly)"
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Generator Functions là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Generator là function có thể pause và resume. Dùng dấu * và yield."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function* counter(start = 0) {\n\n  while (true) {\n\n    yield start++;\n\n  }\n\n}\n\nconst gen = counter(1);\n\nconsole.log(gen.next().value); // 1\n\nconsole.log(gen.next().value); // 2\n\nconsole.log(gen.next().value); // 3\n\n// Lazy sequence\n\nfunction* range(from, to) {\n\n  for (let i = from; i <= to; i++) yield i;\n\n}\n\nfor (const n of range(1, 5)) {\n\n  console.log(n); // 1 2 3 4 5\n\n}\n\n*💡 Generators hữu ích cho infinite sequences, lazy evaluation, và implement async patterns thủ công. Trong thực tế hiện đại, async/await được dùng hơn.*"
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "Symbol trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Symbol là primitive type đảm bảo unique value. Thường dùng làm unique property keys."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const s1 = Symbol('id');\n\nconst s2 = Symbol('id');\n\nconsole.log(s1 === s2); // false (mỗi Symbol là unique)\n\n// Dùng làm private-like property key\n\nconst _id = Symbol('id');\n\nconst user = {\n\n  [_id]: 123,\n\n  name: 'Dat'\n\n};\n\nconsole.log(user[_id]); // 123\n\n// Không xuất hiện trong for...in hoặc Object.keys()\n\n// Well-known symbols\n\nclass MyArray {\n\n  [Symbol.iterator]() { /* custom iteration */ }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Proxy và Reflect?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Proxy cho phép intercepter các operations trên object (get, set, delete...). Reflect cung cấp methods tương ứng."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const handler = {\n\n  get(target, key) {\n\n    console.log(`Getting ${key}`);\n\n    return key in target ? target[key] : 'default';\n\n  },\n\n  set(target, key, value) {\n\n    if (typeof value !== 'number') throw new TypeError('Numbers only!');\n\n    target[key] = value;\n\n    return true;\n\n  }\n\n};\n\nconst proxy = new Proxy({}, handler);\n\nproxy.age = 25;         // OK\n\nproxy.name = 'Dat';     // TypeError: Numbers only!\n\nconsole.log(proxy.age); // 'Getting age' -> 25\n\nconsole.log(proxy.x);   // 'Getting x' -> 'default'"
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Modules: CommonJS vs ES Modules?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "CommonJS (require)",
+                  "ES Modules (import)"
+                ],
+                [
+                  "Load",
+                  "Synchronous",
+                  "Asynchronous"
+                ],
+                [
+                  "Cú pháp export",
+                  "module.exports = ...",
+                  "export / export default"
+                ],
+                [
+                  "Cú pháp import",
+                  "const x = require('...')",
+                  "import x from '...'"
+                ],
+                [
+                  "Tree shaking",
+                  "Khó (dynamic)",
+                  "Có (static analysis)"
+                ],
+                [
+                  "Dùng khi",
+                  "Node.js legacy",
+                  "Browser + modern Node.js"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// CommonJS\n\nmodule.exports = { add, subtract };\n\nconst { add } = require('./math');\n\n// ES Modules\n\nexport const add = (a, b) => a + b;\n\nexport default class Calculator { }\n\nimport Calculator, { add } from './math.js';"
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Error Handling trong JavaScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// try-catch-finally\n\ntry {\n\n  const data = JSON.parse(invalidJson);\n\n} catch (err) {\n\n  if (err instanceof SyntaxError) {\n\n    console.error('JSON parse error:', err.message);\n\n  } else {\n\n    throw err; // re-throw lỗi khảc\n\n  }\n\n} finally {\n\n  cleanup(); // luôn chạy\n\n}\n\n// Custom Error\n\nclass ValidationError extends Error {\n\n  constructor(message, field) {\n\n    super(message);\n\n    this.name = 'ValidationError';\n\n    this.field = field;\n\n  }\n\n}\n\nthrow new ValidationError('Invalid email', 'email');\n\n// Async error handling\n\nasync function fetchData() {\n\n  try {\n\n    const res = await fetch('/api/data');\n\n    if (!res.ok) throw new Error(`HTTP ${res.status}`);\n\n    return await res.json();\n\n  } catch (err) {\n\n    console.error(err);\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Debounce và Throttle?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Debounce",
+                  "Throttle"
+                ],
+                [
+                  "Hoạt động",
+                  "Delay thực thi đến khi ngừng gọi",
+                  "Giới hạn tần suất thực thi"
+                ],
+                [
+                  "Ví dụ",
+                  "Search box: đợi user ngừng gõ 300ms",
+                  "Scroll event: chạy tối đa 1 lần/100ms"
+                ],
+                [
+                  "Dùng khi",
+                  "Input validation, search, resize",
+                  "Scroll, mousemove, throttle API calls"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Debounce\n\nfunction debounce(fn, delay) {\n\n  let timer;\n\n  return function(...args) {\n\n    clearTimeout(timer);\n\n    timer = setTimeout(() => fn.apply(this, args), delay);\n\n  };\n\n}\n\n// Throttle\n\nfunction throttle(fn, limit) {\n\n  let lastTime = 0;\n\n  return function(...args) {\n\n    const now = Date.now();\n\n    if (now - lastTime >= limit) {\n\n      lastTime = now;\n\n      return fn.apply(this, args);\n\n    }\n\n  };\n\n}\n\n// Dung\n\nconst debouncedSearch = debounce(search, 300);\n\nconst throttledScroll = throttle(onScroll, 100);"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Object.freeze() vs Object.seal()?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Object.freeze()",
+                  "Object.seal()"
+                ],
+                [
+                  "Thêm property mới",
+                  "Không",
+                  "Không"
+                ],
+                [
+                  "Xóa property",
+                  "Không",
+                  "Không"
+                ],
+                [
+                  "Sửa giá trị",
+                  "Không",
+                  "Có (nếu writable)"
+                ],
+                [
+                  "Mức độ",
+                  "Shallow freeze",
+                  "Shallow seal"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "for...in vs for...of?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const arr = ['a', 'b', 'c'];\n\nconst obj = { x: 1, y: 2, z: 3 };\n\n// for...in: lặp qua KEYS (enum properties)\n\nfor (const key in arr) console.log(key); // '0', '1', '2'\n\nfor (const key in obj) console.log(key); // 'x', 'y', 'z'\n\n// for...of: lặp qua VALUES (iterable)\n\nfor (const val of arr) console.log(val); // 'a', 'b', 'c'\n\n// for (const val of obj)  // TypeError! Object không iterable\n\n// for...of với entries()\n\nfor (const [key, val] of Object.entries(obj)) {\n\n  console.log(key, val); // 'x' 1, 'y' 2, 'z' 3\n\n}\n\n*⚠️  Tránh dùng for...in với arrays — có thể lặp qua cả prototype properties. Dùng for...of hoặc forEach.*"
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Map vs Object — khi nào dùng cái nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Object",
+                  "Map"
+                ],
+                [
+                  "Key type",
+                  "Chỉ string/Symbol",
+                  "Mọi kiểu (object, function, number)"
+                ],
+                [
+                  "Order",
+                  "Không đảm bảo (mostly yes với string)",
+                  "Insertion order được đảm bảo"
+                ],
+                [
+                  "Size",
+                  ".keys().length",
+                  "Trực tiếp .size"
+                ],
+                [
+                  "Performance",
+                  "Tốt với ít key",
+                  "Tốt hơn khi add/delete nhiều"
+                ],
+                [
+                  "Iterable",
+                  "Không trực tiếp",
+                  "Có (.forEach, for...of)"
+                ],
+                [
+                  "Dùng khi",
+                  "JSON, simple records",
+                  "Key-value store, unknown keys"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Set trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Set là collection các giá trị unique. Không có duplicates. Lookup O(1)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const set = new Set([1, 2, 2, 3, 3, 3]);\n\nconsole.log(set.size); // 3\n\nconsole.log([...set]); // [1, 2, 3]\n\n// Remove duplicates từ array\n\nconst unique = [...new Set([1, 2, 2, 3])]; // [1, 2, 3]\n\n// Set operations\n\nconst a = new Set([1, 2, 3, 4]);\n\nconst b = new Set([3, 4, 5, 6]);\n\n// Union\n\nconst union = new Set([...a, ...b]); // {1,2,3,4,5,6}\n\n// Intersection\n\nconst inter = new Set([...a].filter(x => b.has(x))); // {3,4}\n\n// Difference\n\nconst diff  = new Set([...a].filter(x => !b.has(x))); // {1,2}"
+            }
+          ]
+        },
+        {
+          "id": "Q41",
+          "q": "Strict Mode trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Bật bằng: 'use strict'; đầu file hoặc function. ES modules tự động strict."
+            },
+            {
+              "type": "text",
+              "text": "- Những gì strict mode cấm:"
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "'use strict';\n\nx = 10;                    // ReferenceError (chưa khai báo)\n\ndelete Object.prototype;   // TypeError\n\nwith (obj) { }            // SyntaxError\n\nfunction(a, a) { }        // SyntaxError (duplicate params)\n\n// this trong function rộng là undefined (không phải window)\n\nfunction test() {\n\n  console.log(this); // undefined (thay vì window)\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Microtasks vs Macrotasks?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Ví dụ",
+                  "Thứ tự chạy"
+                ],
+                [
+                  "Microtask",
+                  "Promise.then(), queueMicrotask(), MutationObserver",
+                  "Sau call stack hiện tại, TRƯỚC macrotask tiếp theo"
+                ],
+                [
+                  "Macrotask",
+                  "setTimeout, setInterval, setImmediate, I/O, UI events",
+                  "Sau khi microtask queue rỗng"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "console.log('1 sync');\n\nsetTimeout(() => console.log('5 macrotask'), 0);\n\nPromise.resolve()\n\n  .then(() => console.log('3 microtask 1'))\n\n  .then(() => console.log('4 microtask 2'));\n\nconsole.log('2 sync');"
+            },
+            {
+              "type": "code",
+              "lang": "output",
+              "text": "// Output: 1 sync, 2 sync, 3 microtask 1, 4 microtask 2, 5 macrotask"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — JavaScript Advanced (Q43–58)",
+      "questions": [
+        {
+          "id": "Q43",
+          "q": "IIFE (Immediately Invoked Function Expression)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "IIFE là function tự gọi ngay khi được khai báo. Tạo private scope, tránh ô nhiễm global."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Cú pháp\n\n(function() {\n\n  const privateVar = 'hidden';\n\n  console.log('IIFE runs!');\n\n})();\n\n// Arrow function IIFE\n\n(() => {\n\n  const x = 10;\n\n})();\n\n// IIFE với return value\n\nconst result = (function(a, b) {\n\n  return a + b;\n\n})(3, 4);\n\nconsole.log(result); // 7\n\n// Trước khi có modules: dùng IIFE để encapsulate"
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Currying trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Currying biến đổi function f(a, b, c) thành f(a)(b)(c) — mỗi lần gọi nhận một argument và trả về function tiếp theo."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Curry function đơn giản\n\nconst add = a => b => a + b;\n\nadd(1)(2);  // 3\n\nconst add5 = add(5);  // partial application\n\nadd5(3);    // 8\n\nadd5(10);   // 15\n\n// Generic curry\n\nfunction curry(fn) {\n\n  return function curried(...args) {\n\n    if (args.length >= fn.length) return fn(...args);\n\n    return (...more) => curried(...args, ...more);\n\n  };\n\n}\n\nconst multiply = curry((a, b, c) => a * b * c);\n\nmultiply(2)(3)(4);   // 24\n\nmultiply(2, 3)(4);   // 24\n\nmultiply(2)(3, 4);   // 24"
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "Event Bubbling và Capturing?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Khi event xảy ra, nó đi qua 3 phases: capturing (đi xuống), target, bubbling (đi lên)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Bubbling: mặc định — event đi từ target lên parent\n\n// Click vào button -> button -> div -> body -> html -> document\n\ndocument.getElementById('btn').addEventListener('click', () => {\n\n  console.log('button');\n\n});\n\ndocument.getElementById('div').addEventListener('click', () => {\n\n  console.log('div');  // cũng chạy do bubbling\n\n});\n\n// Capturing: {capture: true} - chạy trước khi đi xuống\n\ndocument.getElementById('div').addEventListener('click', () => {\n\n  console.log('div capture');\n\n}, { capture: true });\n\n// Dừng bubbling\n\nevent.stopPropagation();\n\n// Dừng cả capturing và bubbling\n\nevent.stopImmediatePropagation();"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "Garbage Collection trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "JavaScript tự động quản lý memory qua Garbage Collection. Chủ yếu dùng Mark-and-Sweep algorithm."
+            },
+            {
+              "type": "text",
+              "text": "- Mark-and-Sweep: GC đánh dấu tất cả objects có thể reach được từ roots. Objects không được mark sẽ bị thu dọn."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Memory leak thường gặp\n\n// 1. Global variables\n\nwindow.bigData = fetchHugeDataset(); // tồn tại mãi\n\n// 2. Event listeners không remove\n\nelement.addEventListener('click', handler);\n\n// Fix: element.removeEventListener('click', handler);\n\n// 3. Closures giữ reference không cần thiết\n\nfunction createLeak() {\n\n  const bigArray = new Array(1000000).fill(0);\n\n  return function() {\n\n    return bigArray[0]; // giữ toàn bộ bigArray alive\n\n  };\n\n}\n\n// 4. Forgotten timers\n\nconst timer = setInterval(() => console.log('running'), 1000);\n\n// Fix: clearInterval(timer);"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Object.create() vs new keyword?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// new keyword: tạo instance từ constructor function\n\nfunction Animal(name) { this.name = name; }\n\nAnimal.prototype.speak = function() { return this.name; };\n\nconst dog = new Animal('Rex');\n\n// 1. Tạo object rỗng\n\n// 2. Gán prototype = Animal.prototype\n\n// 3. Gọi Animal với this = object mới\n\n// 4. Return object mới\n\n// Object.create(): kiểm soát prototype trực tiếp\n\nconst proto = { speak() { return this.name; } };\n\nconst cat = Object.create(proto);\n\ncat.name = 'Whiskers';\n\n// cat.__proto__ === proto\n\n// Tạo object không có prototype\n\nconst bare = Object.create(null);\n\n// không có .toString(), .hasOwnProperty()..."
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Functional Programming concepts trong JS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Pure functions: Cùng input luôn cùng output, không có side effects."
+            },
+            {
+              "type": "text",
+              "text": "- Immutability: Không sửa data cũ, tạo data mới."
+            },
+            {
+              "type": "text",
+              "text": "- Function composition: Kết hợp các functions nhỏ thành function lớn."
+            },
+            {
+              "type": "text",
+              "text": "- Higher-order functions: map, filter, reduce."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Pure function\n\nconst add = (a, b) => a + b; // không side effect\n\n// Impure function\n\nlet total = 0;\n\nconst addToTotal = (n) => total += n; // side effect!\n\n// Function composition\n\nconst compose = (...fns) => x => fns.reduceRight((v, f) => f(v), x);\n\nconst pipe     = (...fns) => x => fns.reduce((v, f) => f(v), x);\n\nconst process = pipe(\n\n  x => x * 2,\n\n  x => x + 1,\n\n  x => x.toString()\n\n);\n\nconsole.log(process(5)); // '11'"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "AbortController — hủy fetch request?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const controller = new AbortController();\n\nconst signal = controller.signal;\n\n// Gửi request với signal\n\nfetch('/api/data', { signal })\n\n  .then(res => res.json())\n\n  .catch(err => {\n\n    if (err.name === 'AbortError') {\n\n      console.log('Request cancelled');\n\n    }\n\n  });\n\n// Hủy sau 5 giây\n\nsetTimeout(() => controller.abort(), 5000);\n\n// Dùng trong React useEffect\n\nuseEffect(() => {\n\n  const controller = new AbortController();\n\n  fetch('/api/data', { signal: controller.signal });\n\n  return () => controller.abort(); // cleanup khi unmount\n\n}, []);"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "JavaScript Design Patterns phổ biến?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pattern",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Singleton",
+                  "Chỉ một instance duy nhất",
+                  "Database connection, config"
+                ],
+                [
+                  "Observer",
+                  "Pub/Sub: notify subscribers khi state thay đổi",
+                  "Event emitter, Redux store"
+                ],
+                [
+                  "Factory",
+                  "Tạo objects mà không expose logic",
+                  "createUser(), createElement()"
+                ],
+                [
+                  "Module",
+                  "Encapsulate code, expose API công khai",
+                  "IIFE, ES modules"
+                ],
+                [
+                  "Decorator",
+                  "Thêm tính năng động vào object",
+                  "@decorator trong TypeScript"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Singleton\n\nconst Database = (() => {\n\n  let instance;\n\n  return {\n\n    getInstance() {\n\n      if (!instance) instance = createConnection();\n\n      return instance;\n\n    }\n\n  };\n\n})();\n\n// Observer\n\nclass EventEmitter {\n\n  constructor() { this.listeners = {}; }\n\n  on(event, fn) { (this.listeners[event] ||= []).push(fn); }\n\n  emit(event, data) { this.listeners[event]?.forEach(fn => fn(data)); }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Optional Chaining với arrays và functions?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const data = {\n\n  users: [{ name: 'Dat', address: { city: 'HCM' } }],\n\n  getUser: (id) => data.users[id]\n\n};\n\n// Arrays\n\ndata?.users?.[0]?.name;         // 'Dat'\n\ndata?.users?.[99]?.name;        // undefined\n\n// Functions\n\ndata?.getUser?.(0)?.name;       // 'Dat'\n\ndata?.nonExistent?.(0);         // undefined (không throw)\n\n// Kết hợp với ??\n\nconst city = data?.users?.[0]?.address?.city ?? 'Unknown';"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Performance Optimization trong JavaScript?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Debounce/Throttle: Giới hạn tần suất gọi function tốn kém (scroll, resize, input)."
+            },
+            {
+              "type": "text",
+              "text": "- Memoization: Cache kết quả tính toán phức tạp."
+            },
+            {
+              "type": "text",
+              "text": "- Lazy loading: Chỉ load code/image khi cần."
+            },
+            {
+              "type": "text",
+              "text": "- Web Workers: CPU-heavy tasks trong thread riêng."
+            },
+            {
+              "type": "text",
+              "text": "- Virtual DOM batching: React bảt chu batch updates."
+            },
+            {
+              "type": "text",
+              "text": "- Code splitting: Webpack/Vite tách bundle, giảm initial load."
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Symbol.iterator và custom iterables?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Custom iterable object\n\nconst range = {\n\n  from: 1, to: 5,\n\n  [Symbol.iterator]() {\n\n    let current = this.from;\n\n    const last  = this.to;\n\n    return {\n\n      next() {\n\n        return current <= last\n\n          ? { value: current++, done: false }\n\n          : { value: undefined, done: true };\n\n      }\n\n    };\n\n  }\n\n};\n\nfor (const n of range) console.log(n); // 1 2 3 4 5\n\nconsole.log([...range]); // [1, 2, 3, 4, 5]"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Reflect API?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Reflect cung cấp methods thực hiện các fundamental operations như get, set, deleteProperty... Thường dùng kết hợp với Proxy."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Thay vi truc tiep, dung Reflect\n\nReflect.get(obj, 'name');           // obj.name\n\nReflect.set(obj, 'name', 'Dat');    // obj.name = 'Dat'\n\nReflect.deleteProperty(obj, 'name'); // delete obj.name\n\nReflect.has(obj, 'name');           // 'name' in obj\n\nReflect.ownKeys(obj);               // Object.getOwnPropertyNames + Symbols\n\n// Dung trong Proxy handler\n\nconst handler = {\n\n  set(target, key, value, receiver) {\n\n    console.log(`Setting ${key}`);\n\n    return Reflect.set(target, key, value, receiver); // delegate\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "Promise.allSettled vs Promise.all?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const p1 = Promise.resolve(1);\n\nconst p2 = Promise.reject('error');\n\nconst p3 = Promise.resolve(3);\n\n// Promise.all: fail fast — 1 fail là reject ngay\n\nPromise.all([p1, p2, p3])\n\n  .catch(err => console.log(err)); // 'error'\n\n// Promise.allSettled: chờ tất cả, kể cả fail\n\nPromise.allSettled([p1, p2, p3]).then(results => {\n\n  results.forEach(r => {\n\n    if (r.status === 'fulfilled') console.log('OK:', r.value);\n\n    else console.log('FAIL:', r.reason);\n\n  });\n\n});\n\n// OK: 1\n\n// FAIL: error\n\n// OK: 3"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "Tagged Template Literals?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Tag function là function xử lý template literal — nhận strings và interpolated values riêng biệt."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Tag function\n\nfunction highlight(strings, ...values) {\n\n  return strings.map((str, i) => `${str}${values[i] ? `<b>${values[i]}</b>` : ''}`).join('');\n\n}\n\nconst name = 'Dat';\n\nconst score = 95;\n\nconst result = highlight`Hello ${name}, your score is ${score}!`;\n\n// 'Hello <b>Dat</b>, your score is <b>95</b>!'\n\n// Real-world use cases:\n\n// - SQL injection prevention\n\n// - i18n translations\n\n// - styled-components: css`color: ${props.color}`"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "Object Property Descriptors?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "const obj = {};\n\nObject.defineProperty(obj, 'name', {\n\n  value: 'Dat',\n\n  writable:     false, // không sửa được\n\n  enumerable:   false, // không hiện trong for...in\n\n  configurable: false  // không xóa/redefine được\n\n});\n\n// Kiểm tra descriptor\n\nObject.getOwnPropertyDescriptor(obj, 'name');\n\n// { value: 'Dat', writable: false, enumerable: false, configurable: false }\n\n// Getter/Setter\n\nconst person = {\n\n  _age: 25,\n\n  get age() { return this._age; },\n\n  set age(v) {\n\n    if (v < 0) throw Error('Age cannot be negative');\n\n    this._age = v;\n\n  }\n\n};\n\nperson.age; // 25\n\nperson.age = 30; // OK\n\nperson.age = -1; // Error"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Async Iterators và for await...of?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Async iterator: từng bước có thể async\n\nasync function* asyncRange(from, to) {\n\n  for (let i = from; i <= to; i++) {\n\n    await new Promise(r => setTimeout(r, 100)); // simulate async\n\n    yield i;\n\n  }\n\n}\n\n// Consume\n\nasync function main() {\n\n  for await (const num of asyncRange(1, 5)) {\n\n    console.log(num); // 1, 2, 3, 4, 5 (mỗi cái cách 100ms)\n\n  }\n\n}\n\n// Real-world: stream processing\n\nasync function processStream(readable) {\n\n  for await (const chunk of readable) {\n\n    processChunk(chunk);\n\n  }\n\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "JavaScript",
+  "color": "#F57F17"
+}

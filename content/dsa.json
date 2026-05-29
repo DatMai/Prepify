@@ -1,0 +1,1268 @@
+{
+  "title": "Data Structures & Algorithms",
+  "subtitle": "*Câu hỏi phỏng vấn DSA thường gặp — Cơ bản đến Nâng cao*",
+  "sections": [
+    {
+      "name": "Phần I — Array, Linked List, Stack, Queue (Q1–20)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "Array là gì? Ưu và nhược điểm?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Array là cấu trúc dữ liệu lưu trữ các phần tử cùng kiểu tại các vị trí nhớ liên tiếp. Truy cập phần tử qua chỉ số index."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Operation",
+                  "Time Complexity",
+                  "Ghi chú"
+                ],
+                [
+                  "Access by index",
+                  "O(1)",
+                  "Random access trực tiếp"
+                ],
+                [
+                  "Search (unsorted)",
+                  "O(n)",
+                  "Linear scan"
+                ],
+                [
+                  "Search (sorted)",
+                  "O(log n)",
+                  "Binary search"
+                ],
+                [
+                  "Insert ở đầu/giữa",
+                  "O(n)",
+                  "Dịch chuyển phần tử"
+                ],
+                [
+                  "Insert ở cuối",
+                  "O(1) amortized",
+                  "Dynamic array"
+                ],
+                [
+                  "Delete",
+                  "O(n)",
+                  "Dịch chuyển phần tử"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "- Ưu điểm: Random access O(1), cache-friendly (locality of reference), ít overhead bộ nhớ."
+            },
+            {
+              "type": "text",
+              "text": "- Nhược điểm: Size cố định (static array), insert/delete ở giữa tốn O(n)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Common Array problems\n\n// 1. Two Sum - O(n) with HashMap\n\nfunction twoSum(nums, target) {\n\n  const map = new Map();\n\n  for (let i = 0; i < nums.length; i++) {\n\n    const complement = target - nums[i];\n\n    if (map.has(complement)) return [map.get(complement), i];\n\n    map.set(nums[i], i);\n\n  }\n\n  return [];\n\n}\n\n// 2. Maximum Subarray (Kadane's Algorithm) - O(n)\n\nfunction maxSubArray(nums) {\n\n  let maxSum = nums[0], currentSum = nums[0];\n\n  for (let i = 1; i < nums.length; i++) {\n\n    currentSum = Math.max(nums[i], currentSum + nums[i]);\n\n    maxSum = Math.max(maxSum, currentSum);\n\n  }\n\n  return maxSum;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "Linked List là gì? So sánh với Array?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Linked List là cấu trúc dữ liệu tuyến tính gồm các nodes, mỗi node chứa data và pointer tới node tiếp theo."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Array",
+                  "Linked List"
+                ],
+                [
+                  "Access",
+                  "O(1) random",
+                  "O(n) sequential"
+                ],
+                [
+                  "Insert ở đầu",
+                  "O(n)",
+                  "O(1)"
+                ],
+                [
+                  "Insert ở giữa",
+                  "O(n)",
+                  "O(1) + O(n) search"
+                ],
+                [
+                  "Delete",
+                  "O(n)",
+                  "O(1) + O(n) search"
+                ],
+                [
+                  "Memory",
+                  "Liên tiếp, compact",
+                  "Rải rác, overhead pointer"
+                ],
+                [
+                  "Cache-friendly",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "Dynamic size",
+                  "Dynamic Array",
+                  "Có"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Singly Linked List\n\nclass Node { constructor(val) { this.val = val; this.next = null; } }\n\nclass LinkedList {\n\n  constructor() { this.head = null; this.size = 0; }\n\n  // Insert at beginning O(1)\n\n  prepend(val) {\n\n    const node = new Node(val);\n\n    node.next = this.head;\n\n    this.head = node;\n\n    this.size++;\n\n  }\n\n  // Reverse Linked List - classic problem\n\n  reverse() {\n\n    let prev = null, curr = this.head;\n\n    while (curr) {\n\n      const next = curr.next;\n\n      curr.next = prev;\n\n      prev = curr;\n\n      curr = next;\n\n    }\n\n    this.head = prev;\n\n  }\n\n  // Detect cycle (Floyd's algorithm)\n\n  hasCycle() {\n\n    let slow = this.head, fast = this.head;\n\n    while (fast && fast.next) {\n\n      slow = slow.next;\n\n      fast = fast.next.next;\n\n      if (slow === fast) return true;\n\n    }\n\n    return false;\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "Stack là gì? LIFO principle?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Stack là cấu trúc dữ liệu theo nguyên tắc LIFO (Last In, First Out). Phần tử đưa vào sau cùng sẽ được lấy ra trước tiên."
+            },
+            {
+              "type": "text",
+              "text": "- push(x): Thêm phần tử vào đầu stack — O(1)."
+            },
+            {
+              "type": "text",
+              "text": "- pop(): Lấy và xóa phần tử trên cùng — O(1)."
+            },
+            {
+              "type": "text",
+              "text": "- peek()/top(): Xem phần tử trên cùng không xóa — O(1)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Stack applications\n\n// 1. Valid Parentheses - O(n)\n\nfunction isValid(s) {\n\n  const stack = [];\n\n  const pairs = { ')':'(', ']':'[', '}':'{' };\n\n  for (const ch of s) {\n\n    if ('([{'.includes(ch)) stack.push(ch);\n\n    else if (stack.pop() !== pairs[ch]) return false;\n\n  }\n\n  return stack.length === 0;\n\n}\n\n// 2. Next Greater Element - O(n) Monotonic Stack\n\nfunction nextGreater(arr) {\n\n  const result = new Array(arr.length).fill(-1);\n\n  const stack = []; // index stack\n\n  for (let i = 0; i < arr.length; i++) {\n\n    while (stack.length && arr[i] > arr[stack.at(-1)]) {\n\n      result[stack.pop()] = arr[i];\n\n    }\n\n    stack.push(i);\n\n  }\n\n  return result;\n\n}\n\n// 3. Largest Rectangle in Histogram - O(n)\n\nfunction largestRectangle(heights) {\n\n  const stack = [], n = heights.length;\n\n  let maxArea = 0;\n\n  heights.push(0); // sentinel\n\n  for (let i = 0; i <= n; i++) {\n\n    while (stack.length && heights[i] < heights[stack.at(-1)]) {\n\n      const h = heights[stack.pop()];\n\n      const w = stack.length ? i - stack.at(-1) - 1 : i;\n\n      maxArea = Math.max(maxArea, h * w);\n\n    }\n\n    stack.push(i);\n\n  }\n\n  return maxArea;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "Queue là gì? FIFO principle?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Queue là cấu trúc dữ liệu theo nguyên tắc FIFO (First In, First Out). Phần tử thêm vào sớm nhất sẽ được lấy ra trước."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại Queue",
+                  "Mô tả",
+                  "Use case"
+                ],
+                [
+                  "Simple Queue",
+                  "FIFO cơ bản",
+                  "BFS, task scheduling"
+                ],
+                [
+                  "Circular Queue",
+                  "Cuối nối với đầu, tận dụng bộ nhớ",
+                  "Buffer, ring buffer"
+                ],
+                [
+                  "Priority Queue",
+                  "Phần tử có priority, lấy ra theo priority",
+                  "Dijkstra, A*"
+                ],
+                [
+                  "Deque (Double-ended)",
+                  "Thêm/xóa cả 2 đầu",
+                  "Sliding window max"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Queue implementation with two stacks\n\nclass Queue {\n\n  constructor() { this.inbox = []; this.outbox = []; }\n\n  enqueue(val) { this.inbox.push(val); }\n\n  dequeue() {\n\n    if (!this.outbox.length) {\n\n      while (this.inbox.length) this.outbox.push(this.inbox.pop());\n\n    }\n\n    return this.outbox.pop();\n\n  }\n\n  }\n\n// Sliding Window Maximum (Monotonic Deque) - O(n)\n\nfunction maxSlidingWindow(nums, k) {\n\n  const deque = []; // stores indices\n\n  const result = [];\n\n  for (let i = 0; i < nums.length; i++) {\n\n    // Remove out-of-window indices\n\n    while (deque.length && deque[0] < i - k + 1) deque.shift();\n\n    // Remove smaller elements from back\n\n    while (deque.length && nums[deque.at(-1)] < nums[i]) deque.pop();\n\n    deque.push(i);\n\n    if (i >= k - 1) result.push(nums[deque[0]]);\n\n  }\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Binary Search hoạt động như thế nào?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Binary Search tìm kiếm trong sorted array bằng cách chia đôi search space mỗi bước. Time complexity O(log n)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Standard Binary Search\n\nfunction binarySearch(arr, target) {\n\n  let left = 0, right = arr.length - 1;\n\n  while (left <= right) {\n\n    const mid = left + Math.floor((right - left) / 2); // tránh overflow\n\n    if (arr[mid] === target) return mid;\n\n    if (arr[mid] < target) left = mid + 1;\n\n    else right = mid - 1;\n\n  }\n\n  return -1;\n\n}\n\n// Search in Rotated Sorted Array\n\nfunction searchRotated(nums, target) {\n\n  let left = 0, right = nums.length - 1;\n\n  while (left <= right) {\n\n    const mid = Math.floor((left + right) / 2);\n\n    if (nums[mid] === target) return mid;\n\n    // Left half sorted\n\n    if (nums[left] <= nums[mid]) {\n\n      if (target >= nums[left] && target < nums[mid]) right = mid - 1;\n\n      else left = mid + 1;\n\n    } else { // Right half sorted\n\n      if (target > nums[mid] && target <= nums[right]) left = mid + 1;\n\n      else right = mid - 1;\n\n    }\n\n  }\n\n  return -1;\n\n}\n\n// Find First and Last Position - O(log n)\n\nfunction firstBadVersion(n, isBadVersion) {\n\n  let left = 1, right = n;\n\n  while (left < right) {\n\n    const mid = Math.floor((left + right) / 2);\n\n    if (isBadVersion(mid)) right = mid;\n\n    else left = mid + 1;\n\n  }\n\n  return left;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "Các thuật toán Sorting và độ phức tạp?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thuật toán",
+                  "Time (Best)",
+                  "Time (Avg)",
+                  "Time (Worst)",
+                  "Space",
+                  "Stable?"
+                ],
+                [
+                  "Bubble Sort",
+                  "O(n)",
+                  "O(n²)",
+                  "O(n²)",
+                  "O(1)",
+                  "Có"
+                ],
+                [
+                  "Selection Sort",
+                  "O(n²)",
+                  "O(n²)",
+                  "O(n²)",
+                  "O(1)",
+                  "Không"
+                ],
+                [
+                  "Insertion Sort",
+                  "O(n)",
+                  "O(n²)",
+                  "O(n²)",
+                  "O(1)",
+                  "Có"
+                ],
+                [
+                  "Merge Sort",
+                  "O(n log n)",
+                  "O(n log n)",
+                  "O(n log n)",
+                  "O(n)",
+                  "Có"
+                ],
+                [
+                  "Quick Sort",
+                  "O(n log n)",
+                  "O(n log n)",
+                  "O(n²)",
+                  "O(log n)",
+                  "Không"
+                ],
+                [
+                  "Heap Sort",
+                  "O(n log n)",
+                  "O(n log n)",
+                  "O(n log n)",
+                  "O(1)",
+                  "Không"
+                ],
+                [
+                  "Counting Sort",
+                  "O(n+k)",
+                  "O(n+k)",
+                  "O(n+k)",
+                  "O(k)",
+                  "Có"
+                ],
+                [
+                  "Radix Sort",
+                  "O(nk)",
+                  "O(nk)",
+                  "O(nk)",
+                  "O(n+k)",
+                  "Có"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Merge Sort - O(n log n), stable\n\nfunction mergeSort(arr) {\n\n  if (arr.length <= 1) return arr;\n\n  const mid = Math.floor(arr.length / 2);\n\n  const left  = mergeSort(arr.slice(0, mid));\n\n  const right = mergeSort(arr.slice(mid));\n\n  return merge(left, right);\n\n}\n\nfunction merge(left, right) {\n\n  const result = [];\n\n  let i = 0, j = 0;\n\n  while (i < left.length && j < right.length) {\n\n    if (left[i] <= right[j]) result.push(left[i++]);\n\n    else result.push(right[j++]);\n\n  }\n\n  return result.concat(left.slice(i)).concat(right.slice(j));\n\n}\n\n// Quick Sort - O(n log n) avg\n\nfunction quickSort(arr, low = 0, high = arr.length - 1) {\n\n  if (low < high) {\n\n    const pivot = partition(arr, low, high);\n\n    quickSort(arr, low, pivot - 1);\n\n    quickSort(arr, pivot + 1, high);\n\n  }\n\n  return arr;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "Hashing và Hash Table là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Hash Table map keys sang values bằng hash function. Lookup, insert, delete trung bình O(1)."
+            },
+            {
+              "type": "text",
+              "text": "- Hash function: Chuyển key thành index trong array."
+            },
+            {
+              "type": "text",
+              "text": "- Collision handling: Chaining (linked list) hoặc Open addressing (linear/quadratic probing)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// JavaScript Map (hash table)\n\nconst freq = new Map();\n\n// Frequency count\n\nconst arr = ['a','b','a','c','b','a'];\n\narr.forEach(x => freq.set(x, (freq.get(x) || 0) + 1));\n\n// Map { 'a' => 3, 'b' => 2, 'c' => 1 }\n\n// Two Sum O(n)\n\nfunction twoSum(nums, target) {\n\n  const seen = new Map();\n\n  for (let i = 0; i < nums.length; i++) {\n\n    const need = target - nums[i];\n\n    if (seen.has(need)) return [seen.get(need), i];\n\n    seen.set(nums[i], i);\n\n  }\n\n}\n\n// LRU Cache implementation\n\nclass LRUCache {\n\n  constructor(capacity) {\n\n    this.capacity = capacity;\n\n    this.cache = new Map(); // Map giữ insertion order\n\n  }\n\n  get(key) {\n\n    if (!this.cache.has(key)) return -1;\n\n    const val = this.cache.get(key);\n\n    this.cache.delete(key);\n\n    this.cache.set(key, val); // move to end\n\n    return val;\n\n  }\n\n  put(key, value) {\n\n    if (this.cache.has(key)) this.cache.delete(key);\n\n    else if (this.cache.size >= this.capacity)\n\n      this.cache.delete(this.cache.keys().next().value); // remove LRU\n\n    this.cache.set(key, value);\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "String Algorithms quan trọng?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// 1. Check Anagram - O(n)\n\nfunction isAnagram(s, t) {\n\n  if (s.length !== t.length) return false;\n\n  const count = {};\n\n  for (const c of s) count[c] = (count[c] || 0) + 1;\n\n  for (const c of t) {\n\n    if (!count[c]) return false;\n\n    count[c]--;\n\n  }\n\n  return true;\n\n}\n\n// 2. Longest Substring Without Repeating - O(n) Sliding Window\n\nfunction lengthOfLongestSubstring(s) {\n\n  const seen = new Map();\n\n  let maxLen = 0, left = 0;\n\n  for (let right = 0; right < s.length; right++) {\n\n    if (seen.has(s[right]) && seen.get(s[right]) >= left)\n\n      left = seen.get(s[right]) + 1;\n\n    seen.set(s[right], right);\n\n    maxLen = Math.max(maxLen, right - left + 1);\n\n  }\n\n  return maxLen;\n\n}\n\n// 3. Valid Palindrome - O(n)\n\nfunction isPalindrome(s) {\n\n  const clean = s.toLowerCase().replace(/[^a-z0-9]/g, '');\n\n  let l = 0, r = clean.length - 1;\n\n  while (l < r) if (clean[l++] !== clean[r--]) return false;\n\n  return true;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Recursion và khi nào dùng?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Recursion là function gọi chính nó. Cần có: base case (dừng đệ quy), recursive case (tiến tới base case)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Factorial\n\nfunction factorial(n) {\n\n  if (n <= 1) return 1;        // base case\n\n  return n * factorial(n - 1); // recursive case\n\n}\n\n// Fibonacci - Memoized O(n)\n\nfunction fib(n, memo = {}) {\n\n  if (n <= 1) return n;\n\n  if (memo[n]) return memo[n];\n\n  return memo[n] = fib(n-1, memo) + fib(n-2, memo);\n\n}\n\n// Power of 2 (Divide & Conquer) - O(log n)\n\nfunction power(base, exp) {\n\n  if (exp === 0) return 1;\n\n  if (exp % 2 === 0) {\n\n    const half = power(base, exp / 2);\n\n    return half * half;\n\n  }\n\n  return base * power(base, exp - 1);\n\n}\n\n*💡 Mọi recursion có thể viết lại bằng iteration + explicit stack. Iteration thường hiệu quả hơn về memory.*"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Backtracking là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Backtracking là kỹ thuật thử tất cả khả năng, huỷ lướng khi tìm thấy không hợp lệ, tiếp tục thử lướng khác."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// N-Queens Problem\n\nfunction solveNQueens(n) {\n\n  const board = Array(n).fill().map(() => Array(n).fill('.'));\n\n  const results = [];\n\n  function isValid(row, col) {\n\n    for (let r = 0; r < row; r++) {\n\n      if (board[r][col] === 'Q') return false;\n\n      if (col - (row - r) >= 0 && board[r][col - (row - r)] === 'Q') return false;\n\n      if (col + (row - r) < n  && board[r][col + (row - r)] === 'Q') return false;\n\n    }\n\n    return true;\n\n  }\n\n  function backtrack(row) {\n\n    if (row === n) { results.push(board.map(r => r.join(''))); return; }\n\n    for (let col = 0; col < n; col++) {\n\n      if (!isValid(row, col)) continue;\n\n      board[row][col] = 'Q';\n\n      backtrack(row + 1);\n\n      board[row][col] = '.'; // backtrack\n\n    }\n\n  }\n\n  backtrack(0);\n\n  return results;\n\n}\n\n// Permutations\n\nfunction permute(nums) {\n\n  const result = [];\n\n  function bt(start) {\n\n    if (start === nums.length) { result.push([...nums]); return; }\n\n    for (let i = start; i < nums.length; i++) {\n\n      [nums[start], nums[i]] = [nums[i], nums[start]]; // swap\n\n      bt(start + 1);\n\n      [nums[start], nums[i]] = [nums[i], nums[start]]; // restore\n\n    }\n\n  }\n\n  bt(0);\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Sliding Window Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Sliding Window là pattern tối ưu các bài toán liên quan đến subarray/substring liên tiếp."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Fixed window: Maximum sum subarray of size k - O(n)\n\nfunction maxSumSubarray(arr, k) {\n\n  let windowSum = arr.slice(0, k).reduce((a, b) => a + b, 0);\n\n  let maxSum = windowSum;\n\n  for (let i = k; i < arr.length; i++) {\n\n    windowSum += arr[i] - arr[i - k]; // slide\n\n    maxSum = Math.max(maxSum, windowSum);\n\n  }\n\n  return maxSum;\n\n}\n\n// Variable window: Minimum window substring - O(n+m)\n\nfunction minWindow(s, t) {\n\n  const need = {}, have = {};\n\n  for (const c of t) need[c] = (need[c] || 0) + 1;\n\n  let formed = 0, required = Object.keys(need).length;\n\n  let left = 0, minLen = Infinity, result = '';\n\n  for (let right = 0; right < s.length; right++) {\n\n    const c = s[right];\n\n    have[c] = (have[c] || 0) + 1;\n\n    if (need[c] && have[c] === need[c]) formed++;\n\n    while (formed === required) {\n\n      if (right - left + 1 < minLen) {\n\n        minLen = right - left + 1;\n\n        result = s.slice(left, right + 1);\n\n      }\n\n      have[s[left]]--;\n\n      if (need[s[left]] && have[s[left]] < need[s[left]]) formed--;\n\n      left++;\n\n    }\n\n  }\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "Two Pointers Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Two Sum (sorted array) - O(n)\n\nfunction twoSumSorted(nums, target) {\n\n  let left = 0, right = nums.length - 1;\n\n  while (left < right) {\n\n    const sum = nums[left] + nums[right];\n\n    if (sum === target) return [left, right];\n\n    if (sum < target) left++;\n\n    else right--;\n\n  }\n\n  return [];\n\n}\n\n// Container with Most Water - O(n)\n\nfunction maxArea(height) {\n\n  let left = 0, right = height.length - 1, max = 0;\n\n  while (left < right) {\n\n    max = Math.max(max, Math.min(height[left], height[right]) * (right - left));\n\n    if (height[left] < height[right]) left++;\n\n    else right--;\n\n  }\n\n  return max;\n\n}\n\n// 3Sum - O(n^2)\n\nfunction threeSum(nums) {\n\n  nums.sort((a, b) => a - b);\n\n  const result = [];\n\n  for (let i = 0; i < nums.length - 2; i++) {\n\n    if (i > 0 && nums[i] === nums[i-1]) continue; // skip dup\n\n    let l = i + 1, r = nums.length - 1;\n\n    while (l < r) {\n\n      const sum = nums[i] + nums[l] + nums[r];\n\n      if (sum === 0) {\n\n        result.push([nums[i], nums[l++], nums[r--]]);\n\n        while (l < r && nums[l] === nums[l-1]) l++;\n\n      } else if (sum < 0) l++;\n\n      else r--;\n\n    }\n\n  }\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Prefix Sum là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Prefix Sum tiền xử lý mảng để query range sum trong O(1) thay vì O(n)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Build prefix sum - O(n)\n\nfunction buildPrefix(arr) {\n\n  const prefix = [0];\n\n  for (const x of arr) prefix.push(prefix.at(-1) + x);\n\n  return prefix;\n\n}\n\n// Range sum query O(1)\n\nfunction rangeSum(prefix, l, r) {\n\n  return prefix[r + 1] - prefix[l];\n\n}\n\n// Subarray Sum Equals K - O(n)\n\nfunction subarraySum(nums, k) {\n\n  const map = new Map([[0, 1]]); // prefix sum -> count\n\n  let count = 0, prefixSum = 0;\n\n  for (const n of nums) {\n\n    prefixSum += n;\n\n    count += (map.get(prefixSum - k) || 0);\n\n    map.set(prefixSum, (map.get(prefixSum) || 0) + 1);\n\n  }\n\n  return count;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Matrix / 2D Array operations?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Spiral order traversal - O(m*n)\n\nfunction spiralOrder(matrix) {\n\n  const result = [];\n\n  let top = 0, bottom = matrix.length - 1;\n\n  let left = 0, right = matrix[0].length - 1;\n\n  while (top <= bottom && left <= right) {\n\n    for (let i = left; i <= right; i++) result.push(matrix[top][i]);\n\n    top++;\n\n    for (let i = top; i <= bottom; i++) result.push(matrix[i][right]);\n\n    right--;\n\n    if (top <= bottom) {\n\n      for (let i = right; i >= left; i--) result.push(matrix[bottom][i]);\n\n      bottom--;\n\n    }\n\n    if (left <= right) {\n\n      for (let i = bottom; i >= top; i--) result.push(matrix[i][left]);\n\n      left++;\n\n    }\n\n  }\n\n  return result;\n\n}\n\n// Rotate matrix 90 degrees in-place\n\nfunction rotate(matrix) {\n\n  const n = matrix.length;\n\n  // Step 1: Transpose\n\n  for (let i = 0; i < n; i++)\n\n    for (let j = i + 1; j < n; j++)\n\n      [matrix[i][j], matrix[j][i]] = [matrix[j][i], matrix[i][j]];\n\n  // Step 2: Reverse each row\n\n  for (const row of matrix) row.reverse();\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Bit Manipulation cơ bản?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Operation",
+                  "Ký hiệu",
+                  "Ví dụ (a=5=101, b=3=011)"
+                ],
+                [
+                  "AND",
+                  "&",
+                  "5 & 3 = 1 (001)"
+                ],
+                [
+                  "OR",
+                  "│",
+                  "5 │ 3 = 7 (111)"
+                ],
+                [
+                  "XOR",
+                  "^",
+                  "5 ^ 3 = 6 (110)"
+                ],
+                [
+                  "NOT",
+                  "~",
+                  "~5 = -6 (flips all bits)"
+                ],
+                [
+                  "Left Shift",
+                  "<<",
+                  "5 << 1 = 10 (x2)"
+                ],
+                [
+                  "Right Shift",
+                  ">>",
+                  "5 >> 1 = 2 (x/2)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Check even/odd\n\nconst isOdd  = n => (n & 1) === 1;\n\nconst isEven = n => (n & 1) === 0;\n\n// Check power of 2\n\nconst isPow2 = n => n > 0 && (n & (n-1)) === 0;\n\n// Count set bits (Hamming weight)\n\nfunction countBits(n) {\n\n  let count = 0;\n\n  while (n) { count += n & 1; n >>= 1; }\n\n  return count;\n\n}\n\n// Single Number (XOR - pair cancel out)\n\nfunction singleNumber(nums) {\n\n  return nums.reduce((xor, n) => xor ^ n, 0);\n\n}\n\n// [2,2,1] -> 1, [4,1,2,1,2] -> 4\n\n// Swap without temp\n\nlet [a, b] = [3, 5];\n\na ^= b; b ^= a; a ^= b;\n\n// a=5, b=3"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Priority Queue / Heap là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Heap là complete binary tree thoả mãn heap property. Min-heap: parent ≤ children. Max-heap: parent ≥ children."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Operation",
+                  "Time Complexity"
+                ],
+                [
+                  "Insert",
+                  "O(log n)"
+                ],
+                [
+                  "Extract min/max",
+                  "O(log n)"
+                ],
+                [
+                  "Peek min/max",
+                  "O(1)"
+                ],
+                [
+                  "Build heap",
+                  "O(n)"
+                ],
+                [
+                  "Heap Sort",
+                  "O(n log n)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// MinHeap implementation\n\nclass MinHeap {\n\n  constructor() { this.heap = []; }\n\n  push(val) {\n\n    this.heap.push(val);\n\n    this._bubbleUp(this.heap.length - 1);\n\n  }\n\n  pop() {\n\n    const min = this.heap[0];\n\n    const last = this.heap.pop();\n\n    if (this.heap.length) { this.heap[0] = last; this._siftDown(0); }\n\n    return min;\n\n  }\n\n  _bubbleUp(i) {\n\n    while (i > 0) {\n\n      const parent = Math.floor((i - 1) / 2);\n\n      if (this.heap[parent] > this.heap[i])\n\n        [this.heap[parent], this.heap[i]] = [this.heap[i], this.heap[parent]];\n\n      else break;\n\n      i = parent;\n\n    }\n\n  }\n\n  _siftDown(i) {\n\n    const n = this.heap.length;\n\n    while (true) {\n\n      let smallest = i;\n\n      const l = 2*i+1, r = 2*i+2;\n\n      if (l < n && this.heap[l] < this.heap[smallest]) smallest = l;\n\n      if (r < n && this.heap[r] < this.heap[smallest]) smallest = r;\n\n      if (smallest === i) break;\n\n      [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]];\n\n      i = smallest;\n\n    }\n\n  }\n\n}\n\n// K largest elements\n\nfunction kLargest(nums, k) {\n\n  const heap = new MinHeap();\n\n  for (const n of nums) {\n\n    heap.push(n);\n\n    if (heap.heap.length > k) heap.pop();\n\n  }\n\n  return heap.heap;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "Big O Notation — độ phức tạp?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Notation",
+                  "Tên",
+                  "Ví dụ"
+                ],
+                [
+                  "O(1)",
+                  "Constant",
+                  "Array access, HashMap lookup"
+                ],
+                [
+                  "O(log n)",
+                  "Logarithmic",
+                  "Binary search, Heap operations"
+                ],
+                [
+                  "O(n)",
+                  "Linear",
+                  "Linear scan, simple loop"
+                ],
+                [
+                  "O(n log n)",
+                  "Linearithmic",
+                  "Merge sort, Heap sort, Quick sort (avg)"
+                ],
+                [
+                  "O(n²)",
+                  "Quadratic",
+                  "Bubble sort, two nested loops"
+                ],
+                [
+                  "O(2ⁿ)",
+                  "Exponential",
+                  "Recursive Fibonacci (no memo)"
+                ],
+                [
+                  "O(n!)",
+                  "Factorial",
+                  "Permutations, TSP brute force"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Khi interview hỏi 'có thể tốt hơn không?': O(n²) -> O(n log n) thường dùng sorting. O(n) -> O(1) thường dùng prefix sum hoặc HashMap."
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Fast & Slow Pointers (Floyd's Cycle)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Detect cycle in linked list\n\nfunction hasCycle(head) {\n\n  let slow = head, fast = head;\n\n  while (fast && fast.next) {\n\n    slow = slow.next;\n\n    fast = fast.next.next;\n\n    if (slow === fast) return true;\n\n  }\n\n  return false;\n\n}\n\n// Find start of cycle\n\nfunction detectCycle(head) {\n\n  let slow = head, fast = head;\n\n  while (fast && fast.next) {\n\n    slow = slow.next;\n\n    fast = fast.next.next;\n\n    if (slow === fast) {\n\n      slow = head; // reset slow to head\n\n      while (slow !== fast) { slow = slow.next; fast = fast.next; }\n\n      return slow; // start of cycle\n\n    }\n\n  }\n\n  return null;\n\n}\n\n// Find middle of linked list\n\nfunction findMiddle(head) {\n\n  let slow = head, fast = head;\n\n  while (fast && fast.next) {\n\n    slow = slow.next;\n\n    fast = fast.next.next;\n\n  }\n\n  return slow; // slow is at middle\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Monotonic Stack/Queue?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Monotonic Stack duy trì stack tăng dần hoặc giảm dần. Dùng cho bài toán 'next greater/smaller element'."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Daily Temperatures (Next Greater) - O(n)\n\nfunction dailyTemperatures(temps) {\n\n  const result = new Array(temps.length).fill(0);\n\n  const stack = []; // index stack, monotonic decreasing\n\n  for (let i = 0; i < temps.length; i++) {\n\n    while (stack.length && temps[i] > temps[stack.at(-1)]) {\n\n      const idx = stack.pop();\n\n      result[idx] = i - idx;\n\n    }\n\n    stack.push(i);\n\n  }\n\n  return result;\n\n}\n\n// Trapping Rain Water - O(n)\n\nfunction trap(height) {\n\n  let left = 0, right = height.length - 1;\n\n  let leftMax = 0, rightMax = 0, water = 0;\n\n  while (left < right) {\n\n    if (height[left] < height[right]) {\n\n      height[left] >= leftMax ? (leftMax = height[left]) : (water += leftMax - height[left]);\n\n      left++;\n\n    } else {\n\n      height[right] >= rightMax ? (rightMax = height[right]) : (water += rightMax - height[right]);\n\n      right--;\n\n    }\n\n  }\n\n  return water;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Merge Intervals?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Merge Overlapping Intervals - O(n log n)\n\nfunction merge(intervals) {\n\n  intervals.sort((a, b) => a[0] - b[0]);\n\n  const result = [intervals[0]];\n\n  for (let i = 1; i < intervals.length; i++) {\n\n    const curr = intervals[i];\n\n    const prev = result.at(-1);\n\n    if (curr[0] <= prev[1]) prev[1] = Math.max(prev[1], curr[1]);\n\n    else result.push(curr);\n\n  }\n\n  return result;\n\n}\n\n// Meeting Rooms II (Min Rooms Needed) - O(n log n)\n\nfunction minMeetingRooms(intervals) {\n\n  const starts = intervals.map(i => i[0]).sort((a,b) => a-b);\n\n  const ends   = intervals.map(i => i[1]).sort((a,b) => a-b);\n\n  let rooms = 0, maxRooms = 0, j = 0;\n\n  for (let i = 0; i < intervals.length; i++) {\n\n    if (starts[i] < ends[j]) { rooms++; maxRooms = Math.max(maxRooms, rooms); }\n\n    else { rooms--; j++; }\n\n  }\n\n  return maxRooms;\n\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — Trees, Graphs, Tries (Q21–40)",
+      "questions": [
+        {
+          "id": "Q21",
+          "q": "Binary Tree traversal?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Có 3 kiểu DFS traversal và 1 kiểu BFS traversal."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "class TreeNode { constructor(val, left=null, right=null) { this.val=val; this.left=left; this.right=right; } }\n\n// In-order: Left -> Root -> Right (gives sorted order for BST)\n\nfunction inorder(root) {\n\n  const result = [];\n\n  function dfs(node) {\n\n    if (!node) return;\n\n    dfs(node.left);\n\n    result.push(node.val);\n\n    dfs(node.right);\n\n  }\n\n  dfs(root);\n\n  return result;\n\n}\n\n// Pre-order: Root -> Left -> Right (serialize tree)\n\n// Post-order: Left -> Right -> Root (delete tree)\n\n// Level-order BFS\n\nfunction levelOrder(root) {\n\n  if (!root) return [];\n\n  const result = [], queue = [root];\n\n  while (queue.length) {\n\n    const level = [];\n\n    let size = queue.length;\n\n    while (size--) {\n\n      const node = queue.shift();\n\n      level.push(node.val);\n\n      if (node.left)  queue.push(node.left);\n\n      if (node.right) queue.push(node.right);\n\n    }\n\n    result.push(level);\n\n  }\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Binary Search Tree (BST)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "BST: mọi node trong left subtree nhỏ hơn root, mọi node trong right subtree lớn hơn root."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Search BST - O(log n) average\n\nfunction searchBST(root, val) {\n\n  if (!root) return null;\n\n  if (root.val === val) return root;\n\n  return val < root.val ? searchBST(root.left, val) : searchBST(root.right, val);\n\n}\n\n// Insert BST\n\nfunction insertBST(root, val) {\n\n  if (!root) return new TreeNode(val);\n\n  if (val < root.val) root.left  = insertBST(root.left,  val);\n\n  else                root.right = insertBST(root.right, val);\n\n  return root;\n\n}\n\n// Validate BST\n\nfunction isValidBST(root, min=-Infinity, max=Infinity) {\n\n  if (!root) return true;\n\n  if (root.val <= min || root.val >= max) return false;\n\n  return isValidBST(root.left, min, root.val) &&\n\n         isValidBST(root.right, root.val, max);\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Balanced BST: AVL Tree và Red-Black Tree?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "AVL Tree",
+                  "Red-Black Tree"
+                ],
+                [
+                  "Balance condition",
+                  "Height diff ≤ 1 (strict)",
+                  "Approximation (no 2 red in a row)"
+                ],
+                [
+                  "Rebalancing",
+                  "Nhiều hơn",
+                  "Ít hơn (lazy)"
+                ],
+                [
+                  "Search",
+                  "Nhanh hơn (shorter)",
+                  "Nhanh (short)"
+                ],
+                [
+                  "Insert/Delete",
+                  "Chậm hơn (nhiều rotate)",
+                  "Nhanh hơn"
+                ],
+                [
+                  "Height",
+                  "1.44 log n",
+                  "2 log n"
+                ],
+                [
+                  "Dùng khi",
+                  "Nhiều read, ít write",
+                  "Nhiều insert/delete"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 Trong thực tế: Java TreeMap, C++ std::map dùng Red-Black Tree. Most databases dùng B+ Tree."
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "LCA (Lowest Common Ancestor)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// LCA in Binary Tree - O(n)\n\nfunction lowestCommonAncestor(root, p, q) {\n\n  if (!root || root === p || root === q) return root;\n\n  const left  = lowestCommonAncestor(root.left,  p, q);\n\n  const right = lowestCommonAncestor(root.right, p, q);\n\n  // Nếu cả 2 bên đều có -> root là LCA\n\n  if (left && right) return root;\n\n  return left || right; // một bên có\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "Graph: BFS và DFS?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Graph gồm vertices (nút) và edges (đường nối). Có 2 loại: directed (có hướng) và undirected."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Graph representation: Adjacency List\n\nconst graph = {\n\n  A: ['B', 'C'],\n\n  B: ['A', 'D'],\n\n  C: ['A', 'D'],\n\n  D: ['B', 'C']\n\n};\n\n// BFS - O(V+E)\n\nfunction bfs(graph, start) {\n\n  const visited = new Set([start]);\n\n  const queue = [start];\n\n  const order = [];\n\n  while (queue.length) {\n\n    const node = queue.shift();\n\n    order.push(node);\n\n    for (const neighbor of (graph[node] || [])) {\n\n      if (!visited.has(neighbor)) {\n\n        visited.add(neighbor);\n\n        queue.push(neighbor);\n\n      }\n\n    }\n\n  }\n\n  return order;\n\n}\n\n// DFS - O(V+E)\n\nfunction dfs(graph, node, visited = new Set()) {\n\n  if (visited.has(node)) return [];\n\n  visited.add(node);\n\n  const result = [node];\n\n  for (const neighbor of (graph[node] || [])) {\n\n    result.push(...dfs(graph, neighbor, visited));\n\n  }\n\n  return result;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q26",
+          "q": "Shortest Path: Dijkstra's Algorithm?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dijkstra tìm shortest path từ một đỉnh tới tất cả đỉnh khác trong weighted graph (trọng số dương). O((V+E) log V) với min-heap."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function dijkstra(graph, start) {\n\n  const dist = {};\n\n  for (const node in graph) dist[node] = Infinity;\n\n  dist[start] = 0;\n\n  // Priority queue: [distance, node]\n\n  const pq = [[0, start]];\n\n  while (pq.length) {\n\n    pq.sort((a, b) => a[0] - b[0]); // simple sort, real impl dung MinHeap\n\n    const [d, node] = pq.shift();\n\n    if (d > dist[node]) continue; // stale entry\n\n    for (const [neighbor, weight] of (graph[node] || [])) {\n\n      const newDist = dist[node] + weight;\n\n      if (newDist < dist[neighbor]) {\n\n        dist[neighbor] = newDist;\n\n        pq.push([newDist, neighbor]);\n\n      }\n\n    }\n\n  }\n\n  return dist;\n\n}\n\n// graph format: { A: [['B', 4], ['C', 2]], ... }"
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Topological Sort?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Topological Sort sắp xếp các đỉnh của DAG (Directed Acyclic Graph) sao cho mọi edge (u,v) thì u đứng trước v. Dùng cho task scheduling, dependency resolution."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Kahn's Algorithm (BFS) - O(V+E)\n\nfunction topoSort(numCourses, prerequisites) {\n\n  const adj = Array.from({length: numCourses}, () => []);\n\n  const inDegree = new Array(numCourses).fill(0);\n\n  for (const [course, prereq] of prerequisites) {\n\n    adj[prereq].push(course);\n\n    inDegree[course]++;\n\n  }\n\n  const queue = [];\n\n  for (let i = 0; i < numCourses; i++) {\n\n    if (inDegree[i] === 0) queue.push(i);\n\n  }\n\n  const order = [];\n\n  while (queue.length) {\n\n    const node = queue.shift();\n\n    order.push(node);\n\n    for (const next of adj[node]) {\n\n      if (--inDegree[next] === 0) queue.push(next);\n\n    }\n\n  }\n\n  return order.length === numCourses ? order : []; // [] = cycle exists\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Union-Find (Disjoint Set)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Union-Find quản lý các nhóm phân rã và kết hợp chúng. Dùng cho Kruskal's MST, detect cycle, connected components."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "class UnionFind {\n\n  constructor(n) {\n\n    this.parent = Array.from({length: n}, (_, i) => i);\n\n    this.rank = new Array(n).fill(0);\n\n  }\n\n  find(x) {\n\n    if (this.parent[x] !== x)\n\n      this.parent[x] = this.find(this.parent[x]); // path compression\n\n    return this.parent[x];\n\n  }\n\n  union(x, y) {\n\n    const px = this.find(x), py = this.find(y);\n\n    if (px === py) return false; // already same set\n\n    // Union by rank\n\n    if (this.rank[px] < this.rank[py]) this.parent[px] = py;\n\n    else if (this.rank[px] > this.rank[py]) this.parent[py] = px;\n\n    else { this.parent[py] = px; this.rank[px]++; }\n\n    return true;\n\n  }\n\n  }\n\n// Number of Islands\n\nfunction numIslands(grid) {\n\n  let count = 0;\n\n  const dfs = (i, j) => {\n\n    if (i<0 || j<0 || i>=grid.length || j>=grid[0].length || grid[i][j]==='0') return;\n\n    grid[i][j] = '0'; // mark visited\n\n    dfs(i+1,j); dfs(i-1,j); dfs(i,j+1); dfs(i,j-1);\n\n  };\n\n  for (let i = 0; i < grid.length; i++)\n\n    for (let j = 0; j < grid[0].length; j++)\n\n      if (grid[i][j] === '1') { dfs(i, j); count++; }\n\n  return count;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Minimum Spanning Tree (MST)?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thuật toán",
+                  "Approach",
+                  "Time",
+                  "Dùng khi"
+                ],
+                [
+                  "Kruskal's",
+                  "Sort edges, add if no cycle (Union-Find)",
+                  "O(E log E)",
+                  "Sparse graph"
+                ],
+                [
+                  "Prim's",
+                  "Greedy: expand tree từ một vertex (Min-Heap)",
+                  "O(E log V)",
+                  "Dense graph"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Kruskal's MST\n\nfunction kruskal(n, edges) {\n\n  edges.sort((a, b) => a[2] - b[2]); // sort by weight\n\n  const uf = new UnionFind(n);\n\n  const mst = [];\n\n  for (const [u, v, w] of edges) {\n\n    if (uf.union(u, v)) { // if no cycle\n\n      mst.push([u, v, w]);\n\n      if (mst.length === n - 1) break;\n\n    }\n\n  }\n\n  return mst;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "Cycle Detection trong Graph?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Detect cycle in UNDIRECTED graph (DFS)\n\nfunction hasCycleUndirected(graph) {\n\n  const visited = new Set();\n\n  function dfs(node, parent) {\n\n    visited.add(node);\n\n    for (const neighbor of (graph[node] || [])) {\n\n      if (!visited.has(neighbor)) {\n\n        if (dfs(neighbor, node)) return true;\n\n      } else if (neighbor !== parent) return true; // back edge = cycle\n\n    }\n\n    return false;\n\n  }\n\n  for (const node in graph)\n\n    if (!visited.has(node) && dfs(node, -1)) return true;\n\n  return false;\n\n}\n\n// Detect cycle in DIRECTED graph (DFS with colors)\n\nfunction hasCycleDirected(graph) {\n\n  const WHITE=0, GRAY=1, BLACK=2;\n\n  const color = {};\n\n  for (const node in graph) color[node] = WHITE;\n\n  function dfs(node) {\n\n    color[node] = GRAY; // visiting\n\n    for (const neighbor of (graph[node] || [])) {\n\n      if (color[neighbor] === GRAY) return true; // back edge\n\n      if (color[neighbor] === WHITE && dfs(neighbor)) return true;\n\n    }\n\n    color[node] = BLACK; // fully processed\n\n    return false;\n\n  }\n\n  for (const node in graph) if (color[node] === WHITE && dfs(node)) return true;\n\n  return false;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Trie Data Structure?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Trie (Prefix Tree) lưu trữ strings, các tiền tố (prefix) chung được chia sẻ. Search, insert O(k) với k là độ dài string."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "class TrieNode {\n\n  constructor() { this.children = {}; this.isEnd = false; }\n\n}\n\nclass Trie {\n\n  constructor() { this.root = new TrieNode(); }\n\n  insert(word) {\n\n    let node = this.root;\n\n    for (const ch of word) {\n\n      if (!node.children[ch]) node.children[ch] = new TrieNode();\n\n      node = node.children[ch];\n\n    }\n\n    node.isEnd = true;\n\n  }\n\n  search(word) {\n\n    let node = this.root;\n\n    for (const ch of word) {\n\n      if (!node.children[ch]) return false;\n\n      node = node.children[ch];\n\n    }\n\n    return node.isEnd;\n\n  }\n\n  startsWith(prefix) {\n\n    let node = this.root;\n\n    for (const ch of prefix) {\n\n      if (!node.children[ch]) return false;\n\n      node = node.children[ch];\n\n    }\n\n    return true; // prefix exists\n\n  }\n\n  }\n\n// Applications: autocomplete, spell check, word search"
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "BFS vs DFS — khi nào dùng cái nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "BFS",
+                  "DFS"
+                ],
+                [
+                  "Approach",
+                  "Queue (level-by-level)",
+                  "Stack/Recursion (deep first)"
+                ],
+                [
+                  "Space",
+                  "O(w) — max width",
+                  "O(h) — max height"
+                ],
+                [
+                  "Shortest path",
+                  "Có (unweighted)",
+                  "Không"
+                ],
+                [
+                  "All paths",
+                  "Không hiệu quả",
+                  "Tốt hơn"
+                ],
+                [
+                  "Cycle detection",
+                  "Có",
+                  "Có"
+                ],
+                [
+                  "Dùng khi",
+                  "Shortest path, level-by-level",
+                  "Connected components, topological sort, maze"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Segment Tree?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Segment Tree giải quyết range queries (sum, min, max) và range updates hiệu quả."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "class SegmentTree {\n\n  constructor(arr) {\n\n    this.n = arr.length;\n\n    this.tree = new Array(4 * this.n).fill(0);\n\n    this.build(arr, 0, 0, this.n - 1);\n\n  }\n\n  build(arr, node, start, end) {\n\n    if (start === end) { this.tree[node] = arr[start]; return; }\n\n    const mid = Math.floor((start + end) / 2);\n\n    this.build(arr, 2*node+1, start, mid);\n\n    this.build(arr, 2*node+2, mid+1, end);\n\n    this.tree[node] = this.tree[2*node+1] + this.tree[2*node+2];\n\n  }\n\n  query(node, start, end, l, r) {\n\n    if (r < start || end < l) return 0;\n\n    if (l <= start && end <= r) return this.tree[node];\n\n    const mid = Math.floor((start + end) / 2);\n\n    return this.query(2*node+1, start, mid, l, r)\n\n         + this.query(2*node+2, mid+1, end, l, r);\n\n  }\n\n  }\n\n// Range sum query O(log n) vs O(n) naive"
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Graph Algorithms: Bellman-Ford?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Bellman-Ford tìm shortest path kể cả negative edges. O(VE). Phát hiện negative cycle."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "function bellmanFord(V, edges, src) {\n\n  const dist = new Array(V).fill(Infinity);\n\n  dist[src] = 0;\n\n  // Relax edges V-1 times\n\n  for (let i = 0; i < V - 1; i++) {\n\n    for (const [u, v, w] of edges) {\n\n      if (dist[u] !== Infinity && dist[u] + w < dist[v]) {\n\n        dist[v] = dist[u] + w;\n\n      }\n\n    }\n\n  }\n\n  // Check for negative cycles\n\n  for (const [u, v, w] of edges) {\n\n    if (dist[u] !== Infinity && dist[u] + w < dist[v]) {\n\n      return null; // negative cycle exists\n\n    }\n\n  }\n\n  return dist;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Tree: Height, Diameter, Balance?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Height of binary tree - O(n)\n\nfunction height(root) {\n\n  if (!root) return 0;\n\n  return 1 + Math.max(height(root.left), height(root.right));\n\n}\n\n// Diameter (longest path between any two nodes)\n\nfunction diameterOfBinaryTree(root) {\n\n  let maxDiameter = 0;\n\n  function depth(node) {\n\n    if (!node) return 0;\n\n    const left = depth(node.left);\n\n    const right = depth(node.right);\n\n    maxDiameter = Math.max(maxDiameter, left + right);\n\n    return 1 + Math.max(left, right);\n\n  }\n\n  depth(root);\n\n  return maxDiameter;\n\n}\n\n// Check if balanced\n\nfunction isBalanced(root) {\n\n  function check(node) {\n\n    if (!node) return 0;\n\n    const left = check(node.left);\n\n    const right = check(node.right);\n\n    if (left === -1 || right === -1 || Math.abs(left - right) > 1) return -1;\n\n    return 1 + Math.max(left, right);\n\n  }\n\n  return check(root) !== -1;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Path Sum problems?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Has path sum root to leaf\n\nfunction hasPathSum(root, targetSum) {\n\n  if (!root) return false;\n\n  if (!root.left && !root.right) return root.val === targetSum;\n\n  return hasPathSum(root.left,  targetSum - root.val) ||\n\n         hasPathSum(root.right, targetSum - root.val);\n\n}\n\n// Maximum Path Sum (any path) - O(n)\n\nfunction maxPathSum(root) {\n\n  let maxSum = -Infinity;\n\n  function dfs(node) {\n\n    if (!node) return 0;\n\n    const left  = Math.max(0, dfs(node.left));  // ignore negative paths\n\n    const right = Math.max(0, dfs(node.right));\n\n    maxSum = Math.max(maxSum, node.val + left + right);\n\n    return node.val + Math.max(left, right); // return single path\n\n  }\n\n  dfs(root);\n\n  return maxSum;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Serialize và Deserialize Binary Tree?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Serialize: Pre-order with null markers\n\nfunction serialize(root) {\n\n  const result = [];\n\n  function dfs(node) {\n\n    if (!node) { result.push('null'); return; }\n\n    result.push(node.val);\n\n    dfs(node.left);\n\n    dfs(node.right);\n\n  }\n\n  dfs(root);\n\n  return result.join(',');\n\n}\n\nfunction deserialize(data) {\n\n  const vals = data.split(',');\n\n  let i = 0;\n\n  function build() {\n\n    if (vals[i] === 'null') { i++; return null; }\n\n    const node = new TreeNode(parseInt(vals[i++]));\n\n    node.left  = build();\n\n    node.right = build();\n\n    return node;\n\n  }\n\n  return build();\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Greedy Algorithms?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Greedy chọn lựa chọn tốt nhất ở mỗi bước địa phương, không dựa trên future. Hoạt động khi: greedy choice property + optimal substructure."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Activity Selection (Maximum non-overlapping meetings)\n\nfunction activitySelection(start, end) {\n\n  const activities = start.map((s, i) => [s, end[i]]);\n\n  activities.sort((a, b) => a[1] - b[1]); // sort by end time\n\n  let count = 1, lastEnd = activities[0][1];\n\n  for (let i = 1; i < activities.length; i++) {\n\n    if (activities[i][0] >= lastEnd) {\n\n      count++;\n\n      lastEnd = activities[i][1];\n\n    }\n\n  }\n\n  return count;\n\n}\n\n// Jump Game II (Min jumps to reach end) - O(n)\n\nfunction jump(nums) {\n\n  let jumps = 0, currEnd = 0, farthest = 0;\n\n  for (let i = 0; i < nums.length - 1; i++) {\n\n    farthest = Math.max(farthest, i + nums[i]);\n\n    if (i === currEnd) { jumps++; currEnd = farthest; }\n\n  }\n\n  return jumps;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Trie - Autocomplete và Word Search?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Word Search II (using Trie)\n\nfunction findWords(board, words) {\n\n  const trie = new Trie();\n\n  words.forEach(w => trie.insert(w));\n\n  const result = new Set();\n\n  const m = board.length, n = board[0].length;\n\n  function dfs(node, i, j, path) {\n\n    const ch = board[i][j];\n\n    if (!node.children[ch]) return;\n\n    const nextNode = node.children[ch];\n\n    path += ch;\n\n    if (nextNode.isEnd) result.add(path);\n\n    board[i][j] = '#'; // mark visited\n\n    for (const [di, dj] of [[-1,0],[1,0],[0,-1],[0,1]]) {\n\n      const ni = i + di, nj = j + dj;\n\n      if (ni >= 0 && ni < m && nj >= 0 && nj < n && board[ni][nj] !== '#')\n\n        dfs(nextNode, ni, nj, path);\n\n    }\n\n    board[i][j] = ch; // restore\n\n  }\n\n  for (let i = 0; i < m; i++)\n\n    for (let j = 0; j < n; j++)\n\n      dfs(trie.root, i, j, '');\n\n  return [...result];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Shortest Path in Grid (BFS)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Shortest path in binary matrix - O(n^2)\n\nfunction shortestPathBinaryMatrix(grid) {\n\n  const n = grid.length;\n\n  if (grid[0][0] === 1 || grid[n-1][n-1] === 1) return -1;\n\n  const queue = [[0, 0, 1]]; // [row, col, pathLen]\n\n  grid[0][0] = 1; // mark visited\n\n  const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];\n\n  while (queue.length) {\n\n    const [r, c, dist] = queue.shift();\n\n    if (r === n-1 && c === n-1) return dist;\n\n    for (const [dr, dc] of dirs) {\n\n      const nr = r + dr, nc = c + dc;\n\n      if (nr >= 0 && nr < n && nc >= 0 && nc < n && grid[nr][nc] === 0) {\n\n        grid[nr][nc] = 1;\n\n        queue.push([nr, nc, dist + 1]);\n\n      }\n\n    }\n\n  }\n\n  return -1;\n\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — Dynamic Programming (Q41–58)",
+      "questions": [
+        {
+          "id": "Q41",
+          "q": "Dynamic Programming là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dynamic Programming giải quyết bài toán bằng cách chia thành subproblems nhỏ, lưu kết quả tránh tính lại. Cần: optimal substructure + overlapping subproblems."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Approach",
+                  "Mô tả",
+                  "Trade-off"
+                ],
+                [
+                  "Memoization (Top-down)",
+                  "Recursion + cache — chỉ tính subproblems cần",
+                  "Stack overhead, natural recursion"
+                ],
+                [
+                  "Tabulation (Bottom-up)",
+                  "Build table từ nhỏ lên — tính hết",
+                  "Không stack overflow, nhanh hơn"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Fibonacci: Từ O(2^n) xuống O(n)\n\n// Memoization (top-down)\n\nfunction fib(n, memo = {}) {\n\n  if (n <= 1) return n;\n\n  return memo[n] ??= fib(n-1, memo) + fib(n-2, memo);\n\n}\n\n// Tabulation (bottom-up)\n\nfunction fibTab(n) {\n\n  if (n <= 1) return n;\n\n  const dp = [0, 1];\n\n  for (let i = 2; i <= n; i++) dp[i] = dp[i-1] + dp[i-2];\n\n  return dp[n];\n\n}\n\n// Space optimized O(1)\n\nfunction fibOpt(n) {\n\n  let [a, b] = [0, 1];\n\n  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];\n\n  return b;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Knapsack Problem (0/1)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Cho n items, mỗi item có weight và value, và một ba lô sức chứa W. Tìm max value mà không vượt trọng lượng."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// 0/1 Knapsack - O(n*W)\n\nfunction knapsack(weights, values, W) {\n\n  const n = weights.length;\n\n  // dp[i][w] = max value dùng i items, capacity w\n\n  const dp = Array.from({length: n+1}, () => new Array(W+1).fill(0));\n\n  for (let i = 1; i <= n; i++) {\n\n    for (let w = 0; w <= W; w++) {\n\n      dp[i][w] = dp[i-1][w]; // don't take item i\n\n      if (weights[i-1] <= w) {\n\n        dp[i][w] = Math.max(dp[i][w],\n\n          dp[i-1][w - weights[i-1]] + values[i-1]); // take item i\n\n      }\n\n    }\n\n  }\n\n  return dp[n][W];\n\n}\n\n// Space optimized O(W)\n\nfunction knapsackOpt(weights, values, W) {\n\n  const dp = new Array(W+1).fill(0);\n\n  for (let i = 0; i < weights.length; i++) {\n\n    for (let w = W; w >= weights[i]; w--) { // reverse to avoid using item twice\n\n      dp[w] = Math.max(dp[w], dp[w - weights[i]] + values[i]);\n\n    }\n\n  }\n\n  return dp[W];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q43",
+          "q": "Longest Common Subsequence (LCS)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// LCS - O(m*n)\n\nfunction lcs(text1, text2) {\n\n  const m = text1.length, n = text2.length;\n\n  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));\n\n  for (let i = 1; i <= m; i++) {\n\n    for (let j = 1; j <= n; j++) {\n\n      if (text1[i-1] === text2[j-1]) dp[i][j] = dp[i-1][j-1] + 1;\n\n      else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);\n\n    }\n\n  }\n\n  return dp[m][n];\n\n}\n\n// Longest Common Substring (consecutive)\n\nfunction lcSubstring(s1, s2) {\n\n  let maxLen = 0;\n\n  const dp = Array.from({length:s1.length+1},()=>new Array(s2.length+1).fill(0));\n\n  for (let i = 1; i <= s1.length; i++)\n\n    for (let j = 1; j <= s2.length; j++)\n\n      if (s1[i-1] === s2[j-1]) {\n\n        dp[i][j] = dp[i-1][j-1] + 1;\n\n        maxLen = Math.max(maxLen, dp[i][j]);\n\n      }\n\n  return maxLen;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Coin Change Problem?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Min coins to make amount - O(amount * coins.length)\n\nfunction coinChange(coins, amount) {\n\n  const dp = new Array(amount + 1).fill(Infinity);\n\n  dp[0] = 0;\n\n  for (let i = 1; i <= amount; i++) {\n\n    for (const coin of coins) {\n\n      if (coin <= i && dp[i - coin] !== Infinity) {\n\n        dp[i] = Math.min(dp[i], dp[i - coin] + 1);\n\n      }\n\n    }\n\n  }\n\n  return dp[amount] === Infinity ? -1 : dp[amount];\n\n}\n\n// Number of ways to make change\n\nfunction change(amount, coins) {\n\n  const dp = new Array(amount + 1).fill(0);\n\n  dp[0] = 1;\n\n  for (const coin of coins) {\n\n    for (let i = coin; i <= amount; i++) {\n\n      dp[i] += dp[i - coin];\n\n    }\n\n  }\n\n  return dp[amount];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "Longest Increasing Subsequence (LIS)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// LIS O(n^2) DP\n\nfunction lengthOfLIS(nums) {\n\n  const dp = new Array(nums.length).fill(1);\n\n  for (let i = 1; i < nums.length; i++)\n\n    for (let j = 0; j < i; j++)\n\n      if (nums[j] < nums[i]) dp[i] = Math.max(dp[i], dp[j] + 1);\n\n  return Math.max(...dp);\n\n}\n\n// LIS O(n log n) - Binary Search\n\nfunction lengthOfLISFast(nums) {\n\n  const tails = [];\n\n  for (const n of nums) {\n\n    let lo = 0, hi = tails.length;\n\n    while (lo < hi) {\n\n      const mid = (lo + hi) >> 1;\n\n      if (tails[mid] < n) lo = mid + 1;\n\n      else hi = mid;\n\n    }\n\n    tails[lo] = n;\n\n  }\n\n  return tails.length;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "Edit Distance (Levenshtein)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Min operations to convert word1 to word2 - O(m*n)\n\n// Operations: insert, delete, replace\n\nfunction minDistance(word1, word2) {\n\n  const m = word1.length, n = word2.length;\n\n  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i || j));\n\n  for (let i = 1; i <= m; i++) {\n\n    for (let j = 1; j <= n; j++) {\n\n      if (word1[i-1] === word2[j-1]) dp[i][j] = dp[i-1][j-1];\n\n      else dp[i][j] = 1 + Math.min(\n\n        dp[i-1][j],   // delete from word1\n\n        dp[i][j-1],   // insert into word1\n\n        dp[i-1][j-1]  // replace\n\n      );\n\n    }\n\n  }\n\n  return dp[m][n];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "House Robber và variants?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// House Robber I - O(n)\n\nfunction rob(nums) {\n\n  let prev2 = 0, prev1 = 0;\n\n  for (const n of nums) {\n\n    [prev2, prev1] = [prev1, Math.max(prev1, prev2 + n)];\n\n  }\n\n  return prev1;\n\n}\n\n// House Robber II (circular) - O(n)\n\nfunction rob2(nums) {\n\n  if (nums.length === 1) return nums[0];\n\n  return Math.max(\n\n    rob(nums.slice(0, -1)),\n\n    rob(nums.slice(1))\n\n  );\n\n}\n\n// House Robber III (binary tree)\n\nfunction rob3(root) {\n\n  function dfs(node) {\n\n    if (!node) return [0, 0]; // [rob this node, skip this node]\n\n    const [ll, lr] = dfs(node.left);\n\n    const [rl, rr] = dfs(node.right);\n\n    const rob    = node.val + lr + rr; // take this, skip children\n\n    const skip   = Math.max(ll,lr) + Math.max(rl,rr); // best of each child\n\n    return [rob, skip];\n\n  }\n\n  return Math.max(...dfs(root));\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Matrix Chain Multiplication / Interval DP?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Burst Balloons (Interval DP) - O(n^3)\n\nfunction maxCoins(nums) {\n\n  nums = [1, ...nums, 1]; // padding\n\n  const n = nums.length;\n\n  const dp = Array.from({length: n}, () => new Array(n).fill(0));\n\n  for (let len = 2; len < n; len++) {\n\n    for (let left = 0; left < n - len; left++) {\n\n      const right = left + len;\n\n      for (let k = left + 1; k < right; k++) {\n\n        dp[left][right] = Math.max(\n\n          dp[left][right],\n\n          nums[left] * nums[k] * nums[right] + dp[left][k] + dp[k][right]\n\n        );\n\n      }\n\n    }\n\n  }\n\n  return dp[0][n-1];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "DP trên Strings: Palindrome?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Longest Palindromic Subsequence - O(n^2)\n\nfunction longestPalindromeSubseq(s) {\n\n  return lcs(s, s.split('').reverse().join(''));\n\n}\n\n// Longest Palindromic Substring - Expand Around Center O(n^2)\n\nfunction longestPalindrome(s) {\n\n  let start = 0, maxLen = 1;\n\n  function expand(l, r) {\n\n    while (l >= 0 && r < s.length && s[l] === s[r]) { l--; r++; }\n\n    if (r - l - 1 > maxLen) { maxLen = r - l - 1; start = l + 1; }\n\n  }\n\n  for (let i = 0; i < s.length; i++) {\n\n    expand(i, i);     // odd length\n\n    expand(i, i + 1); // even length\n\n  }\n\n  return s.substr(start, maxLen);\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "State Machine DP (Stock Problems)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Best Time to Buy and Sell Stock (1 transaction)\n\nfunction maxProfit(prices) {\n\n  let minPrice = Infinity, maxProfit = 0;\n\n  for (const p of prices) {\n\n    minPrice = Math.min(minPrice, p);\n\n    maxProfit = Math.max(maxProfit, p - minPrice);\n\n  }\n\n  return maxProfit;\n\n}\n\n// Multiple transactions (Greedy)\n\nfunction maxProfitII(prices) {\n\n  let profit = 0;\n\n  for (let i = 1; i < prices.length; i++)\n\n    if (prices[i] > prices[i-1]) profit += prices[i] - prices[i-1];\n\n  return profit;\n\n}\n\n// At most k transactions - O(nk)\n\nfunction maxProfitK(k, prices) {\n\n  const n = prices.length;\n\n  if (k >= n/2) return maxProfitII(prices);\n\n  const dp = Array.from({length:k+1}, ()=>Array(n).fill(0));\n\n  for (let t = 1; t <= k; t++) {\n\n    let maxSoFar = -prices[0];\n\n    for (let d = 1; d < n; d++) {\n\n      dp[t][d] = Math.max(dp[t][d-1], prices[d] + maxSoFar);\n\n      maxSoFar = Math.max(maxSoFar, dp[t-1][d] - prices[d]);\n\n    }\n\n  }\n\n  return dp[k][n-1];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Word Break?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Word Break - O(n^2)\n\nfunction wordBreak(s, wordDict) {\n\n  const set = new Set(wordDict);\n\n  const dp = new Array(s.length + 1).fill(false);\n\n  dp[0] = true;\n\n  for (let i = 1; i <= s.length; i++) {\n\n    for (let j = 0; j < i; j++) {\n\n      if (dp[j] && set.has(s.slice(j, i))) {\n\n        dp[i] = true;\n\n        break;\n\n      }\n\n    }\n\n  }\n\n  return dp[s.length];\n\n}\n\n// Word Break II (all sentences)\n\nfunction wordBreakII(s, wordDict) {\n\n  const dict = new Set(wordDict);\n\n  const memo = {};\n\n  function dfs(start) {\n\n    if (start === s.length) return [''];\n\n    if (memo[start]) return memo[start];\n\n    const results = [];\n\n    for (let end = start + 1; end <= s.length; end++) {\n\n      const word = s.slice(start, end);\n\n      if (dict.has(word)) {\n\n        for (const rest of dfs(end)) {\n\n          results.push(rest ? word + ' ' + rest : word);\n\n        }\n\n      }\n\n    }\n\n    return memo[start] = results;\n\n  }\n\n  return dfs(0);\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Decode Ways?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Number of ways to decode string - O(n)\n\nfunction numDecodings(s) {\n\n  if (!s || s[0] === '0') return 0;\n\n  const n = s.length;\n\n  const dp = new Array(n + 1).fill(0);\n\n  dp[0] = 1; dp[1] = 1;\n\n  for (let i = 2; i <= n; i++) {\n\n    const oneDigit = parseInt(s[i-1]);\n\n    const twoDigit = parseInt(s.slice(i-2, i));\n\n    if (oneDigit >= 1) dp[i] += dp[i-1];\n\n    if (twoDigit >= 10 && twoDigit <= 26) dp[i] += dp[i-2];\n\n  }\n\n  return dp[n];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Matrix DP: Unique Paths và Minimum Path Sum?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Unique Paths - O(m*n)\n\nfunction uniquePaths(m, n) {\n\n  const dp = Array.from({length:m}, ()=>new Array(n).fill(1));\n\n  for (let i = 1; i < m; i++)\n\n    for (let j = 1; j < n; j++)\n\n      dp[i][j] = dp[i-1][j] + dp[i][j-1];\n\n  return dp[m-1][n-1];\n\n}\n\n// Minimum Path Sum\n\nfunction minPathSum(grid) {\n\n  const m = grid.length, n = grid[0].length;\n\n  for (let i = 0; i < m; i++)\n\n    for (let j = 0; j < n; j++) {\n\n      if (i === 0 && j === 0) continue;\n\n      const top  = i > 0 ? grid[i-1][j] : Infinity;\n\n      const left = j > 0 ? grid[i][j-1] : Infinity;\n\n      grid[i][j] += Math.min(top, left);\n\n    }\n\n  return grid[m-1][n-1];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Game Theory DP?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Stone Game (predict winner)\n\nfunction canWinStoneGame(piles) {\n\n  // First player always wins (can always pick odd or even positions)\n\n  return true; // Math proof!\n\n  // But general DP:\n\n  const n = piles.length;\n\n  const dp = Array.from({length:n}, (_,i) => Array.from({length:n}, (_,j)=>piles[i]*(i===j?1:0)));\n\n  for (let len = 2; len <= n; len++) {\n\n    for (let i = 0; i <= n - len; i++) {\n\n      const j = i + len - 1;\n\n      dp[i][j] = Math.max(\n\n        piles[i] - dp[i+1][j],\n\n        piles[j] - dp[i][j-1]\n\n      );\n\n    }\n\n  }\n\n  return dp[0][n-1] > 0;\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "Palindrome Partitioning?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Min cuts to partition palindromes\n\nfunction minCut(s) {\n\n  const n = s.length;\n\n  const isPalin = Array.from({length:n}, ()=>new Array(n).fill(false));\n\n  for (let i = n-1; i >= 0; i--)\n\n    for (let j = i; j < n; j++)\n\n      isPalin[i][j] = s[i]===s[j] && (j-i<=2 || isPalin[i+1][j-1]);\n\n  const dp = Array.from({length:n+1}, (_,i)=>i-1);\n\n  for (let i = 1; i <= n; i++)\n\n    for (let j = 0; j < i; j++)\n\n      if (isPalin[j][i-1]) dp[i] = Math.min(dp[i], dp[j]+1);\n\n  return dp[n];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "DP bảng cách nhìn: Interval DP pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Interval DP: dp[i][j] = kết quả tốt nhất cho đoạn [i,j]. Xây dựng từ đoạn ngắn đến dài."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Strange Printer - O(n^3)\n\nfunction strangePrinter(s) {\n\n  const n = s.length;\n\n  const dp = Array.from({length:n}, ()=>new Array(n).fill(0));\n\n  for (let i = n-1; i >= 0; i--) {\n\n    dp[i][i] = 1;\n\n    for (let j = i+1; j < n; j++) {\n\n      dp[i][j] = dp[i+1][j] + 1; // print s[i] alone\n\n      for (let k = i+1; k <= j; k++) {\n\n        if (s[k] === s[i]) {\n\n          dp[i][j] = Math.min(dp[i][j], dp[i][k-1] + (k+1<=j ? dp[k+1][j] : 0));\n\n// Optionally: dp[i+1][k] + dp[k][j] variants\n\n        }\n\n      }\n\n    }\n\n  }\n\n  return dp[0][n-1];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "Counting DP problems?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Count paths in grid with obstacles - O(m*n)\n\nfunction uniquePathsWithObstacles(grid) {\n\n  const m = grid.length, n = grid[0].length;\n\n  if (grid[0][0] === 1) return 0;\n\n  const dp = Array.from({length:m}, ()=>new Array(n).fill(0));\n\n  dp[0][0] = 1;\n\n  for (let i = 0; i < m; i++)\n\n    for (let j = 0; j < n; j++) {\n\n      if (i===0 && j===0) continue;\n\n      if (grid[i][j] === 1) dp[i][j] = 0;\n\n      else dp[i][j] = (i>0?dp[i-1][j]:0) + (j>0?dp[i][j-1]:0);\n\n    }\n\n  return dp[m-1][n-1];\n\n}\n\n// Count BSTs with n nodes (Catalan number)\n\nfunction numTrees(n) {\n\n  const dp = new Array(n+1).fill(0);\n\n  dp[0] = dp[1] = 1;\n\n  for (let i = 2; i <= n; i++)\n\n    for (let j = 1; j <= i; j++)\n\n      dp[i] += dp[j-1] * dp[i-j];\n\n  return dp[n];\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Pattern nhận biết bài DP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Dấu hiệu trong đề bài",
+                  "Pattern DP",
+                  "Ví dụ"
+                ],
+                [
+                  "'Maximum/Minimum ... subarray/subsequence'",
+                  "1D DP",
+                  "Max subarray, LIS, Coin change"
+                ],
+                [
+                  "'Number of ways to...'",
+                  "Counting DP",
+                  "Climb stairs, Unique paths, Decode ways"
+                ],
+                [
+                  "'Can we...', 'Is it possible...'",
+                  "Boolean DP",
+                  "Word break, Partition equal subset"
+                ],
+                [
+                  "'Longest common...'",
+                  "2D DP on strings",
+                  "LCS, Edit distance"
+                ],
+                [
+                  "'Optimal play', 'Game'",
+                  "Minimax/Game DP",
+                  "Stone game, Predict winner"
+                ],
+                [
+                  "'Partitioning'",
+                  "Interval DP",
+                  "Palindrome partition, Burst balloons"
+                ],
+                [
+                  "K transactions/operations",
+                  "DP với 2 dimensions",
+                  "Stock k transactions, K knapsack"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Câu hỏi đầu tiên khi gặp bài DP: 'Subproblem là gì? State là gì? Transition là gì?'"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "DSA",
+  "color": "#B71C1C"
+}

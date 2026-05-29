@@ -1,0 +1,1854 @@
+{
+  "title": "Operating Systems Interview Questions",
+  "subtitle": "*Câu hỏi phỏng vấn OS — Process, Memory, Concurrency, File System*",
+  "sections": [
+    {
+      "name": "Phần I — Process Management (Q1–20)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "Operating System là gì? Mục đích chính?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Operating System (OS) là phần mềm hệ thống làm trung gian giữa user/applications và computer hardware. Quản lý resources và cung cấp abstractions."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Chức năng",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Process Management",
+                  "Tạo, schedule, terminate processes",
+                  "fork(), exec(), wait()"
+                ],
+                [
+                  "Memory Management",
+                  "Phân bổ và bảo vệ memory",
+                  "malloc, virtual memory, paging"
+                ],
+                [
+                  "File System",
+                  "Tổ chức, lưu trữ files",
+                  "open(), read(), write(), close()"
+                ],
+                [
+                  "Device Management",
+                  "Giao tiếp với hardware",
+                  "drivers, I/O scheduling"
+                ],
+                [
+                  "Security & Access",
+                  "Kiểm soát truy cập resources",
+                  "permissions, authentication"
+                ],
+                [
+                  "Networking",
+                  "TCP/IP stack, sockets",
+                  "socket(), bind(), listen()"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "OS Layer diagram:\n\n  User Applications (browser, Node.js, Python...)\n\n          |\n\n  System Libraries (libc, glibc)\n\n          |\n\n  System Call Interface (read, write, fork...)\n\n          |\n\n  OS Kernel (scheduler, memory mgr, file system)\n\n          |\n\n  Hardware Abstraction Layer\n\n          |\n\n  Hardware (CPU, RAM, Disk, Network)"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "Process là gì? Process Table?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Process là một program đang được thực thi. Mỗi process có address space riêng, các resources riêng và trạng thái riêng."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Process = Program in execution\n\nMemory layout của một process:\n\n  High address |  Stack (grows down)  | local vars, function calls\n\n               |  ...                 |\n\n               |  Heap  (grows up)   | malloc, dynamic data\n\n               |  BSS   segment      | uninitalized globals\n\n               |  Data  segment      | initialized globals\n\n  Low address  |  Text  segment      | executable code\n\n- **Process Control Block (PCB): **Data structure chứa thông tin về process: PID, state, PC, registers, memory maps, open files, priority.\n\n- **Process Table: **Array các PCBs — OS track tất cả processes đang chạy."
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "Process States?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Một process chuyển qua các trạng thái trong vòng đời của nó:"
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Process State Diagram:\n\n          fork()\n\n  [New] ---------> [Ready] <--------+\n\n                     |              |\n\n             scheduler |              | I/O done\n\n                     v              |\n\n                 [Running] -----> [Waiting/Blocked]\n\n                  |    |\n\n     exit()        |    | preempt / time slice\n\n                  v    v\n\n               [Terminated]  [Ready]\n\nStates:\n\n  New:       đang được tạo\n\n  Ready:     đang chờ CPU\n\n  Running:   đang sử dụng CPU (chỉ 1 process/core)\n\n  Waiting:   đang chờ I/O hoặc event\n\n  Terminated: đã kết thúc"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "Thread là gì? Process vs Thread?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Thread là đơn vị thực thi nhỏ nhất trong một process. Nhiều threads trong cùng process chia sẻ memory."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Process",
+                  "Thread"
+                ],
+                [
+                  "Address space",
+                  "Riêng biệt",
+                  "Chia sẻ với các threads khác trong process"
+                ],
+                [
+                  "Communication",
+                  "IPC (slow: pipes, sockets)",
+                  "Shared memory (fast)"
+                ],
+                [
+                  "Context switch",
+                  "Heavy — save/restore full state",
+                  "Lightweight — chỉ save registers + stack"
+                ],
+                [
+                  "Isolation",
+                  "Tốt — crash process không ảnh hưởng process khác",
+                  "Yếu — một thread crash → crash cả process"
+                ],
+                [
+                  "Creation time",
+                  "Chậm",
+                  "Nhanh hơn ~10x"
+                ],
+                [
+                  "Memory",
+                  "Code + Data + Heap + Stack riêng",
+                  "Chỉ Stack + Registers riêng"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Node.js: single-threaded (1 main thread) nhưng dùng libuv thread pool (4 threads mặc định) cho I/O. Worker Threads API cho CPU-intensive tasks."
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Context Switching là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Context switching là quá trình OS lưu state của process hiện tại và nạp state của process mới để thực thi."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Context Switch steps:\n\nP1 running -> interrupt/scheduler decision\n\n  1. Save P1 state: PC, registers, memory maps -> P1's PCB\n\n  2. Update P1 PCB: change state to Ready/Waiting\n\n  3. Load P2 state: PC, registers, memory maps from P2's PCB\n\n  4. Resume P2 execution\n\nOverhead:\n\n  - Saving/restoring registers\n\n  - Flushing TLB (Translation Lookaside Buffer)\n\n  - Cache pollution (cache lines của P1 bị replace)\n\nNode.js: single-threaded nên tránh context switch overhead\n\n  -> đó là một trong các lý do Node.js hiệu quả cho I/O"
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "CPU Scheduling Algorithms?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Loại",
+                  "Average Wait",
+                  "Starvation",
+                  "Dùng khi"
+                ],
+                [
+                  "FCFS",
+                  "Non-preemptive",
+                  "Cao (convoy effect)",
+                  "Không",
+                  "Simple batch jobs"
+                ],
+                [
+                  "SJF (Shortest Job First)",
+                  "Non-preemptive",
+                  "Thấp (optimal)",
+                  "Có (long jobs)",
+                  "Batch, biết burst time"
+                ],
+                [
+                  "SRTF (Shortest Remaining)",
+                  "Preemptive",
+                  "Thấp nhất",
+                  "Có",
+                  "Interactive"
+                ],
+                [
+                  "Priority",
+                  "Cả hai",
+                  "Trung bình",
+                  "Có",
+                  "Real-time, OS tasks"
+                ],
+                [
+                  "Round Robin",
+                  "Preemptive",
+                  "Trung bình",
+                  "Không",
+                  "Time-sharing, interactive"
+                ],
+                [
+                  "Multilevel Queue",
+                  "Preemptive",
+                  "Trùy loại",
+                  "Có thể",
+                  "OS modern"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Round Robin example (quantum = 4ms):\n\nProcess  Burst  Arrival\n\nP1       8ms    0ms\n\nP2       4ms    0ms\n\nP3       6ms    0ms\n\nTimeline:\n\n[P1:0-4][P2:4-8][P3:8-12][P1:12-16][P3:16-18]\n\n         ^done   ^done    ^done\n\nAvg wait: (8 + 4 + 6) / 3 = 6ms"
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "Zombie Process và Orphan Process?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Giải pháp"
+                ],
+                [
+                  "Zombie Process",
+                  "Child đã kết thúc nhưng entry vẫn trong process table vì parent chưa wait()",
+                  "Parent gọi wait()/waitpid() sau khi child exit"
+                ],
+                [
+                  "Orphan Process",
+                  "Parent kết thúc trước child. Child được adopt bởi init (PID 1)",
+                  "init process tự động wait() cho orphans"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Tránh zombie trong Node.js (child_process)\n\nconst { fork } = require('child_process');\n\nconst child = fork('./worker.js');\n\nchild.on('exit', (code) => {\n\n  console.log('Child exited:', code);\n\n  // child entry được cleanup tự động\n\n});\n\n// Hoặc dùng child.unref() cho detached process\n\nchild.unref(); // parent không chờ child"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "IPC — Inter-Process Communication?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "IPC Méthod",
+                  "Mô tả",
+                  "Tốc độ",
+                  "Use case"
+                ],
+                [
+                  "Pipes",
+                  "One-way data flow giữa related processes",
+                  "Trung bình",
+                  "Shell: ls │ grep .js"
+                ],
+                [
+                  "Named Pipes (FIFO)",
+                  "Pipe có tên, giữa unrelated processes",
+                  "Trung bình",
+                  "Logger <-> App"
+                ],
+                [
+                  "Message Queue",
+                  "Queue có cấu trúc, kernel-managed",
+                  "Trung bình",
+                  "Async job processing"
+                ],
+                [
+                  "Shared Memory",
+                  "Vùng memory dùng chung (fastest IPC)",
+                  "Cao nhất",
+                  "Real-time data sharing"
+                ],
+                [
+                  "Semaphores",
+                  "Synchronization, không truyền data",
+                  "N/A",
+                  "Coordinate access"
+                ],
+                [
+                  "Sockets",
+                  "Network hoặc Unix domain sockets",
+                  "Thấp-Cao",
+                  "Client-server, microservices"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Trong microservices: Kafka/RabbitMQ = message queue qua network. Redis Pub/Sub = shared memory-like qua network. REST/gRPC = sockets."
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Deadlock — 4 điều kiện cần?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Deadlock xảy ra khi 4 điều kiện Coffman tồn tại đồng thời:"
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Coffman Condition",
+                  "Mô tả",
+                  "Phá vỡ bằng cách"
+                ],
+                [
+                  "Mutual Exclusion",
+                  "Resource chỉ 1 process dùng cùng lúc",
+                  "Shareable resources"
+                ],
+                [
+                  "Hold and Wait",
+                  "Process giữ resource và chờ resource khác",
+                  "Request all at once"
+                ],
+                [
+                  "No Preemption",
+                  "Resource không bị lấy lại bắt buộc",
+                  "Allow preemption"
+                ],
+                [
+                  "Circular Wait",
+                  "Chu trình chờ: P1->R1->P2->R2->P1",
+                  "Order resource requests"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Deadlock example:\n\nP1: locks(A), waits(B)\n\nP2: locks(B), waits(A)\n\nResource Allocation Graph:\n\n  P1 --> R2 (wants R2)\n\n  R2 --> P2 (held by P2)\n\n  P2 --> R1 (wants R1)\n\n  R1 --> P1 (held by P1)\n\n  -> Circular wait -> DEADLOCK!\n\nDeadlock Prevention (Banker's Algorithm):\n\n  Safe state = there exists a sequence where all\n\n  processes can finish with available resources\n\n*💡 Trong database: deadlock detection + rollback 1 transaction. Trong distributed systems: timeout + retry. Trong concurrent code: lock ordering.*"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Starvation và Aging?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Starvation: Process không bao giờ được CPU vì luôn có process priority cao hơn. Thường xảy ra với Priority Scheduling."
+            },
+            {
+              "type": "text",
+              "text": "Aging: Kỹ thuật giải quyết starvation bằng cách tăng dần priority của process theo thời gian chờ."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Aging example:\n\nProcess P5 (priority 1) chờ quá lâu\n\nt = 0:   P5.priority = 1  (lowest)\n\nt = 10s: P5.priority = 2  (+1 sau 10s)\n\nt = 20s: P5.priority = 3\n\nt = 50s: P5.priority = 6  (bằng các process khác)\n\n  -> P5 được xử lý"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Preemptive vs Non-Preemptive Scheduling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Preemptive",
+                  "Non-Preemptive"
+                ],
+                [
+                  "CPU allocation",
+                  "Có thể bị lấy lại",
+                  "Giữ cho đến khi xong"
+                ],
+                [
+                  "Interruption",
+                  "Có, khi priority cao hơn arrive",
+                  "Không"
+                ],
+                [
+                  "Overhead",
+                  "Cao (context switching)",
+                  "Thấp"
+                ],
+                [
+                  "Response time",
+                  "Tốt hơn",
+                  "Kém hơn"
+                ],
+                [
+                  "Starvation",
+                  "Low priority có thể starve",
+                  "Long jobs có thể block"
+                ],
+                [
+                  "Ví dụ",
+                  "Round Robin, SRTF",
+                  "FCFS, SJF"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "Process Synchronization là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Process synchronization đảm bảo các processes truy cập shared resources theo đúng thứ tự, tránh race conditions và data inconsistency."
+            },
+            {
+              "type": "text",
+              "text": "- Race condition: Kết quả của các operations phụ thuộc vào timing không kiểm soát được."
+            },
+            {
+              "type": "text",
+              "text": "- Critical section: Đoạn code đọc/ghi shared data — chỉ 1 process được vào cùng lúc."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Race condition example\n\nlet counter = 0;\n\n// Thread 1:  LOAD counter (0)\n\n//             ADD 1\n\n//             STORE counter (1)\n\n// Thread 2:  LOAD counter (0)  <- giữa Thread 1!\n\n//             ADD 1\n\n//             STORE counter (1)  <- mất 1 update!\n\n// Expected: counter = 2, Got: counter = 1\n\n// Solution: Mutex lock\n\nmutex.lock();\n\ncounter++;\n\nmutex.unlock();"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Mutex, Semaphore, Monitor khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Mutex",
+                  "Semaphore",
+                  "Monitor"
+                ],
+                [
+                  "Khái niệm",
+                  "Binary lock: locked/unlocked",
+                  "Integer counter (0..N)",
+                  "High-level sync construct"
+                ],
+                [
+                  "Chức năng",
+                  "Mutual exclusion cho critical section",
+                  "Signal + wait, đếm resources",
+                  "Encapsulates mutex + condition"
+                ],
+                [
+                  "Ownership",
+                  "Chỉ owner mới unlock được",
+                  "Ai cũng có thể signal",
+                  "Methods tự động lock"
+                ],
+                [
+                  "Giá trị",
+                  "0 (locked) / 1 (unlocked)",
+                  "0..N",
+                  "N/A"
+                ],
+                [
+                  "Ví dụ",
+                  "File write lock",
+                  "DB connection pool",
+                  "Java synchronized"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Semaphore đếm connections\n\nconst semaphore = new Semaphore(5); // max 5 concurrent DB connections\n\nasync function query(sql) {\n\n  await semaphore.acquire();  // wait nếu đủ 5 connections\n\n  try {\n\n    return await db.execute(sql);\n\n  } finally {\n\n    semaphore.release();       // giải phóng slot\n\n  }\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Classic Synchronization Problems?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Problem",
+                  "Mô tả",
+                  "Giải pháp"
+                ],
+                [
+                  "Bounded Buffer (Producer-Consumer)",
+                  "Producer điền buffer, Consumer lấy. Buffer có giới hạn.",
+                  "2 semaphores: empty + full + mutex"
+                ],
+                [
+                  "Readers-Writers",
+                  "Nhiều readers đọc cùng lúc, writer độc quyền",
+                  "Read lock (shared) vs Write lock (exclusive)"
+                ],
+                [
+                  "Dining Philosophers",
+                  "5 triết học, 5 dĩa, 2 nĩa đũa/động. Deadlock-prone.",
+                  "Resource ordering, Chandy/Misra"
+                ],
+                [
+                  "Sleeping Barber",
+                  "Barber ngủ khi không có khách, khách chờ nếu đủ ghế.",
+                  "Semaphores cho customers + barber"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Producer-Consumer là nền tảng của hầu hết message queues (Kafka, RabbitMQ, BullMQ). Readers-Writers là nền tảng của read replicas trong database."
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Kernel là gì? Monolithic vs Microkernel?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Kernel là core của OS, quản lý CPU, memory, devices và cung cấp system calls cho applications."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chích",
+                  "Monolithic Kernel",
+                  "Microkernel"
+                ],
+                [
+                  "Structure",
+                  "Tất cả OS services trong kernel space",
+                  "Chỉ core (IPC, memory, scheduler) trong kernel"
+                ],
+                [
+                  "Performance",
+                  "Nhanh (direct function calls)",
+                  "Chậm hơn (IPC overhead)"
+                ],
+                [
+                  "Stability",
+                  "Một driver crash = crash kernel",
+                  "Driver crash không crash kernel"
+                ],
+                [
+                  "Security",
+                  "Kém hơn (nhớn bản)",
+                  "Tốt hơn (isolation)"
+                ],
+                [
+                  "Ví dụ",
+                  "Linux, Unix, Windows (hybrid)",
+                  "MINIX, QNX, seL4"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Linux kernel space vs user space:\n\n  Kernel space:  Scheduler, Memory Manager, VFS, Drivers\n\n  ============ System Call Interface (boundary) ============\n\n  User space:   Node.js, Python, Nginx, databases, ...\n\nSystem call examples:\n\n  read(fd, buf, count)   -> kernel reads from file/socket\n\n  write(fd, buf, count)  -> kernel writes\n\n  fork()                 -> kernel creates child process\n\n  mmap()                 -> kernel maps file to memory"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "System Calls là gì? Các loại?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "System call là interface giữa user-space applications và OS kernel. Khi gọi system call, CPU chuyển từ user mode sang kernel mode."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Category",
+                  "System Calls",
+                  "Ví dụ"
+                ],
+                [
+                  "Process Control",
+                  "fork, exec, exit, wait",
+                  "Node.js: child_process.spawn()"
+                ],
+                [
+                  "File Management",
+                  "open, read, write, close, stat",
+                  "fs.readFile(), fs.writeFile()"
+                ],
+                [
+                  "Device Management",
+                  "ioctl, read, write, mmap",
+                  "Stream I/O, buffers"
+                ],
+                [
+                  "Information",
+                  "getpid, getuid, times",
+                  "process.pid, process.hrtime()"
+                ],
+                [
+                  "Communication",
+                  "socket, bind, send, recv",
+                  "net.createServer(), http.get()"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "Interrupt là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Interrupt là signal thông báo cho CPU dừng việc đang làm và xử lý event ưu tiên cao hơn."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Nguồn",
+                  "Ví dụ"
+                ],
+                [
+                  "Hardware Interrupt",
+                  "Devices: keyboard, disk, NIC",
+                  "Packet arrived, disk read done"
+                ],
+                [
+                  "Software Interrupt (Trap)",
+                  "System calls, exceptions",
+                  "int 0x80 (x86 system call)"
+                ],
+                [
+                  "Timer Interrupt",
+                  "CPU timer (quantum expired)",
+                  "Trigger context switch (preemptive)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 Tiểu hóa hết: Node.js event loop dựa trên I/O interrupts. Khi read() hoàn thành, hardware interrupt -> kernel -> Node.js callback queue."
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Dispatcher và Dispatch Latency?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dispatcher: Module của OS thực hiện context switch sau khi scheduler chọn process mới. Bao gồm: switching context, switching user mode, jump to user program."
+            },
+            {
+              "type": "text",
+              "text": "Dispatch Latency: Thời gian từ lúc process được chọn đến khi nó thực sự chạy. Thấp hơn = OS nhạy hơn."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Scheduling metrics:\n\n  Turnaround time = Completion time - Arrival time\n\n  Waiting time    = Turnaround - Burst time\n\n  Response time   = First response - Arrival time\n\nExample P1 (burst=5, arrive=0), quantum=2 (Round Robin):\n\n  Timeline: [P1:0-2][P2:2-4][P1:4-6][P2:6-7][P1:7-10]\n\n  P1: turnaround = 10-0 = 10, waiting = 10-5 = 5\n\n  P2: turnaround = 7-0  = 7,  waiting = 7-2  = 5"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Multitasking, Multiprogramming, Multiprocessing khác nhau?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Concept",
+                  "Mô tả",
+                  "CPU",
+                  "Mục đích"
+                ],
+                [
+                  "Multiprogramming",
+                  "Nhiều jobs trong memory, CPU luôn có việc",
+                  "1 CPU",
+                  "Tăng CPU utilization"
+                ],
+                [
+                  "Multitasking",
+                  "Time-sharing: có vẻ chạy song song",
+                  "1+ CPU",
+                  "Interactive user experience"
+                ],
+                [
+                  "Multiprocessing",
+                  "Thực sự song song trên nhiều CPUs",
+                  "N CPUs",
+                  "True parallelism"
+                ],
+                [
+                  "Multithreading",
+                  "Nhiều threads trong 1 process",
+                  "1+ CPU",
+                  "Tận dụng multi-core"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Pipe và Named Pipe (FIFO)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Anonymous pipe: chỉ giữa related processes\n\n// Shell: ls | grep .js\n\n// ls stdout -> pipe -> grep stdin\n\n// Node.js pipe\n\nconst { spawn } = require('child_process');\n\nconst ls   = spawn('ls', ['-la']);\n\nconst grep = spawn('grep', ['.js']);\n\nls.stdout.pipe(grep.stdin);\n\ngrep.stdout.on('data', (data) => console.log(data.toString()));\n\n// Named pipe (FIFO): giữa unrelated processes\n\n// mkfifo /tmp/mypipe\n\n// Process A: echo 'hello' > /tmp/mypipe\n\n// Process B: cat /tmp/mypipe"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — Memory Management (Q21–40)",
+      "questions": [
+        {
+          "id": "Q21",
+          "q": "Memory Management — mục tiêu và kỹ thuật?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Relocation: Process có thể được load ở bất kỳ vị trí nào trong RAM."
+            },
+            {
+              "type": "text",
+              "text": "- Protection: Process không truy cập memory của process khác."
+            },
+            {
+              "type": "text",
+              "text": "- Sharing: Nhiều processes có thể share code (dynamic libraries, shared memory)."
+            },
+            {
+              "type": "text",
+              "text": "- Logical organization: Memory được tổ chức dưới dạng segments/pages."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Memory hierarchy (fast -> slow, small -> large):\n\n  L1 Cache:    ~32KB,   1-4 cycles   (per core)\n\n  L2 Cache:    ~256KB,  10 cycles    (per core)\n\n  L3 Cache:    ~8-32MB, 30-50 cycles (shared)\n\n  RAM:         8-64GB,  100-300 cycles\n\n  SSD:         1-4TB,   10,000-100,000 cycles\n\n  HDD:         1-10TB,  1,000,000+ cycles\n\nVirtual Memory extends RAM with disk (swap)."
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Virtual Memory là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Virtual memory tạo ra ảo giác rằng mỗi process có một address space lớn liên tiếp, dù RAM có thể nhỏ hơn. Dùng disk (swap space) để extend RAM."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Virtual Memory concept:\n\n  Process sees:          Physical memory:\n\n  0x0000...FFFF          [Frame 0] <- Page 0 of P1\n\n  (large virtual space)  [Frame 1] <- Page 2 of P1\n\n                         [Frame 2] <- Page 0 of P2\n\n  Virtual Address        [Frame 3] <- SWAP (on disk)\n\n  |\n\n  MMU (Memory Mgmt Unit)\n\n  |\n\n  Physical Address\n\nBenefits:\n\n  1. Process isolation (each has own virtual space)\n\n  2. More processes than physical RAM allows\n\n  3. Simplified memory model for developers\n\n  4. Share code (DLL/shared libs) without duplication"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Paging là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Paging chia physical memory thành fixed-size frames và process's logical memory thành các pages cùng size. Pages có thể được lưu tại bất kỳ frame nào."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Paging diagram:\n\n  Logical address: [Page Number | Page Offset]\n\n         |\n\n      [Page Table]  (per process, in kernel)\n\n         |\n\n  Physical address: [Frame Number | Page Offset]\n\n  Page table entry:\n\n  | Valid | Frame# | Dirty | Referenced | Protection |\n\nPage Table Walk (address translation):\n\n  1. Split virtual addr: page# = VA >> 12, offset = VA & 0xFFF\n\n  2. Index page table with page#\n\n  3. Get frame number from entry\n\n  4. Physical addr = frame# << 12 | offset\n\nTLB (Translation Lookaside Buffer):\n\n  Cache cho page table entries\n\n  TLB hit: 1-2 cycles\n\n  TLB miss: 100-200 cycles (full page walk)"
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "Segmentation vs Paging?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Paging",
+                  "Segmentation"
+                ],
+                [
+                  "Division",
+                  "Fixed-size pages",
+                  "Variable-size segments (code, data, stack)"
+                ],
+                [
+                  "Fragmentation",
+                  "Internal (cuối page lưu trữ)",
+                  "External (giữa các segments)"
+                ],
+                [
+                  "Visibility",
+                  "Ẩn với programmer",
+                  "Visible (0:code, 1:data, 2:stack)"
+                ],
+                [
+                  "Address format",
+                  "Page# + Offset",
+                  "Segment# + Offset"
+                ],
+                [
+                  "Dùng trong",
+                  "Modern OS (Linux, Windows)",
+                  "x86 segmentation (deprecated)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 Linux hiện đại dùng paging, không dùng segmentation. x86-64 flat memory model (segment base = 0)."
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "Demand Paging và Page Fault?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Demand paging: load page vào memory chỉ khi cần (khi page fault xảy ra). Không load toàn bộ process khi start."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Page Fault handling flow:\n\n  1. CPU truy cập virtual address VA\n\n  2. MMU kiểm tra page table: page not present!\n\n  3. CPU raise PAGE FAULT exception\n\n  4. OS page fault handler runs:\n\n     a. Tìm frame trống (hoặc evict một page)\n\n     b. Load page từ disk/swap vào frame\n\n     c. Update page table (set present bit)\n\n     d. Resume process from faulting instruction\n\nPage fault penalty:\n\n  RAM access: ~100ns\n\n  SSD read:   ~0.1ms (1000x slower)\n\n  HDD read:   ~10ms  (100,000x slower)\n\nGood app: minimize page faults = keep hot data in RAM"
+            }
+          ]
+        },
+        {
+          "id": "Q26",
+          "q": "Page Replacement Algorithms?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Mô tả",
+                  "Optimal?",
+                  "Vấn đề"
+                ],
+                [
+                  "FIFO",
+                  "Replace page đưa vào sớm nhất",
+                  "Không",
+                  "Belady's Anomaly"
+                ],
+                [
+                  "LRU (Least Recently Used)",
+                  "Replace page dùng lâu nhất",
+                  "Gần optimal",
+                  "Tốn chi phí tracking"
+                ],
+                [
+                  "Optimal (OPT)",
+                  "Replace page sẽ dùng xa nhất",
+                  "Có (thỉ lý thuyết)",
+                  "Cần biết tương lai"
+                ],
+                [
+                  "Clock (Second Chance)",
+                  "FIFO + reference bit",
+                  "Gần LRU",
+                  "Approximation LRU"
+                ],
+                [
+                  "LFU (Least Frequently Used)",
+                  "Replace page ít dùng nhất",
+                  "Không",
+                  "Không adapt các phase thay đổi"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Belady's Anomaly (FIFO):\n\nFrames=3: 1,2,3,4,1,2,5,1,2,3,4,5\n\n  Page faults: 9\n\nFrames=4: 1,2,3,4,1,2,5,1,2,3,4,5\n\n  Page faults: 10   <- MORE faults with MORE frames!\n\n=> FIFO không optimal. LRU không bị Belady's Anomaly."
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Thrashing là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Thrashing xảy ra khi OS dành nhiều thời gian xử lý page faults hơn là thực thi processes. CPU utilization giảm đột ngột dù nhiều processes."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Thrashing scenario:\n\n1. OS thấy CPU utilization thấp\n\n2. OS thêm more processes (multiprogramming)\n\n3. Các processes tranh giành frames\n\n4. Nhiều page faults xảy ra\n\n5. Processes chờ I/O (disk) -> CPU idle\n\n6. OS thấy CPU utilization thấp hơn\n\n7. Lặp lại -> CPU utilization = 0\n\nPrevention:\n\n  - Working set model: đảm bảo mỗi process đủ frames\n\n  - Page fault frequency: throttle tạo process mới\n\n  - Swap out some processes khi RAM đầy"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Fragmentation: Internal vs External?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Nguyên nhân",
+                  "Giải pháp"
+                ],
+                [
+                  "Internal Fragmentation",
+                  "Allocated block lớn hơn request (fixed partition/paging)",
+                  "Smaller pages, buddy system"
+                ],
+                [
+                  "External Fragmentation",
+                  "Free memory rải rác, không đủ contiguous block",
+                  "Compaction, paging, segmentation"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Internal fragmentation example (paging):\n\n  Process needs 13KB, page size = 4KB\n\n  -> 4 pages allocated = 16KB\n\n  -> 3KB wasted (internal fragmentation)\n\nExternal fragmentation example (contiguous allocation):\n\n  Memory: [P1:10KB][FREE:5KB][P2:20KB][FREE:5KB][P3:10KB]\n\n  New process needs 8KB contiguous\n\n  -> 10KB free total, but no 8KB contiguous block!\n\n  -> External fragmentation"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Swapping là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Swapping là kỹ thuẫt di chuyển toàn bộ process ra khỏi RAM vào disk (backing store/swap space) để giải phóng RAM cho process khác."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Swapping flow:\n\n  RAM:  [P1][P2][P3][P4]   swap space full\n\n  -> P3 idle (sleeping), needs RAM for P5\n\n  -> Swap out P3 to disk: [P1][P2][--][P4]\n\n  -> Load P5: [P1][P2][P5][P4]\n\nLinux swap commands:\n\n  free -h        # xem RAM và swap\n\n  swapon -s      # list swap devices\n\n  vmstat 1       # monitor swap activity si/so\n\n  si = swap in (pages read from disk)\n\n  so = swap out (pages written to disk)\n\n  High so: process bị swapped out -> slow"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "Logical vs Physical Address?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Logical Address",
+                  "Physical Address"
+                ],
+                [
+                  "Sinh ra bởi",
+                  "CPU khi execute",
+                  "MMU (Memory Management Unit)"
+                ],
+                [
+                  "User thấy",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "Phạm vi",
+                  "0 → max virtual space",
+                  "0 → actual RAM size"
+                ],
+                [
+                  "Ví dụ",
+                  "0x08001234 (virtual)",
+                  "0x00A01234 (physical frame)"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Address Binding?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Thời điểm",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Compile time",
+                  "Address cố định trong code",
+                  "Absolute assembly code, .COM files"
+                ],
+                [
+                  "Load time",
+                  "Address tính khi OS load program",
+                  "Relocatable code, linker"
+                ],
+                [
+                  "Execution time",
+                  "Address dịch lúc chạy (via MMU)",
+                  "Modern OS, virtual memory"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "Cache Memory và Locality of Reference?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Locality of Reference: Chương trình có xu hướng truy cập cùng vùng memory nhiều lần."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Temporal Locality",
+                  "Dữ liệu vừa dùng sẽ dùng lại sớm",
+                  "Loop variable, recently called function"
+                ],
+                [
+                  "Spatial Locality",
+                  "Dữ liệu gần vùng vừa dùng sẽ cần",
+                  "Array traversal, sequential code"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Cache-friendly code:\n\n// BAD: column-major traversal (poor spatial locality)\n\nfor col in 0..N:\n\n  for row in 0..N:\n\n    sum += matrix[row][col]  // jumps 1 row = N*4 bytes\n\n// GOOD: row-major traversal (spatial locality)\n\nfor row in 0..N:\n\n  for col in 0..N:\n\n    sum += matrix[row][col]  // sequential access\n\n// Row-major can be 10x faster for large matrices"
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Buffer, Cache, Spool khác nhau?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khái niệm",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Buffer",
+                  "Tạm chứa data khi truyền giữa 2 thiết bị khác tốc độ",
+                  "TCP send/receive buffer, stream buffer"
+                ],
+                [
+                  "Cache",
+                  "Lưu dữ liệu thường dùng để truy cập nhanh hơn",
+                  "L1/L2 cache, Redis cache, HTTP cache"
+                ],
+                [
+                  "Spool",
+                  "Hàng đợi công việc cho thiết bị chậm",
+                  "Print queue, email queue, job queue"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Node.js streams dùng Buffer (highWaterMark). Redis là cache layer. Bull/BullMQ là spool (job queue). Hiểu 3 khái niệm này rất quan trọng cho backend."
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Memory Allocation: First Fit, Best Fit, Worst Fit?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Cơ chế",
+                  "Tốc độ",
+                  "External Frag"
+                ],
+                [
+                  "First Fit",
+                  "Allocate hole đầu tiên đủ lớn",
+                  "Nhanh",
+                  "Trung bình"
+                ],
+                [
+                  "Best Fit",
+                  "Allocate hole nhỏ nhất vừa đủ",
+                  "Chậm (scan all)",
+                  "Cao (nhiều holes nhỏ)"
+                ],
+                [
+                  "Worst Fit",
+                  "Allocate hole lớn nhất",
+                  "Chậm",
+                  "Thấp (fragments lớn hơn)"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Buddy System Memory Allocation?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Buddy system chia memory thành blocks theo lũy thừa của 2. Khi cần free, 2 buddies (cùng size, adjacent) có thể merge lại."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Memory: 256KB total\n\nRequest 25KB:\n\n  256 -> split 128+128\n\n  128 -> split 64+64\n\n  64  -> split 32+32\n\n  32KB allocated (25KB fits in 32KB)\n\n  7KB internal fragmentation\n\nFree 32KB:\n\n  32 + 32 (buddy) = 64\n\n  64 + 64 (buddy) = 128\n\n  128 + 128 (buddy) = 256  (fully coalesced!)\n\n*📌 Linux kernel dùng Buddy System cho physical page allocation và slab allocator cho kernel objects.*"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Overlay trong Memory Management?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Overlay là kỹ thuẫt cho phép chương trình lớn hơn physical memory chạy bằng cách load chỉ phần cần thiết. Precursor của virtual memory."
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Hashed Page Table?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Hashed page table dùng hash function để map virtual page number tới frame number. Hiệu quả với sparse address spaces (64-bit)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Standard page table (32-bit):\n\n  2^20 entries * 4 bytes = 4MB per process\n\nHashed page table:\n\n  hash(page#) -> bucket -> linked list of entries\n\n  Chỉ store entries cho pages thực sự có trong memory\n\n  Tiết kiệm hơn cho sparse address spaces"
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Copy-on-Write (CoW)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Copy-on-Write là optimization: khi fork() tạo child process, cả 2 share cùng physical pages. Chỉ khi một trong 2 write thì page mới bị copied."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "fork() with Copy-on-Write:\n\n  Before write:\n\n  Parent: [page A] [page B] [page C]\n\n              |         |         |\n\n  Child:  [page A] [page B] [page C]\n\n           (shared read-only)\n\n  After child writes to page B:\n\n  Parent: [page A] [page B] [page C]\n\n              |                  |\n\n  Child:  [page A] [page B'] [page C]\n\n                    ^copy made\n\nBenefits:\n\n  - fork() is O(1) instead of O(n)\n\n  - Redis uses CoW for BGSAVE (background save)"
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "RAID Levels?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "RAID Level",
+                  "Mô tả",
+                  "Min Disks",
+                  "Read",
+                  "Write",
+                  "Fault Tolerance"
+                ],
+                [
+                  "RAID 0",
+                  "Striping, không redundancy",
+                  "2",
+                  "Nhanh",
+                  "Nhanh",
+                  "Không"
+                ],
+                [
+                  "RAID 1",
+                  "Mirroring, full duplicate",
+                  "2",
+                  "Nhanh",
+                  "Chậm 2x",
+                  "1 disk fail"
+                ],
+                [
+                  "RAID 5",
+                  "Striping + parity (distributed)",
+                  "3",
+                  "Nhanh",
+                  "Trung bình",
+                  "1 disk fail"
+                ],
+                [
+                  "RAID 6",
+                  "Striping + 2 parity",
+                  "4",
+                  "Nhanh",
+                  "Chậm",
+                  "2 disks fail"
+                ],
+                [
+                  "RAID 10",
+                  "RAID 1 + RAID 0",
+                  "4",
+                  "Nhanh nhất",
+                  "Nhanh",
+                  "1 per mirror"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Production database: RAID 10 (MySQL, PostgreSQL) hoặc RAID 5/6 (NAS). Cloud storage (AWS S3): replication across 3+ AZs thay vì RAID."
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Disk Scheduling Algorithms?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Mô tả",
+                  "Best for"
+                ],
+                [
+                  "FCFS",
+                  "Xử lý theo thứ tự đến",
+                  "Fair, low load"
+                ],
+                [
+                  "SSTF (Shortest Seek Time First)",
+                  "Phục vụ track gần nhất trước",
+                  "Performance, có starvation"
+                ],
+                [
+                  "SCAN (Elevator)",
+                  "Head di chuyển theo một chiều hết, rồi quay lại",
+                  "Even distribution"
+                ],
+                [
+                  "C-SCAN",
+                  "Chỉ service một chiều, jump về 0 nhanh",
+                  "Uniform wait time"
+                ],
+                [
+                  "LOOK/C-LOOK",
+                  "SCAN nhưng chỉ đến request cuối cùng",
+                  "Modern OS default"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — File System, I/O, Advanced (Q41–58)",
+      "questions": [
+        {
+          "id": "Q41",
+          "q": "File System là gì? Các loại?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "File system tổ chức, lưu trữ và truy xuất files trên storage devices. Cung cấp naming, organization, và access control."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "File System",
+                  "OS",
+                  "Mô tả"
+                ],
+                [
+                  "ext4",
+                  "Linux",
+                  "Default Linux FS, journaling, 1EB max"
+                ],
+                [
+                  "NTFS",
+                  "Windows",
+                  "Journaling, ACLs, compression"
+                ],
+                [
+                  "APFS",
+                  "macOS",
+                  "Copy-on-write, encryption built-in"
+                ],
+                [
+                  "FAT32",
+                  "All",
+                  "Simple, no journaling, 4GB file max"
+                ],
+                [
+                  "ZFS",
+                  "Solaris/Linux",
+                  "Copy-on-write, checksums, RAID built-in"
+                ],
+                [
+                  "XFS",
+                  "Linux",
+                  "High performance, large files"
+                ],
+                [
+                  "tmpfs",
+                  "Linux",
+                  "RAM-based, temporary files (/tmp)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "File System structure:\n\n  Super Block: metadata (size, free blocks, inode count)\n\n  Inode Table: file metadata (size, owner, timestamps, block pointers)\n\n  Data Blocks: actual file content\n\n  Directory: mapping filename -> inode number\n\n  Inode does NOT contain filename\n\n  Directory: { 'file.txt': 42, 'dir/': 43 }  (name -> inode#)\n\n  find inode 42 -> file metadata -> data blocks -> content"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Inode trong Unix/Linux?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Inode (index node) lưu metadata của file: size, owner, permissions, timestamps, và pointers tới data blocks. Không chứa filename."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Inode structure:\n\n  inode {\n\n    uid, gid            // owner\n\n    size                 // file size in bytes\n\n    atime, mtime, ctime  // access, modify, change times\n\n    permissions          // rwxrwxrwx\n\n    direct[0..11]        // 12 direct block pointers (12 * 4KB = 48KB)\n\n    indirect             // points to block of pointers (4MB)\n\n    double_indirect      // (4GB)\n\n    triple_indirect      // (4TB)\n\n  }\n\nLinux commands:\n\n  stat file.txt         # show inode info\n\n  ls -i file.txt        # show inode number\n\n  df -i                 # inode usage\n\n  Hard links: 2 filenames -> same inode\n\n  Symbolic links: filename -> filename -> inode"
+            }
+          ]
+        },
+        {
+          "id": "Q43",
+          "q": "Hard Link vs Symbolic Link?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Hard Link",
+                  "Symbolic Link (Symlink)"
+                ],
+                [
+                  "Trỏ đến",
+                  "Cùng inode",
+                  "Filename của target"
+                ],
+                [
+                  "Xóa original",
+                  "File vẫn tồn tại (same inode)",
+                  "Symlink bị broken"
+                ],
+                [
+                  "Cross filesystem",
+                  "Không (cùng device)",
+                  "Có"
+                ],
+                [
+                  "Directory",
+                  "Không (thường)",
+                  "Có"
+                ],
+                [
+                  "inode",
+                  "Giống nhau",
+                  "Khác nhau"
+                ],
+                [
+                  "Ví dụ",
+                  "ln src dst",
+                  "ln -s src dst"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "File Allocation Methods?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Method",
+                  "Mô tả",
+                  "Access",
+                  "Fragmentation"
+                ],
+                [
+                  "Contiguous",
+                  "File chiếm các blocks liên tiếp",
+                  "O(1) random access",
+                  "External frag"
+                ],
+                [
+                  "Linked",
+                  "Mỗi block chứa pointer tới block kế",
+                  "O(n) random access",
+                  "Không"
+                ],
+                [
+                  "Indexed",
+                  "Index block chứa con trỏ tới data blocks",
+                  "O(1) random access",
+                  "Nhỏ"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "Virtual File System (VFS)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "VFS là abstraction layer trong kernel, cung cấp chung interface cho các file system khác nhau (ext4, NTFS, NFS, tmpfs...)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "VFS architecture:\n\n  Application: open('/mnt/usb/file.txt')\n\n                    |\n\n             [VFS Layer]     <- chung interface\n\n            /          \\\n\n      [ext4 FS]      [NTFS FS]  [NFS FS]\n\n           |              |         |\n\n      [ext4 disk]  [NTFS disk] [Network]\n\nAdvantages:\n\n  - App không cần biết filesystem cụ thể\n\n  - POSIX API nhất quán: open/read/write/close\n\n  - Dễ thêm filesystem mới"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "I/O Systems và DMA?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Direct Memory Access (DMA) cho phép I/O devices truy cập RAM trực tiếp mà không qua CPU."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Without DMA (Programmed I/O):\n\n  CPU: read byte from disk -> store in memory  (1 byte)\n\n  CPU: read byte from disk -> store in memory  (repeat)\n\n  CPU boun được cho task khác\n\nWith DMA:\n\n  1. CPU tells DMA controller: read 4KB from disk to addr 0x1000\n\n  2. CPU continues doing other work\n\n  3. DMA transfers data directly to RAM\n\n  4. DMA sends interrupt: done!\n\n  5. CPU resumes with data ready\n\nNode.js I/O: libuv sử dụng async I/O (epoll/kqueue)\n\n  -> kernel notify khi I/O done (similar to DMA interrupt)"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Blocking vs Non-blocking I/O?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "CPU trong khi I/O",
+                  "Ví dụ"
+                ],
+                [
+                  "Blocking I/O",
+                  "Process chờ I/O hoàn thành",
+                  "Idle",
+                  "read() in C (default)"
+                ],
+                [
+                  "Non-blocking I/O",
+                  "Return ngay, check later",
+                  "Có thể làm việc khác",
+                  "O_NONBLOCK flag"
+                ],
+                [
+                  "Async I/O (AIO)",
+                  "OS notify khi done (callback/event)",
+                  "Tự do hoàn toàn",
+                  "Node.js async, Linux AIO"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Node.js: non-blocking async I/O\n\n// Tầng OS: epoll (Linux) / kqueue (macOS)\n\n// Blocking (synchronous) - avoid in Node.js servers!\n\nconst data = fs.readFileSync('big.file'); // blocks event loop!\n\n// Non-blocking (asynchronous) - correct way\n\nfs.readFile('big.file', (err, data) => {\n\n  // called when OS notifies data is ready\n\n});\n\n// Event loop tiếp tục xử lý requests khác trong lúc chờ"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Kernel Mode vs User Mode?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "CPU có 2 privilege levels: Kernel mode (ring 0) và User mode (ring 3). Bảo vệ OS khỏi user programs."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Privilege levels:\n\n  Ring 0 (Kernel mode):\n\n    - Trực tiếp access hardware\n\n    - Execute privileged instructions\n\n    - Access all memory\n\n    - OS kernel, device drivers\n\n  Ring 3 (User mode):\n\n    - Restricted access\n\n    - Can NOT direct I/O or access all memory\n\n    - Phải dùng system calls để vào kernel\n\n    - Node.js, Python, browser, apps\n\nMode switch (user -> kernel):\n\n  1. System call: read(), write(), fork()\n\n  2. Hardware interrupt: timer, I/O done\n\n  3. Exception: page fault, divide by zero"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "Spooling?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Spooling (Simultaneous Peripheral Operations On-Line): buffer jobs để devices chậm xử lý bao giờ cũng được, tránh blocking applications."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Print spooling:\n\n  App1 --> [Spool Queue (disk)] --> Printer (slow)\n\n  App2 --> [Spool Queue (disk)]\n\n  App3 --> [Spool Queue (disk)]\n\n  Apps không chờ printer, tiếp tục chạy ngay\n\n  Print spooler lần lượt gửi tới printer\n\nTrong backend:\n\n  Email spooler (queue) -> SMTP server\n\n  Job queue (BullMQ) -> worker processes\n\n  Kafka/RabbitMQ = sophisticated spool"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "Booting Process?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Computer boot sequence:\n\n  1. Power On Self Test (POST): kiểm tra hardware\n\n  2. BIOS/UEFI: tìm boot device, load bootloader\n\n  3. Bootloader (GRUB/UEFI): load OS kernel\n\n  4. Kernel: decompresses, initializes subsystems\n\n     - Memory management init\n\n     - Scheduler init\n\n     - I/O subsystem init\n\n     - File system mount\n\n  5. init/systemd (PID 1): start user-space services\n\n  6. Login prompt / Desktop"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Real-Time Operating Systems (RTOS)?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Deadline",
+                  "Ví dụ"
+                ],
+                [
+                  "Hard RTOS",
+                  "Phải đáp ứng deadline tuyệt đối",
+                  "Miễn nhượng",
+                  "Airbag, anti-lock brakes, pacemaker"
+                ],
+                [
+                  "Soft RTOS",
+                  "Nếu trễ một chút vẫn chấp nhận",
+                  "Có thể trễ",
+                  "Video streaming, audio playback"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 FreeRTOS, VxWorks cho embedded. Linux có PREEMPT_RT patch cho soft RTOS. Không dùng Node.js cho hard RTOS!"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Multiprocessor Systems?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Symmetric (SMP)",
+                  "Tất cả CPUs chia sẻ RAM và OS",
+                  "Modern multi-core x86"
+                ],
+                [
+                  "Asymmetric",
+                  "Mỗi CPU có task riêng (master-slave)",
+                  "Embedded systems"
+                ],
+                [
+                  "NUMA (Non-Uniform Memory Access)",
+                  "Mỗi CPU có local RAM, có thể access remote RAM",
+                  "Large servers"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Semaphores và các câu hỏi thường gặp?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Semaphore là integer variable với 2 atomic operations: wait() (P) và signal() (V)."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Binary Semaphore (Mutex equivalent):\n\n  S = 1\n\n  wait(S):   if S > 0: S--; else: block\n\n  signal(S): S++; if waiting: wake one\n\nCounting Semaphore (resource pool):\n\n  S = N (number of available resources)\n\n  wait(S):   S--; if S < 0: block\n\n  signal(S): S++; if S <= 0: wake one\n\nClassic problem: Producer-Consumer\n\n  empty = N (empty slots)\n\n  full  = 0 (full slots)\n\n  mutex = 1\n\n  Producer:               Consumer:\n\n    wait(empty)             wait(full)\n\n    wait(mutex)             wait(mutex)\n\n    add to buffer           remove from buffer\n\n    signal(mutex)           signal(mutex)\n\n    signal(full)            signal(empty)"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Peterson's Solution?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Peterson's solution giải quyết critical section problem cho 2 processes sử dụng shared variables."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Peterson's algorithm\n\n// Tấc cả 3 conditions: mutual exclusion, progress, bounded waiting\n\nlet flag = [false, false]; // flag[i] = process i wants to enter CS\n\nlet turn = 0;              // whose turn\n\n// Process i wants critical section:\n\nfunction enterCS(i) {\n\n  const j = 1 - i;\n\n  flag[i] = true;  // i wants to enter\n\n  turn = j;        // give priority to j\n\n  while (flag[j] && turn === j) {} // busy wait\n\n}\n\nfunction exitCS(i) {\n\n  flag[i] = false; // i is done\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "Banker's Algorithm?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Banker's Algorithm là deadlock avoidance algorithm. OS chỉ cấp phát resource nếu sau đó hệ thống vẫn trong safe state."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Banker's Algorithm:\n\n  Allocation: matrix [process x resource]\n\n  Max:        matrix [process x resource]\n\n  Available:  vector [resource]\n\n  Need = Max - Allocation\n\n  Safe sequence exists?\n\n  1. Find process P where Need[P] <= Available\n\n  2. Run P to completion, release resources\n\n  3. Available = Available + Allocation[P]\n\n  4. Repeat until all done\n\n  If no safe sequence: UNSAFE -> deny request\n\n  Example:\n\n  P0: need [7,4,3], allocation [0,1,0]\n\n  P1: need [1,2,2], allocation [2,0,0]\n\n  P2: need [6,0,0], allocation [3,0,2]\n\n  Available: [3,3,2]\n\n  Safe sequence: P1 -> P2 -> P0"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "Cycle Detection trong Resource Allocation Graph?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Resource Allocation Graph:\n\n  P1 -> R1  (P1 requests R1)\n\n  R1 -> P2  (R1 held by P2)\n\n  P2 -> R2  (P2 requests R2)\n\n  R2 -> P1  (R2 held by P1)\n\n  Cycle: P1->R1->P2->R2->P1 = DEADLOCK\n\n  Deadlock detection algorithm:\n\n  1. Build wait-for graph (process only)\n\n  2. Detect cycle using DFS\n\n  3. If cycle: deadlock exists\n\n  Recovery:\n\n  - Terminate one process in cycle\n\n  - Preempt resource from one process"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "OS liên quan đến Node.js/Backend?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "OS Concept",
+                  "Liên quan Node.js/Backend",
+                  "Số thực tế"
+                ],
+                [
+                  "Process/Thread",
+                  "Node.js = 1 main thread, libuv = 4 I/O threads",
+                  "Worker Threads API cho CPU-heavy"
+                ],
+                [
+                  "Context Switch",
+                  "Single-thread tránh context switch overhead",
+                  "PM2 cluster mode = OS-level multiprocessing"
+                ],
+                [
+                  "Virtual Memory",
+                  "Node.js heap = virtual memory, GC",
+                  "--max-old-space-size flag"
+                ],
+                [
+                  "File Descriptors",
+                  "Mỗi socket, file = file descriptor",
+                  "ulimit -n 65535 (max FDs)"
+                ],
+                [
+                  "IPC",
+                  "Kafka, Redis Pub/Sub, Unix sockets",
+                  "Redis IPC ~1M msgs/sec"
+                ],
+                [
+                  "Semaphores",
+                  "Connection pool size, rate limiting",
+                  "pg pool max: 10 connections"
+                ],
+                [
+                  "Page Fault / Cache",
+                  "Hot data in L1/L2 cache = fast",
+                  "Keep data structures cache-friendly"
+                ],
+                [
+                  "Signals",
+                  "SIGTERM, SIGINT cho graceful shutdown",
+                  "process.on('SIGTERM', cleanup)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Gọi cho interviewer biết: 'Node.js tận dụng OS event notification (epoll/kqueue) để xử lý I/O mà không block. Đó là lý do tại sao 1 thread có thể xử lý 10,000+ concurrent connections.'"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Summary — Các concept OS quan trọng nhất?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Concept",
+                  "Key points"
+                ],
+                [
+                  "Process vs Thread",
+                  "Process: isolated, heavy. Thread: shared memory, light."
+                ],
+                [
+                  "CPU Scheduling",
+                  "Round Robin (fair), SJF (optimal avg), Priority (real-time)"
+                ],
+                [
+                  "Deadlock (4 conditions)",
+                  "Mutual exclusion, Hold&Wait, No Preemption, Circular Wait"
+                ],
+                [
+                  "Virtual Memory",
+                  "Paging, Demand paging, Page Fault, Page Replacement (LRU)"
+                ],
+                [
+                  "Synchronization",
+                  "Mutex (binary lock), Semaphore (counter), Monitor (high-level)"
+                ],
+                [
+                  "IPC",
+                  "Pipes, Shared Memory (fast), Sockets (network), Message Queue"
+                ],
+                [
+                  "File System",
+                  "inode, blocks, hard/soft links, VFS abstraction"
+                ],
+                [
+                  "Context Switching",
+                  "Save PCB -> Load new PCB -> resume. Expensive!"
+                ],
+                [
+                  "Thrashing",
+                  "Too many processes -> all paging -> CPU starves"
+                ],
+                [
+                  "Banker's Algorithm",
+                  "Safe state = all processes can finish. Deadlock avoidance."
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "Operating Systems",
+  "color": "#5D4037"
+}

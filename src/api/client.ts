@@ -1,0 +1,66 @@
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
+
+function token(): string | null {
+  return localStorage.getItem('quiz:token');
+}
+
+function authHeaders(): HeadersInit {
+  const t = token();
+  return t ? { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(BASE + path, { ...options, headers: { ...authHeaders(), ...options?.headers } });
+  const json = await res.json() as T;
+  if (!res.ok) throw new ApiError((json as { error?: string }).error ?? 'Request failed', res.status);
+  return json;
+}
+
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
+export const api = {
+  auth: {
+    register: (email: string, password: string, displayName?: string) =>
+      request<AuthResponse>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, displayName }),
+      }),
+
+    login: (email: string, password: string) =>
+      request<AuthResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      }),
+
+    me: () => request<AuthUser>('/auth/me'),
+  },
+
+  progress: {
+    get: () => request<{ data: Record<string, boolean> }>('/progress'),
+    put: (data: Record<string, boolean>) =>
+      request<{ ok: boolean }>('/progress', {
+        method: 'PUT',
+        body: JSON.stringify({ data }),
+      }),
+    patch: (key: string, value: boolean) =>
+      request<{ ok: boolean }>('/progress', {
+        method: 'PATCH',
+        body: JSON.stringify({ key, value }),
+      }),
+  },
+};

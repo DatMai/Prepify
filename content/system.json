@@ -1,0 +1,1567 @@
+{
+  "title": "System Design Interview Questions",
+  "subtitle": "*HLD • LLD • Scalability • Classic Designs • Backend Focus*",
+  "sections": [
+    {
+      "name": "Phần I — System Design Fundamentals (Q1–20)",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "Cách tiếp cận một bài System Design trong interview?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Framework 5 bước: Clarify -> Estimate -> Design -> Deep Dive -> Wrap up."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "System Design Interview Framework:\n\nStep 1: CLARIFY (5 min)\n\n  - Functional requirements: what does it need to do?\n\n  - Non-functional: scale, latency, consistency, availability\n\n  - Constraints: read-heavy vs write-heavy? Mobile?\n\n  - Out of scope: what NOT to design today\n\nStep 2: CAPACITY ESTIMATION (3 min)\n\n  - DAU (Daily Active Users): e.g., 10M users\n\n  - QPS = DAU * actions_per_day / 86400\n\n  - Storage: messages * size * retention\n\n  - Bandwidth: QPS * avg_payload_size\n\nStep 3: HIGH-LEVEL DESIGN (15 min)\n\n  - Draw components: clients, API layer, services,\n\n    databases, caches, queues, CDN\n\n  - Explain data flow for main use cases\n\nStep 4: DEEP DIVE (15 min)\n\n  - Interviewer picks: DB schema, cache strategy,\n\n    scaling bottleneck, consistency model\n\nStep 5: WRAP UP (2 min)\n\n  - Recap, mention what you'd improve\n\n*💡 Từng bước nói to suy nghĩ của mình. Interviewer muốn nghe tư duy, không chỉ kết quả.*"
+            }
+          ]
+        },
+        {
+          "id": "Q2",
+          "q": "Horizontal Scaling vs Vertical Scaling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Vertical Scaling (Scale Up)",
+                  "Horizontal Scaling (Scale Out)"
+                ],
+                [
+                  "Cơ chế",
+                  "Tăng CPU/RAM/Disk của một server",
+                  "Thêm nhiều servers"
+                ],
+                [
+                  "Giới hạn",
+                  "Có (hardware ceiling)",
+                  "Không (lý thuyết vô hạn)"
+                ],
+                [
+                  "Chi phí",
+                  "Tăng nhanh khi tăng cao",
+                  "Linear, thường rẻ hơn"
+                ],
+                [
+                  "Downtime",
+                  "Có (khi nâng cấp)",
+                  "Không (rolling deploy)"
+                ],
+                [
+                  "Complexity",
+                  "Thấp",
+                  "Cao (distributed systems)"
+                ],
+                [
+                  "State",
+                  "Dễ (single server)",
+                  "Khó (stateless needed)"
+                ],
+                [
+                  "Dùng khi",
+                  "Database, in-memory systems",
+                  "Stateless services, web tier"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Scale-out example (Node.js):\n\n  Single server: 1 Node.js process\n\n    -> Bottleneck: CPU-bound tasks, single point of failure\n\n  Scale out:\n\n    Load Balancer (NGINX/ALB)\n\n         |   |   |\n\n      [Node][Node][Node]  <- 3 stateless processes\n\n  Important: Session/state must be EXTERNAL\n\n    Redis: session store, rate limit counters\n\n    Shared DB: persistent data\n\n    Message Queue: async tasks"
+            }
+          ]
+        },
+        {
+          "id": "Q3",
+          "q": "CAP Theorem và BASE vs ACID trong System Design?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "CAP: một distributed system chỉ được 2 trong 3: Consistency, Availability, Partition Tolerance."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khái niệm",
+                  "ACID",
+                  "BASE"
+                ],
+                [
+                  "Stands for",
+                  "Atomicity, Consistency, Isolation, Durability",
+                  "Basically Available, Soft state, Eventually consistent"
+                ],
+                [
+                  "System type",
+                  "Single node / RDBMS",
+                  "Distributed NoSQL"
+                ],
+                [
+                  "Consistency",
+                  "Strong (immediate)",
+                  "Eventual"
+                ],
+                [
+                  "Availability",
+                  "Trade-off",
+                  "Uu tiên"
+                ],
+                [
+                  "Ví dụ",
+                  "PostgreSQL, MySQL",
+                  "Cassandra, DynamoDB, CouchDB"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CAP Trade-offs in practice:\n\n  CP (Consistency + Partition):\n\n    MongoDB (default: strong read/write to primary)\n\n    ZooKeeper, HBase\n\n    Trade: unavailable during partition -> returns error\n\n  AP (Availability + Partition):\n\n    Cassandra, DynamoDB, CouchDB\n\n    Trade: may return stale data during partition\n\n  CA (no Partition Tolerance):\n\n    PostgreSQL single-node, MySQL single-node\n\n    Not useful for truly distributed systems\n\nReal world: PACELC extends CAP\n\n  E: even during normal operation, tradeoff Latency vs Consistency"
+            }
+          ]
+        },
+        {
+          "id": "Q4",
+          "q": "Functional vs Non-Functional Requirements?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "Functional",
+                  "Hệ thống làm gì? User stories, features",
+                  "Users can post tweets, Like posts, Follow users"
+                ],
+                [
+                  "Non-Functional",
+                  "Hệ thống hoạt động như thế nào?",
+                  "Latency < 200ms p99, 99.9% uptime, 1M DAU"
+                ],
+                [
+                  "Scalability",
+                  "Mở rộng khi tăng tải",
+                  "Handle 10x traffic spike with no change"
+                ],
+                [
+                  "Reliability",
+                  "Tiếp tục hoạt động khi có lỗi",
+                  "Tolerate 1 datacenter failure"
+                ],
+                [
+                  "Availability",
+                  "Uptime percentage",
+                  "99.99% = 52 minutes/year downtime"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Availability calculation:\n\n  99%    = 87.6 hours downtime/year\n\n  99.9%  =  8.76 hours/year\n\n  99.99% =  52 minutes/year  <- most production targets\n\n  99.999% = 5.26 minutes/year\n\nSLA vs SLO vs SLI:\n\n  SLI: actual measurement (p99 latency = 145ms)\n\n  SLO: target (p99 latency < 200ms)\n\n  SLA: contractual commitment with penalty"
+            }
+          ]
+        },
+        {
+          "id": "Q5",
+          "q": "Load Balancing Strategies?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Load balancer phân phối traffic, tăng availability và scalability. Hoạt động ở Layer 4 (TCP) hoặc Layer 7 (HTTP)."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Mô tả",
+                  "Best For"
+                ],
+                [
+                  "Round Robin",
+                  "Lần lượt",
+                  "Servers đồng đều, stateless"
+                ],
+                [
+                  "Weighted Round Robin",
+                  "Theo tỷ lệ capacity",
+                  "Servers khác nhau"
+                ],
+                [
+                  "Least Connections",
+                  "Server ít connections nhất",
+                  "Long-lived connections"
+                ],
+                [
+                  "IP Hash",
+                  "Hash IP -> cùng server",
+                  "Sticky sessions"
+                ],
+                [
+                  "Resource-based",
+                  "Dựa trên CPU/RAM thực tế",
+                  "Dynamic workloads"
+                ],
+                [
+                  "Least Response Time",
+                  "Server phản hồi nhanh nhất",
+                  "Latency-sensitive"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "- Health checks: Active (ping every 30s) và Passive (detect failed requests). Remove unhealthy servers tự động."
+            },
+            {
+              "type": "text",
+              "text": "- L4 vs L7: L4 nhanh hơn (TCP level). L7 thông minh hơn (route by URL, headers, content)."
+            }
+          ]
+        },
+        {
+          "id": "Q6",
+          "q": "Caching Strategies?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Strategy",
+                  "Mô tả",
+                  "Trade-off"
+                ],
+                [
+                  "Cache-aside (Lazy)",
+                  "App đọc cache; miss -> đọc DB -> write cache",
+                  "Cache miss on cold start; stale data"
+                ],
+                [
+                  "Write-through",
+                  "Write cache + DB đồng thời",
+                  "Chậm hơn; data luôn fresh"
+                ],
+                [
+                  "Write-behind (async)",
+                  "Write cache ngay; write DB async",
+                  "Nhanh; risk data loss if cache fails"
+                ],
+                [
+                  "Refresh-ahead",
+                  "Pre-populate cache trước khi expire",
+                  "Giảm miss; may cache unused data"
+                ],
+                [
+                  "Read-through",
+                  "Cache thi transparent read-through",
+                  "App đơn giản hơn; miss penalty"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Cache eviction policies:\n\n  LRU  (Least Recently Used)   - default Redis\n\n  LFU  (Least Frequently Used) - Redis 4.0+\n\n  FIFO (First In First Out)\n\n  TTL  (Time To Live)          - simplest\n\nCache invalidation strategies:\n\n  1. TTL (time-based expiry)    - eventual consistency\n\n  2. Write-through             - strong consistency\n\n  3. Event-based (pub/sub)     - on data change\n\n  4. Versioned keys            - your drilling system!\n\nCache stampede prevention:\n\n  - Mutex/lock on cache miss (only 1 fills)\n\n  - Probabilistic early expiry (re-compute before TTL)\n\n  - Background refresh\n\n*💡 Redis data structures: String (simple KV), Hash (object), List (queue/stack), Set (unique), Sorted Set (leaderboard), Bitmap, HyperLogLog (unique count).*"
+            }
+          ]
+        },
+        {
+          "id": "Q7",
+          "q": "Database Sharding?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Sharding chia data được thành các partitions (shards) trên nhiều servers để scale horizontally."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Sharding Key",
+                  "Mô tả",
+                  "Nhược điểm"
+                ],
+                [
+                  "Range-based",
+                  "Chia theo range của key (user_id 1-1M, 1M-2M)",
+                  "Hotspots nếu distribution không đều"
+                ],
+                [
+                  "Hash-based",
+                  "hash(key) % N_shards",
+                  "KHÓ range queries; resharding tốn kém"
+                ],
+                [
+                  "Directory-based",
+                  "Lookup table mapping key to shard",
+                  "Single point of failure if lookup fails"
+                ],
+                [
+                  "Geographic",
+                  "Shard by region",
+                  "Cross-region queries chậm"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Consistent Hashing (hash-based sharding cải thiện):\n\n  Traditional hash: hash(key) % N\n\n    Problem: add/remove server -> rehash ALL keys!\n\n  Consistent Hashing:\n\n    - Hash space = circle (0 to 2^32)\n\n    - Servers placed on circle via hash\n\n    - Key assigned to nearest server clockwise\n\n    - Add server: only neighbor keys migrate (~K/N)\n\n    - Remove server: only that server's keys migrate\n\n  Virtual nodes (vnodes):\n\n    Each server has multiple positions on ring\n\n    Ensures even distribution even with few servers\n\nUsed by: Cassandra, DynamoDB, Redis Cluster"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Database Replication?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "Use case"
+                ],
+                [
+                  "Master-Slave (Primary-Replica)",
+                  "Writes đến master; reads từ replicas",
+                  "Read-heavy workloads; reporting"
+                ],
+                [
+                  "Master-Master",
+                  "Cả 2 có thể write; conflict resolution",
+                  "Multi-region writes; HA"
+                ],
+                [
+                  "Synchronous",
+                  "Replica confirms trước master ACKs client",
+                  "Strong consistency; slower writes"
+                ],
+                [
+                  "Asynchronous",
+                  "Master ACKs ngay; replicate sau",
+                  "Nhanh; risk data loss on failover"
+                ],
+                [
+                  "Semi-synchronous",
+                  "1 replica phải confirm",
+                  "Balance speed and durability"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "PostgreSQL replication setup:\n\n  Primary (write + read)\n\n      |\n\n    WAL (Write-Ahead Log) stream\n\n      |          |\n\n  Replica 1   Replica 2  (read-only)\n\n  (sync)      (async)\n\n  Node.js connection:\n\n  const writePool = new Pool({ host: 'primary' });\n\n  const readPool  = new Pool({ host: 'replica-lb' });\n\n  // Route automatically\n\n  const read  = (sql) => readPool.query(sql);\n\n  const write = (sql) => writePool.query(sql);"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "SQL vs NoSQL — khi nào dùng cái nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "SQL (RDBMS)",
+                  "NoSQL"
+                ],
+                [
+                  "Schema",
+                  "Strict, fixed",
+                  "Flexible, dynamic"
+                ],
+                [
+                  "Relationships",
+                  "Joins, foreign keys",
+                  "Denormalized, embedded"
+                ],
+                [
+                  "ACID",
+                  "Có",
+                  "Partial (depends on type)"
+                ],
+                [
+                  "Scale",
+                  "Vertical (mostly)",
+                  "Horizontal (designed for)"
+                ],
+                [
+                  "Query",
+                  "SQL (expressive)",
+                  "Simple APIs / query DSL"
+                ],
+                [
+                  "Consistency",
+                  "Strong",
+                  "Eventual (usually)"
+                ],
+                [
+                  "Dùng khi",
+                  "ACID needed, complex queries",
+                  "Scale, flexible schema, speed"
+                ],
+                [
+                  "NoSQL Type",
+                  "Engine",
+                  "Best For"
+                ],
+                [
+                  "Document",
+                  "MongoDB, Firestore",
+                  "User profiles, product catalogs, content"
+                ],
+                [
+                  "Key-Value",
+                  "Redis, DynamoDB",
+                  "Sessions, caching, shopping carts"
+                ],
+                [
+                  "Column-Family",
+                  "Cassandra, HBase",
+                  "Time-series, analytics, IoT data"
+                ],
+                [
+                  "Graph",
+                  "Neo4j, Neptune",
+                  "Social graphs, fraud detection, recommendations"
+                ],
+                [
+                  "Search",
+                  "Elasticsearch",
+                  "Full-text search, log analytics"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Message Queues — Kafka vs RabbitMQ vs SQS?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Kafka",
+                  "RabbitMQ",
+                  "AWS SQS"
+                ],
+                [
+                  "Model",
+                  "Log-based, pub/sub",
+                  "Message queue + pub/sub",
+                  "Managed queue"
+                ],
+                [
+                  "Persistence",
+                  "Persistent (configurable)",
+                  "Optional",
+                  "Managed"
+                ],
+                [
+                  "Throughput",
+                  "Mọi lượt (millions/s)",
+                  "Cao (tens of thousands/s)",
+                  "Trung bình"
+                ],
+                [
+                  "Ordering",
+                  "Per partition",
+                  "Per queue",
+                  "Best-effort (FIFO queue: strict)"
+                ],
+                [
+                  "Replay",
+                  "Có (retain messages)",
+                  "Không (deleted after consume)",
+                  "Không (default)"
+                ],
+                [
+                  "Dùng khi",
+                  "Event streaming, audit log, high throughput",
+                  "Task queues, routing, RPC",
+                  "AWS ecosystem, simple async"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "When to use which:\n\n  Kafka:\n\n    - Need message replay/audit\n\n    - High throughput (IoT, clickstream, logs)\n\n    - Multiple consumers of same data\n\n    - Event sourcing / CQRS\n\n  RabbitMQ:\n\n    - Complex routing logic (exchanges/bindings)\n\n    - Task queues with workers\n\n    - Request-reply (RPC) pattern\n\n    - Guaranteed at-most-once delivery\n\n  SQS:\n\n    - AWS native, zero ops\n\n    - Simple background job processing\n\n    - Auto-scaling with Lambda"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Consistent Hashing chi tiết?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Consistent Hashing giải quyết vấn đề của hash-based sharding: khi thêm/xóa node, chỉ một phần nhỏ keys cần redistribute."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Problem with hash(key) % N:\n\n  N=3 servers: key 'user1' -> hash % 3 = 1 (Server 1)\n\n  Add server (N=4): hash % 4 = 2 (Server 2) -> MISS!\n\n  Almost ALL keys remapped -> thundering herd on DB\n\nConsistent Hashing solution:\n\n  Ring: 0 -------- 360 degrees (or 0 to 2^32)\n\n  Servers placed:  S1 at 30, S2 at 120, S3 at 270\n\n  Keys placed:     K1 at 50  -> S2 (nearest clockwise)\n\n                   K2 at 150 -> S3\n\n                   K3 at 300 -> S1\n\n  Add S4 at 200:\n\n    Only keys between S3(120) and S4(200) move to S4\n\n    Everything else unchanged\n\nVirtual nodes: S1 appears at 30, 100, 220\n\n  Provides even distribution with fewer real servers"
+            }
+          ]
+        },
+        {
+          "id": "Q12",
+          "q": "Rate Limiting Algorithms?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Algorithm",
+                  "Hoạt động",
+                  "Bursts OK?",
+                  "Implementation"
+                ],
+                [
+                  "Fixed Window",
+                  "Count in fixed time slot",
+                  "Có (boundary spike)",
+                  "Redis INCR + EXPIRE"
+                ],
+                [
+                  "Sliding Window Log",
+                  "Store timestamps, count recent",
+                  "Không",
+                  "Redis Sorted Set"
+                ],
+                [
+                  "Sliding Window Counter",
+                  "Interpolate two windows",
+                  "Gần đúng",
+                  "Weighted sum of 2 windows"
+                ],
+                [
+                  "Token Bucket",
+                  "Fill tokens at rate, each req consumes 1",
+                  "Có (controlled)",
+                  "Redis script"
+                ],
+                [
+                  "Leaky Bucket",
+                  "Process at fixed rate (queue)",
+                  "Không",
+                  "FIFO queue"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "// Redis Token Bucket implementation\n\nlocal key = KEYS[1]\n\nlocal capacity  = tonumber(ARGV[1])   -- 100 req/min\n\nlocal refill_rate = tonumber(ARGV[2]) -- tokens per second\n\nlocal now = tonumber(ARGV[3])\n\nlocal bucket = redis.call('HMGET', key, 'tokens', 'last_refill')\n\nlocal tokens    = tonumber(bucket[1]) or capacity\n\nlocal last_time = tonumber(bucket[2]) or now\n\n-- Add tokens based on elapsed time\n\nlocal elapsed = now - last_time\n\ntokens = math.min(capacity, tokens + elapsed * refill_rate)\n\nif tokens >= 1 then\n\n  tokens = tokens - 1\n\n  redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)\n\n  return 1  -- allowed\n\nelse\n\n  return 0  -- rate limited\n\nend"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Content Delivery Network (CDN)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CDN Architecture:\n\n  Origin Server (US)           CDN PoPs (Edge)\n\n  [Your API + Assets]          Singapore, Tokyo, Frankfurt...\n\n        |                           |\n\n        +--- CDN Pull ------------> PoP caches assets\n\n                                    |\n\n                              User in Vietnam\n\n                              <50ms to nearest PoP\n\n                              vs 200ms+ to US origin\n\nCDN caching strategy:\n\n  Static assets:  images, JS, CSS, fonts\n\n    Cache-Control: public, max-age=31536000, immutable\n\n    Filename includes content hash: app.a3b4c5.js\n\n  Dynamic content:\n\n    Cache-Control: no-cache (verify freshness)\n\n    Or: Cache-Control: public, max-age=60\n\n  Cache purge/invalidation:\n\n    - Filename versioning (best)\n\n    - CDN purge API (instant but expensive)\n\n    - Short TTL (simple but wasteful)"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "API Design Best Practices?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Principle",
+                  "Mô tả",
+                  "Ví dụ"
+                ],
+                [
+                  "RESTful resources",
+                  "Noun-based URLs, HTTP verbs",
+                  "GET /users/1/orders (not /getOrdersForUser)"
+                ],
+                [
+                  "Versioning",
+                  "URL path hoặc header",
+                  "/api/v1/users hoặc Accept: v=2"
+                ],
+                [
+                  "Pagination",
+                  "Cursor-based cho large datasets",
+                  "?cursor=xxx&limit=20 (không dùng offset)"
+                ],
+                [
+                  "Idempotency",
+                  "POST with Idempotency-Key",
+                  "Idempotency-Key: uuid-here"
+                ],
+                [
+                  "Consistent errors",
+                  "RFC 7807 Problem Details",
+                  "{ type, title, status, detail }"
+                ],
+                [
+                  "Rate limiting headers",
+                  "X-RateLimit-Remaining, Retry-After",
+                  "429 Too Many Requests + Retry-After"
+                ],
+                [
+                  "HATEOAS",
+                  "Links trong response (optional)",
+                  "{ data: {...}, links: { next: '...' } }"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Cursor-based vs Offset pagination:\n\n  Offset: GET /posts?offset=10000&limit=20\n\n    Problem: slow on large tables (full scan)\n\n    Problem: data shifts if items added/deleted\n\n  Cursor: GET /posts?cursor=eyJpZCI6MTAwfQ&limit=20\n\n    cursor = base64({ id: lastSeenId })\n\n    Stable, O(1) regardless of position\n\n    Used by: Twitter, Facebook, GitHub API"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Database Indexing Strategies?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Index Type",
+                  "Mô tả",
+                  "Use case"
+                ],
+                [
+                  "B-Tree Index",
+                  "Default; good for range queries",
+                  "WHERE, ORDER BY, <, >, BETWEEN"
+                ],
+                [
+                  "Hash Index",
+                  "O(1) lookup; không range query",
+                  "Exact match only (=)"
+                ],
+                [
+                  "Composite Index",
+                  "Multi-column; order matters",
+                  "(user_id, created_at) for user timeline"
+                ],
+                [
+                  "Partial Index",
+                  "Index subset of rows",
+                  "WHERE deleted_at IS NULL"
+                ],
+                [
+                  "Full-text Index",
+                  "Token-based text search",
+                  "ILIKE '%keyword%' alternative"
+                ],
+                [
+                  "Covering Index",
+                  "Index includes all queried columns",
+                  "Avoid table lookup (index-only scan)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Index selection strategy:\n\n  1. Most selective column first (high cardinality)\n\n  2. Equality conditions before range conditions\n\n  3. Columns in ORDER BY to avoid filesort\n\n  EXPLAIN ANALYZE query:\n\n  Seq Scan -> consider adding index\n\n  Index Scan -> good\n\n  Bitmap Index Scan -> good for low selectivity\n\n  Watch out:\n\n  - Too many indexes slow down writes\n\n  - Index on low-cardinality columns (gender) not useful\n\n  - Write-heavy tables: minimize indexes"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Microservices vs Monolith — khi nào chuyển?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Dấu hiệu cần chuyển sang Microservices",
+                  "Dấu hiệu nên giữ Monolith"
+                ],
+                [
+                  "Teams độc lập, quá nhiều merge conflicts",
+                  "Small team (< 10 engineers)"
+                ],
+                [
+                  "Các phần cần scale khác nhau (payment vs catalog)",
+                  "Product đang ở giai đoạn early/MVP"
+                ],
+                [
+                  "Deploy cycles chậm vì quá phụ thuộc",
+                  "Không có đội ngũ DevOps/platform"
+                ],
+                [
+                  "Security boundaries rõ ràng giữa domains",
+                  "Domain boundaries chưa rõ ràng"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Migration strategy (Strangler Fig Pattern):\n\n  Phase 1: Monolith + Facade (proxy)\n\n  Phase 2: Extract services một từng cái\n\n  Phase 3: Monolith nghiệm trưỜng diên\n\n  Start with the most isolated, least-coupled domain\n\n  Never split a transaction boundary across services\n\n  Rule of thumb: 1 team = 1 service"
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "Event-Driven Architecture?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Event-driven architecture: components giao tiếp qua events thay vì direct calls. Loose coupling, async, scalable."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Event-Driven vs Request-Response:\n\n  Request-Response (tight coupling):\n\n  OrderService.createOrder()\n\n    -> PaymentService.charge() [WAIT]\n\n    -> InventoryService.reserve() [WAIT]\n\n    -> NotificationService.send() [WAIT]\n\n  Problems: slow, cascading failures\n\n  Event-Driven (loose coupling):\n\n  OrderService.createOrder()\n\n    -> publish 'order.created' to Kafka\n\n    -> return 202 Accepted immediately\n\n  PaymentService:     subscribes 'order.created'\n\n  InventoryService:   subscribes 'order.created'\n\n  NotificationService: subscribes 'order.created'\n\nEvent Patterns:\n\n  Event Notification:  'something happened' (small payload)\n\n  Event-Carried State: full data in event\n\n  Event Sourcing:      events AS the system of record"
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Distributed Transactions — Saga Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Distributed transactions không thể dùng ACID transactions xảy qua nhiều services. Saga pattern giải quyết."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Phương thức",
+                  "Mô tả",
+                  "Trade-off"
+                ],
+                [
+                  "Choreography Saga",
+                  "Mỗi service publish event, service khác lắng nghe",
+                  "Loose coupling; khó debug"
+                ],
+                [
+                  "Orchestration Saga",
+                  "Orchestrator điều phối các bước",
+                  "Dễ debug; orchestrator phức tạp"
+                ],
+                [
+                  "Two-Phase Commit (2PC)",
+                  "Distributed lock, commit hoặc rollback đồng thời",
+                  "Strong consistency; chậm, deadlock risk"
+                ],
+                [
+                  "Outbox Pattern",
+                  "Lưu event và data trong cùng transaction",
+                  "At-least-once, reliable"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Outbox Pattern (most reliable):\n\nBEGIN TRANSACTION;\n\n  INSERT INTO orders (id, user_id, status) VALUES (...);\n\n  INSERT INTO outbox (event_type, payload, status)\n\n         VALUES ('order.created', '{ ... }', 'PENDING');\n\nCOMMIT;\n\n-- Background job: poll outbox, publish, mark PUBLISHED\n\n-- Ensures: event published IF AND ONLY IF order saved\n\n-- Handles: service crash between save and publish"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Capacity Estimation — cách tính nhanh?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Key numbers to memorize:\n\n  Time:\n\n  1 day = 86,400 seconds (~10^5)\n\n  1 month = 2.5M seconds\n\n  1 year = 31.5M seconds\n\n  Storage:\n\n  1 char = 1 byte,  1 tweet = ~300 bytes\n\n  1 photo = ~300KB, 1 video = ~50MB/min\n\n  1TB = 10^12 bytes\n\n  Network:\n\n  1Gbps = 125 MB/s\n\n  Average page = 1-2MB\n\n  QPS estimation example:\n\n  Twitter-like app:\n\n    DAU = 100M users\n\n    Each user: 3 tweets/day, 100 reads/day\n\n    Write QPS = 100M * 3 / 86400 = ~3,500 QPS\n\n    Read  QPS = 100M * 100 / 86400 = ~115,000 QPS\n\n    -> Read-heavy (33x)\n\n  Storage (tweets, 5 years):\n\n    3,500 writes/s * 300 bytes * 86400 * 365 * 5\n\n    = ~1.65 TB/year -> ~8 TB for 5 years"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Service Mesh và Observability?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pillar",
+                  "Tools",
+                  "Mô tả"
+                ],
+                [
+                  "Metrics",
+                  "Prometheus + Grafana",
+                  "CPU, memory, latency, error rate, throughput"
+                ],
+                [
+                  "Logs",
+                  "ELK Stack / Loki",
+                  "Structured JSON logs, searchable"
+                ],
+                [
+                  "Traces",
+                  "Jaeger / Zipkin / OTLP",
+                  "End-to-end request flow across services"
+                ],
+                [
+                  "Service Mesh",
+                  "Istio / Linkerd",
+                  "mTLS, traffic management, automatic observability"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Four Golden Signals (Google SRE):\n\n  1. Latency:   time to serve a request (p50, p99, p999)\n\n  2. Traffic:   requests per second\n\n  3. Errors:    rate of failed requests (5xx, timeouts)\n\n  4. Saturation: how full is your system? (CPU, queue depth)\n\n  Alerting: alert on SLO breach, not just on symptoms\n\n  Example: alert when p99 latency > 500ms for 5 minutes\n\n           NOT just when CPU > 80%"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — Classic System Designs (Q21–40)",
+      "questions": [
+        {
+          "id": "Q21",
+          "q": "Design a URL Shortener (like bit.ly)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Shorten long URL -> short code (6-8 chars)\n\n  - Redirect short URL to original\n\n  - Scale: 100M URLs, 10M redirects/day\n\n  - URL expiry optional\n\nHigh-Level Design:\n\n  [Client] -> [API Gateway] -> [URL Service]\n\n                                    |\n\n                          [Redis Cache]  [PostgreSQL]\n\n  [Client] -> [Redirect Service] -> [Redis] -> [302 Redirect]\n\nDatabase Schema:\n\n  urls { id, code, original_url, created_at, expires_at }\n\n  Index on: code (primary lookup)\n\nShort code generation (7 chars, base62):\n\n  Option 1: UUID -> hash -> take 7 chars (collision risk)\n\n  Option 2: Auto-increment ID -> base62 encode\n\n            ID=1 -> '0000001', ID=1000000 -> '4c92'\n\n  Option 3: Distributed ID (Snowflake) -> base62\n\nAPI:\n\n  POST /urls { url: 'https://long...' } -> { code: 'abc123' }\n\n  GET  /:code -> 302 Location: original_url\n\nCaching:\n\n  Key: short_code, Value: original_url\n\n  TTL: 24 hours (hot URLs stay in cache)\n\n  Eviction: LRU\n\n*💡 Scale bottleneck: Redis read cache cho redirects. Write path có thể async (queue -**>** batch insert). Shard DB bằng hash(code).*"
+            }
+          ]
+        },
+        {
+          "id": "Q22",
+          "q": "Design a Key-Value Store (like Redis)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - put(key, value), get(key), delete(key)\n\n  - Persistent (survive restart)\n\n  - Scale to TB of data\n\nCore components:\n\n  [Client] -> [API Layer] -> [Storage Engine]\n\n                                    |\n\n                     [WAL (Write-Ahead Log)]\n\n                     [SSTable / MemTable]\n\n                     [Bloom Filter]\n\n                     [Compaction Process]\n\nLSM Tree (Log-Structured Merge):\n\n  Write: -> MemTable (in-memory sorted) -> WAL\n\n  When MemTable full: flush to SSTable (disk)\n\n  Read: Check MemTable -> Bloom filter -> SSTables (L0->L1->L2)\n\n  Compaction: merge SSTables, remove tombstones\n\n  Used by: RocksDB, LevelDB, Cassandra\n\n  Write-optimized (vs B-Tree which is read-optimized)\n\nReplication:\n\n  Leader-based: single leader, multiple followers\n\n  Consensus: Raft protocol (leader election, log replication)"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Design a Rate Limiter?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Limit: 100 requests/minute per user\n\n  - Distributed (multiple API servers)\n\n  - Minimal latency impact\n\nDesign:\n\n  [Client] -> [API Gateway / Middleware]\n\n                     |\n\n              [Rate Limit Check] -> Redis\n\n                     |\n\n              [Allow / Reject 429]\n\nMiddleware flow:\n\n  1. Extract user_id from JWT\n\n  2. Check Redis: INCR rate:userId:minute\n\n  3. If count > limit: return 429 + Retry-After header\n\n  4. Else: proceed to handler\n\nRedis script (atomic):\n\n  local count = redis.call('INCR', key)\n\n  if count == 1 then\n\n    redis.call('EXPIRE', key, 60)\n\n  end\n\n  return count\n\nHeaders to include:\n\n  X-RateLimit-Limit: 100\n\n  X-RateLimit-Remaining: 45\n\n  X-RateLimit-Reset: 1640000000\n\n  Retry-After: 30  (on 429)"
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "Design a Notification System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Send push, email, SMS notifications\n\n  - 10M users, 1M notifications/day\n\n  - Delivery guarantees, deduplication\n\nHigh-Level Design:\n\n  [Trigger Service] -> Kafka (notification.requested)\n\n                            |\n\n                    [Notification Workers]\n\n                    |           |         |\n\n              [Push Service]  [Email]  [SMS]\n\n              (FCM/APNS)      (SES)   (Twilio)\n\n  Persistence:\n\n    notifications { id, user_id, type, content, status, created_at }\n\n    Index: (user_id, created_at) for inbox\n\nKey challenges:\n\n  1. Fan-out: 1 event -> N users (social notification)\n\n     Solution: fan-out at write (precompute per user) for small fan-out\n\n               fan-out at read (compute on request) for large fan-out\n\n  2. Deduplication:\n\n     Idempotency key = hash(event_id + user_id + type)\n\n     Redis SET NX with TTL\n\n  3. Delivery status:\n\n     Push: FCM/APNs return delivery status\n\n     Email: webhooks (opened, bounced)\n\n     Retry with exponential backoff"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "Design a Real-Time Chat System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - 1:1 and group chat\n\n  - Message delivery guarantee\n\n  - Presence (online/offline)\n\n  - 1M DAU, 100M messages/day\n\nHigh-Level Design:\n\n  [Client App] <---- WebSocket ----> [Chat Server]\n\n                                           |\n\n                                    [Message Queue]\n\n                                           |\n\n                              [Message DB (Cassandra)]\n\n                                           |\n\n                                    [Push Service]\n\n                                    (for offline users)\n\nMessage Schema (Cassandra):\n\n  messages { message_id (TimeUUID), chat_id, sender_id,\n\n             content, type, created_at }\n\n  Partition key: chat_id\n\n  Clustering key: created_at DESC (newest first)\n\nPresence Service:\n\n  Online: maintain WebSocket connection\n\n  Heartbeat: every 30s, update Redis SETEX user:uid:online 35\n\n  Offline: TTL expires -> offline\n\nMessage delivery:\n\n  1. Sender -> Chat Server -> Kafka\n\n  2. Chat Server reads from Kafka, routes to recipient's WS\n\n  3. Recipient ACKs; if offline -> push notification\n\n  4. Message stored in Cassandra (async)"
+            }
+          ]
+        },
+        {
+          "id": "Q26",
+          "q": "Design a News Feed / Timeline?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Users see posts from people they follow\n\n  - Ranked (not just chronological)\n\n  - 1M DAU, 10M posts/day\n\nTwo Approaches:\n\n  Fan-out on Write (Push Model):\n\n    When user A posts -> immediately push to all followers' feeds\n\n    Redis: ZADD feed:userId timestamp postId\n\n    Read: O(1) -> ZREVRANGE feed:userId 0 19\n\n    Problem: celebrity problem (10M followers -> 10M writes)\n\n  Fan-out on Read (Pull Model):\n\n    When user reads feed -> query all followees' recent posts\n\n    Merge and sort by timestamp\n\n    Problem: slow for users who follow many people\n\n  Hybrid (most production systems):\n\n    Normal users (<1K followers): fan-out on write\n\n    Celebrities (>1K followers):  fan-out on read\n\n  Redis data model:\n\n    feed:{userId} -> Sorted Set (score=timestamp, member=postId)\n\n    post:{postId} -> Hash (content, author, likes, created_at)\n\n*💡 Twitter sử dụng hybrid approach. Instagram dùng fan-out on write. Facebook dùng đồng thời cả hai.*"
+            }
+          ]
+        },
+        {
+          "id": "Q27",
+          "q": "Design a Search Autocomplete?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Top 5 suggestions as user types\n\n  - < 100ms latency\n\n  - 10M queries/day\n\nApproach 1: Trie (prefix tree):\n\n  'ca' -> [car, card, cat, cafe, care]\n\n  Works well for small datasets\n\nApproach 2: Redis (production):\n\n  Offline job: count query frequency, build sorted sets\n\n  ZADD suggest:ca 1000 car\n\n  ZADD suggest:ca 800  card\n\n  ...\n\n  Query: ZREVRANGEBYSCORE suggest:${prefix} +inf -inf LIMIT 0 5\n\n  -> O(log N + k)\n\nApproach 3: Elasticsearch:\n\n  Completion suggester field type\n\n  Phrase suggester for typo tolerance\n\nPipeline:\n\n  1. Log all search queries\n\n  2. Batch job (hourly): count frequency\n\n  3. Update Redis/Elasticsearch with top suggestions\n\n  4. API: GET /autocomplete?q=ca -> ['car','card','cat']\n\nCaching:\n\n  Cache responses for popular prefixes (ca, car, app...)"
+            }
+          ]
+        },
+        {
+          "id": "Q28",
+          "q": "Design a Ride-Sharing Service (like Uber)?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Match rider with nearby driver\n\n  - Real-time location tracking\n\n  - Price estimation, ETA\n\n  - 1M rides/day\n\nComponents:\n\n  [Rider App] <-> [WebSocket Gateway] <-> [Driver App]\n\n                          |\n\n                  [Location Service] -> Redis Geo\n\n                          |\n\n                  [Matching Service]\n\n                          |\n\n                  [Pricing Service]\n\nLocation tracking:\n\n  Drivers send GPS every 5 seconds\n\n  Redis: GEOADD drivers lng lat driverId\n\n  Find nearby: GEORADIUS drivers 106.66 10.77 5 km\n\n              ASC COUNT 10\n\nMatching algorithm:\n\n  1. Find drivers within 5km radius\n\n  2. Filter by: available status, rating\n\n  3. Rank by: distance, ETA\n\n  4. Offer to driver (30s timeout)\n\n  5. If declined: next driver\n\nReal-time updates:\n\n  WebSocket: driver location updates to rider\n\n  Rider app: receives ETA updates every 5s\n\nPricing (surge):\n\n  Demand/Supply ratio per hexagon (H3 library)\n\n  surge_multiplier = f(demand, supply, time)"
+            }
+          ]
+        },
+        {
+          "id": "Q29",
+          "q": "Design YouTube / Video Streaming?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Upload videos, stream on-demand\n\n  - 500 hours uploaded/minute\n\n  - Adaptive bitrate streaming\n\nUpload pipeline:\n\n  [Client] --(large file)--> [Upload Service]\n\n                                    |\n\n                         [Raw Video Storage (S3)]\n\n                                    |\n\n                         [Video Processing Queue]\n\n                                    |\n\n                  [Transcoding Workers (FFmpeg)]\n\n                  480p, 720p, 1080p, 4K\n\n                                    |\n\n                  [Processed Video Storage (S3/CDN)]\n\nStreaming:\n\n  HLS (HTTP Live Streaming):\n\n    video.m3u8 (playlist) -> segment_001.ts, segment_002.ts...\n\n    Player requests next segment based on bandwidth\n\n    CDN serves segments from nearest PoP\n\nAdaptive Bitrate (ABR):\n\n  Player monitors download speed\n\n  Switches quality: if slow bandwidth -> 480p\n\n                    if fast bandwidth -> 1080p\n\nMetadata DB (PostgreSQL):\n\n  videos { id, title, user_id, duration, views, status }\n\n  Index: (user_id, created_at), (views DESC)\n\nRecommendation:\n\n  Collaborative filtering (ML model)\n\n  Served from separate recommendation service"
+            }
+          ]
+        },
+        {
+          "id": "Q30",
+          "q": "Design a Distributed Cache?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - sub-millisecond reads\n\n  - 1TB total cache size\n\n  - High availability\n\nArchitecture:\n\n  [Client] -> [Cache Client Library]\n\n                    |\n\n          [Consistent Hashing Ring]\n\n          /         |          \\\n\n  [Cache Node 1] [Node 2] [Node 3]\n\n  (primary)     (primary) (primary)\n\n       |              |          |\n\n  [Replica 1]   [Replica 2] [Replica 3]\n\n  Client knows topology -> hashes key -> finds node\n\n  Replication: async, master-replica per node\n\nData model:\n\n  - Key-value with TTL\n\n  - Data structures: String, Hash, List, Set, ZSet\n\nCache partition strategy:\n\n  7 GB per shard (Redis single-threaded perf peak)\n\n  Total 1TB / 7GB = ~143 shards\n\n  With 3x replication: ~429 Redis instances\n\nFailure handling:\n\n  Primary fail: replica promoted (sentinel/cluster)\n\n  Split-brain: Raft consensus for leader election\n\nMemory optimization:\n\n  Ziplist encoding for small hashes/lists\n\n  Integer encoding for numeric values"
+            }
+          ]
+        },
+        {
+          "id": "Q31",
+          "q": "Design a Payment System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Process payments reliably\n\n  - Exactly-once semantics\n\n  - Fraud detection\n\nHigh-Level Design:\n\n  [Client] -> [API Gateway] -> [Payment Service]\n\n                                     |\n\n                         [Idempotency Check] -> Redis/DB\n\n                                     |\n\n                         [Payment Processor] (Stripe/PayPal)\n\n                                     |\n\n                         [Transaction DB (PostgreSQL)]\n\n                                     |\n\n                         [Event Bus] -> [Notification, Ledger]\n\nExactly-once payment:\n\n  1. Generate idempotency_key = UUID (client-side)\n\n  2. Include in header: Idempotency-Key: uuid\n\n  3. Server: check Redis/DB for this key\n\n     If exists: return cached response (no re-charge)\n\n     If new: process, store key + result\n\nDouble-entry bookkeeping:\n\n  debit_entry  { account_id: buyer,  amount: -100, txn_id }\n\n  credit_entry { account_id: seller, amount: +100, txn_id }\n\n  Always balanced: sum of all entries = 0\n\nFraud detection:\n\n  Rules engine: velocity checks, unusual amounts\n\n  ML model: anomaly detection (async, don't block payment)"
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "Design Dropbox / File Storage?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Upload/download files\n\n  - Sync across devices\n\n  - Share files/folders\n\n  - 50M users, avg 200GB/user\n\nArchitecture:\n\n  [Client (Desktop/Mobile)]\n\n    |\n\n    v\n\n  [Upload API] -> [Chunk Splitter]\n\n  Each file: split into 4MB chunks\n\n  Dedup: hash(chunk) -> already stored? skip\n\n  Storage:\n\n    Metadata:  PostgreSQL (files, folders, versions)\n\n    Chunks:    S3 / HDFS (content-addressed storage)\n\n    CDN:       for popular files\n\n  Sync protocol:\n\n    Long polling or WebSocket for change notifications\n\n    Client maintains local Merkle tree\n\n    On change: diff -> upload only changed chunks\n\nConflict resolution:\n\n  Dropbox approach: keep both versions, user resolves\n\n  Google Drive: operational transforms (real-time)\n\nSchema:\n\n  files { id, name, owner_id, size, content_hash }\n\n  chunks { file_id, chunk_index, chunk_hash, s3_path }\n\n  shares { file_id, shared_with, permission }"
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "Design a Metrics / Monitoring System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Ingest millions of metrics per second\n\n  - Query: sum, avg, p99 over time ranges\n\n  - Alerting on threshold breaches\n\nArchitecture:\n\n  [Services] -> StatsD/OpenTelemetry\n\n                    |\n\n  [Collectors: Prometheus / VictoriaMetrics]\n\n                    |\n\n  [Time-Series DB: InfluxDB / TimescaleDB]\n\n                    |\n\n  [Query Engine]  [Alert Manager]\n\n                    |\n\n             [Grafana Dashboard]\n\nData model (time-series):\n\n  {\n\n    metric: 'api.latency.p99'\n\n    tags: { service: 'order-api', region: 'us-east' }\n\n    timestamp: 1640000000\n\n    value: 145.3\n\n  }\n\nStorage optimization:\n\n  Delta encoding: store diffs instead of absolute values\n\n  Run-length encoding: repeated values compressed\n\n  Rollup: 10s precision -> 1min -> 1hour (data retention)\n\nCardinality:\n\n  High cardinality (too many unique tag combinations)\n\n  = storage explosion\n\n  Don't use: user_id, session_id as tags"
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Design a Distributed Job Scheduler?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Schedule jobs: immediate, delayed, recurring (cron)\n\n  - Exactly-once execution\n\n  - Millions of jobs/day\n\nArchitecture:\n\n  [API] -> [Job DB (PostgreSQL)]\n\n                    |\n\n  [Scheduler] -> [Worker Queue (Redis/Kafka)]\n\n                    |\n\n         [Workers] [Workers] [Workers]\n\nJob lifecycle:\n\n  PENDING -> RUNNING -> COMPLETED / FAILED\n\nDelayed job:\n\n  Store: execute_at = now + delay\n\n  Poll: SELECT * FROM jobs WHERE execute_at <= NOW()\n\n         FOR UPDATE SKIP LOCKED (no duplicate pickup)\n\n  Horizon: BullMQ, Celery Beat use this pattern\n\nCron jobs:\n\n  Store: next_run_at computed from cron expression\n\n  On completion: compute next next_run_at\n\nAt-least-once vs exactly-once:\n\n  At-least-once: simple (retry on failure, idempotent jobs)\n\n  Exactly-once: distributed lock (Redis SETNX)\n\n              = lock key while job runs\n\nFailure handling:\n\n  Timeout: if job running > max_time, mark failed\n\n  Dead letter queue: after N retries, move to DLQ\n\n  Alerting: DLQ depth > threshold"
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Design a Location-Based Service?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Store locations of entities (users, shops, drivers)\n\n  - Query: find entities within radius\n\n  - Real-time updates\n\nData structure options:\n\n  1. PostgreSQL + PostGIS:\n\n     SELECT * FROM entities\n\n     WHERE ST_DWithin(location, point, 5000)\n\n     -> Mature, SQL, flexible queries\n\n  2. Redis GEO commands:\n\n     GEOADD:    store lat/lng for entity\n\n     GEORADIUS: find within radius\n\n     GEODIST:   distance between two points\n\n     -> Fast, in-memory, simple\n\n  3. Geohash (manual):\n\n     Encode lat/lng as string prefix\n\n     '9q8y' covers ~40km x 20km box\n\n     Find nearby: same prefix + adjacent prefixes\n\n     -> Works with any KV store\n\n  4. H3 (Uber's hexagonal grid):\n\n     World divided into hexagons at different resolutions\n\n     Find neighbors: built-in adjacency\n\n     Aggregation: sum trips per hex for surge pricing\n\nChoice:\n\n  Real-time tracking (drivers): Redis GEOADD (updates/s)\n\n  Persistent locations (restaurants): PostGIS\n\n  Analytics/heatmaps: H3"
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Design an E-Commerce Platform?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Key services:\n\n  [Client] -> [API Gateway]\n\n    |\n\n    +-> [Product Service]  -> [Product DB (PostgreSQL)]\n\n    |                       -> [Search (Elasticsearch)]\n\n    |\n\n    +-> [Order Service]    -> [Order DB (PostgreSQL)]\n\n    |                       -> [Kafka: order.placed]\n\n    |\n\n    +-> [Inventory Service] -> [Inventory DB]\n\n    |                        (subscribe order.placed)\n\n    |\n\n    +-> [Payment Service]   -> [Payment DB]\n\n    |                        (subscribe order.placed)\n\n    |\n\n    +-> [Notification Svc]  (subscribe payment events)\n\nInventory management:\n\n  Pessimistic locking: SELECT FOR UPDATE (flash sales)\n\n  Optimistic locking: version column (normal flow)\n\n  Redis atomic decrement for high-throughput\n\nShopping cart:\n\n  Redis Hash: HSET cart:{userId} productId quantity\n\n  TTL: 7 days\n\n  Persist to DB on checkout\n\nSearch:\n\n  Elasticsearch: product catalog\n\n  Faceted search: brand, price range, rating\n\n  Relevance: tf-idf + boost by popularity, rating"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "Design a Log Aggregation System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Requirements:\n\n  - Collect logs from 1000s of services\n\n  - Search and query: 100GB logs/day\n\n  - Retention: 30 days\n\nELK Stack Architecture:\n\n  [Services] -> [Filebeat/Fluentd] -> [Kafka]\n\n                                        |\n\n                              [Logstash (transform)]\n\n                                        |\n\n                              [Elasticsearch (index)]\n\n                                        |\n\n                              [Kibana (dashboard)]\n\nStructured logging (JSON):\n\n  { level, service, trace_id, user_id, message, duration }\n\n  -> Elasticsearch can index every field\n\nIndex strategy:\n\n  Daily indices: logs-2024-01-15\n\n  ILM (Index Lifecycle Management):\n\n    Hot: SSD, 3 days\n\n    Warm: spinning disk, 7 days\n\n    Cold: object storage, 30 days\n\n    Delete: after 30 days\n\nFull-text search vs term query:\n\n  message: 'query' -> full-text (analyzed)\n\n  service: 'api'   -> term (exact match, not analyzed)"
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Design a Two-Factor Authentication System?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "TOTP (Time-based OTP) flow:\n\n  Setup:\n\n    1. Server generates secret (base32 random)\n\n    2. Show QR code = URI with secret\n\n    3. User scans with Google Authenticator\n\n    4. Server stores encrypted secret for user\n\n  Verification:\n\n    1. Client reads 6-digit code from app\n\n    2. Client sends: { user_id, code: '123456' }\n\n    3. Server: retrieve user's secret\n\n    4. Server: compute TOTP(secret, current_time_window)\n\n       window = floor(unix_timestamp / 30)\n\n    5. Compare server_code == client_code\n\n    6. Allow +/- 1 window (30s clock drift)\n\n  HOTP (HMAC-based) for SMS:\n\n    code = HMAC-SHA1(secret, counter)\n\n    Truncate to 6 digits\n\nSecurity considerations:\n\n  - Store secret encrypted (AES-256)\n\n  - Rate limit OTP attempts (3 tries, 15 min lockout)\n\n  - Single-use: track used codes in Redis (TTL 90s)\n\n  - Backup codes: hash-stored, single-use\n\n  - Recovery: identity verification process"
+            }
+          ]
+        },
+        {
+          "id": "Q39",
+          "q": "Design Twitter/X Architecture?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Scale: 300M MAU, 500M tweets/day\n\nKey challenges:\n\n  1. Fan-out: Elon Musk -> 100M followers\n\n     -> 100M Redis writes per tweet!\n\n  2. Timeline generation: < 200ms latency\n\n  3. Real-time trends\n\nSolutions:\n\n  Hybrid fan-out:\n\n    Celebrity (>1M followers): fan-out on read\n\n    Regular users: fan-out on write\n\n    Mix: precompute timeline, inject celebrity tweets at read time\n\n  Storage:\n\n    Tweet content: MySQL (sharded by tweet_id)\n\n    Timeline: Redis Sorted Set (score=timestamp)\n\n    Media: CDN + S3\n\n  Search / Trending:\n\n    Elasticsearch: full-text tweet search\n\n    Redis: ZINCRBY trending:hour hashtag count\n\n    Sliding window for real trending\n\n  Architecture:\n\n  Tweet API -> Kafka (tweet.created)\n\n     -> Fan-out service (writes to follower timelines)\n\n     -> Search indexer (updates Elasticsearch)\n\n     -> Trend service (updates Redis trending sets)"
+            }
+          ]
+        },
+        {
+          "id": "Q40",
+          "q": "Design Instagram?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Scale: 2B MAU, 100M photos/day\n\nUpload flow:\n\n  [Mobile] -> [Upload API] -> [S3 raw]\n\n                                  |\n\n                          [Processing Queue]\n\n                                  |\n\n                  [Resize: thumbnail, display, HD]\n\n                                  |\n\n                          [CDN distribution]\n\nPhoto metadata:\n\n  photos { id, user_id, s3_key, caption,\n\n           location, filter, created_at }\n\n  Index: (user_id, created_at) for profile page\n\nFollow graph:\n\n  users_following { follower_id, followee_id }\n\n  users_followers { user_id, follower_id }\n\n  Both directions indexed\n\n  Graph DB consideration for friend-of-friend queries\n\nFeed generation:\n\n  Pre-generated user timeline in Redis\n\n  Key: timeline:{userId} -> Sorted Set of photo_ids\n\n  Hybrid fan-out (same as Twitter)\n\nDiscovery:\n\n  Explore page: popular content by location, hashtags\n\n  ML recommendations: collaborative filtering\n\n  Real-time trending: Redis sorted sets + Kafka"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — Advanced System Design (Q41–58)",
+      "questions": [
+        {
+          "id": "Q41",
+          "q": "Database Indexing Deep Dive?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Scan Type",
+                  "Khi nào",
+                  "Chi phí"
+                ],
+                [
+                  "Sequential Scan",
+                  "Không có index, lấy nhiều rows",
+                  "O(n)"
+                ],
+                [
+                  "Index Scan",
+                  "Index selective, lấy ít rows",
+                  "O(log n + k)"
+                ],
+                [
+                  "Index Only Scan",
+                  "All columns in index (covering)",
+                  "O(log n)"
+                ],
+                [
+                  "Bitmap Index Scan",
+                  "Multiple conditions, medium selectivity",
+                  "O(log n + k)"
+                ],
+                [
+                  "Nested Loop Join",
+                  "Small outer table + index on inner",
+                  "O(n * log m)"
+                ],
+                [
+                  "Hash Join",
+                  "Large tables, equality join",
+                  "O(n + m)"
+                ],
+                [
+                  "Merge Join",
+                  "Sorted inputs, range join",
+                  "O(n log n)"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Distributed Tracing?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Problem: trace a request across 10 microservices\n\n  Request arrives at API Gateway\n\n    -> User Service -> Order Service -> Payment Service\n\n    -> Inventory Service -> Notification Service\n\n  Where is the bottleneck? Which service is slow?\n\nOpenTelemetry (OTLP standard):\n\n  Trace: end-to-end request tree\n\n  Span:  one unit of work in trace\n\n  Context propagation: trace_id passed in headers\n\n  Headers: traceparent: 00-{trace_id}-{parent_span_id}-01\n\n// Node.js OpenTelemetry\n\nconst tracer = opentelemetry.trace.getTracer('order-service');\n\nconst span = tracer.startSpan('processOrder');\n\nspan.setAttribute('order.id', orderId);\n\ntry {\n\n  await processOrder(orderId);\n\n  span.setStatus({ code: SpanStatusCode.OK });\n\n} catch (err) {\n\n  span.recordException(err);\n\n} finally {\n\n  span.end();\n\n}\n\nJaeger UI shows: timeline of all spans, their duration\n\n  -> Identify bottleneck instantly"
+            }
+          ]
+        },
+        {
+          "id": "Q43",
+          "q": "Circuit Breaker Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "States:\n\n  CLOSED -> normal operation, track failures\n\n  OPEN   -> reject all requests, return fallback\n\n  HALF-OPEN -> allow test requests\n\n  CLOSED:  failures < threshold -> stay CLOSED\n\n           failures >= threshold -> OPEN\n\n  OPEN:    all requests fail fast (no downstream call)\n\n           after timeout -> HALF-OPEN\n\n  HALF-OPEN: limited requests go through\n\n              success -> CLOSED\n\n              failure -> OPEN\n\n// Node.js with opossum\n\nconst CircuitBreaker = require('opossum');\n\nconst breaker = new CircuitBreaker(callPaymentService, {\n\n  timeout: 3000,\n\n  errorThresholdPercentage: 50,\n\n  resetTimeout: 30000,\n\n  volumeThreshold: 10  // min requests before tripping\n\n});\n\nbreaker.fallback(() => ({ status: 'payment-unavailable' }));\n\nbreaker.on('open',     () => logger.warn('CB OPEN'));\n\nbreaker.on('halfOpen', () => logger.info('CB HALF-OPEN'));\n\nbreaker.on('close',    () => logger.info('CB CLOSED'));\n\nconst result = await breaker.fire(orderData);"
+            }
+          ]
+        },
+        {
+          "id": "Q44",
+          "q": "Data Partitioning Strategies?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Strategy",
+                  "Mô tả",
+                  "Pros/Cons"
+                ],
+                [
+                  "Horizontal (Sharding)",
+                  "Chia rows theo shard key",
+                  "+ Scale storage. - Cross-shard queries"
+                ],
+                [
+                  "Vertical",
+                  "Chia columns thành tables riêng",
+                  "+ Access patterns optimized. - Joins needed"
+                ],
+                [
+                  "Directory-based",
+                  "Lookup service biết data ở đâu",
+                  "+ Flexible. - Single point of failure"
+                ],
+                [
+                  "Range-based",
+                  "Chia theo range của key",
+                  "+ Range queries. - Hotspots"
+                ],
+                [
+                  "Hash-based",
+                  "hash(key) % shards",
+                  "+ Even distribution. - No range queries"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q45",
+          "q": "Eventual Consistency Patterns?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pattern",
+                  "Mô tả",
+                  "Dùng khi"
+                ],
+                [
+                  "Read-your-writes",
+                  "User thấy được thay đổi của chính mình ngay",
+                  "Profile updates, comments"
+                ],
+                [
+                  "Monotonic Read",
+                  "Không bao giờ thấy older version sau newer",
+                  "Timeline, feeds"
+                ],
+                [
+                  "Causal Consistency",
+                  "Related operations theo đúng thứ tự",
+                  "Message threads"
+                ],
+                [
+                  "Session Consistency",
+                  "Within một session: strong",
+                  "Shopping cart, user prefs"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "CQRS và Event Sourcing?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "CQRS (Command Query Responsibility Segregation):\n\n  Write side (Commands):\n\n    POST /orders { userId, items }\n\n    -> Write model -> Command DB (normalized)\n\n    -> Publish: OrderCreated event\n\n  Read side (Queries):\n\n    GET /orders/user/123\n\n    -> Read model -> Read DB (denormalized, optimized)\n\n    Built from events via projections\n\n  Benefits: optimize read/write independently\n\n  Cost: eventual consistency between models\n\nEvent Sourcing:\n\n  Store EVENTS, not current state\n\n  Account:\n\n    AccountOpened    { balance: 0 }\n\n    MoneyDeposited   { amount: 1000 }  -> 1000\n\n    MoneyWithdrawn   { amount: 200 }   -> 800\n\n    MoneyDeposited   { amount: 500 }   -> 1300\n\n  State = replay all events\n\n  Snapshot: store state at point N, replay from there\n\n  Audit log: built-in\n\n  Time travel: rebuild state at any point"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Consensus Algorithms (Raft)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Raft là consensus algorithm đảm bảo distributed systems đồng thuận về một giá trị dù có failures."
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Raft roles:\n\n  Leader:    receives all writes, replicates to followers\n\n  Follower:  respond to leader; vote in elections\n\n  Candidate: requests votes to become leader\n\nLeader Election:\n\n  1. No heartbeat from leader -> timeout -> Candidate\n\n  2. Candidate increments term, votes for self\n\n  3. Requests votes from others\n\n  4. Majority votes -> Leader\n\nLog Replication:\n\n  Leader receives write:\n\n    1. Append to leader's log\n\n    2. Send AppendEntries to all followers\n\n    3. Wait for majority ACK\n\n    4. Commit entry, reply to client\n\n    5. Notify followers to commit\n\nSafety guarantee:\n\n  At most 1 leader per term\n\n  Leader has all committed entries (election safety)\n\n  Committed entries never overwritten (log matching)\n\nUsed by: etcd (Kubernetes), CockroachDB, TiKV"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "API Gateway Pattern chi tiết?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Functions:\n\n  1. Request Routing: /api/users -> User Service\n\n  2. Authentication: verify JWT, OAuth\n\n  3. Rate Limiting: 100 req/min per user\n\n  4. SSL Termination: handle HTTPS, pass HTTP\n\n  5. Request/Response Transform: v1 -> v2 format\n\n  6. Circuit Breaker: protect downstream\n\n  7. Caching: cache GET responses\n\n  8. Logging/Tracing: inject trace ID\n\n  9. Load Balancing: across service instances\n\nBFF (Backend for Frontend) pattern:\n\n  One API Gateway per client type:\n\n    mobile-bff:  optimized for mobile (reduced payload)\n\n    web-bff:     full response\n\n    partner-bff: different auth, rate limits\n\nGraphQL as API Gateway:\n\n  Single endpoint /graphql\n\n  Federated: each service has its own schema\n\n  Apollo Federation stitches them together\n\nCommon implementations:\n\n  Kong: extensible, plugin ecosystem\n\n  AWS API Gateway: serverless friendly\n\n  NGINX: high performance, config-based\n\n  Traefik: Kubernetes-native, auto-discovery"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "Database Schema Design — Normalization vs Denormalization?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Normalization (OLTP):\n\n  Remove data duplication\n\n  Update anomalies prevented\n\n  Users:   { user_id, name, email }\n\n  Orders:  { order_id, user_id, created_at }\n\n  Items:   { item_id, order_id, product_id, qty }\n\n  Products:{ product_id, name, price }\n\n  JOIN users, orders, items, products\n\n  -> Correct, maintainable, slow for complex reads\n\nDenormalization (OLAP / Read-heavy):\n\n  Duplicate data for read performance\n\n  order_items { order_id, user_name, user_email,\n\n                product_name, product_price, qty,\n\n                order_created_at }\n\n  -> Single table scan, no joins, fast reads\n\n  -> Update pain: price changes need update everywhere\n\nHybrid approach (common in real apps):\n\n  Normalize core data (source of truth)\n\n  Denormalized read models (via events/CQRS)\n\n  Cache frequently read complex queries"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "Long Polling vs WebSocket vs SSE vs Polling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Phương pháp",
+                  "Latency",
+                  "Server load",
+                  "Bidirectional",
+                  "Use case"
+                ],
+                [
+                  "Short Polling",
+                  "High (interval)",
+                  "Cao (many requests)",
+                  "Không",
+                  "Simple status checks"
+                ],
+                [
+                  "Long Polling",
+                  "Thấp (when data)",
+                  "Trung bình (held connections)",
+                  "Không",
+                  "Simple real-time"
+                ],
+                [
+                  "SSE",
+                  "Thấp",
+                  "Thấp (persistent stream)",
+                  "Server -> Client only",
+                  "Live feeds, notifications"
+                ],
+                [
+                  "WebSocket",
+                  "Rất thấp",
+                  "Thấp (persistent, framed)",
+                  "Có",
+                  "Chat, gaming, collaboration"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Zero Downtime Deployment Strategies?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Strategy",
+                  "Mô tả",
+                  "Rollback",
+                  "Complexity"
+                ],
+                [
+                  "Blue-Green",
+                  "2 environments, switch DNS/LB",
+                  "Instant",
+                  "Cao (2x infra)"
+                ],
+                [
+                  "Canary",
+                  "Từng bước shift traffic 1%->10%->100%",
+                  "Nhanh",
+                  "Trung bình"
+                ],
+                [
+                  "Rolling",
+                  "Từng bước update pods",
+                  "Khó hơn",
+                  "Thấp"
+                ],
+                [
+                  "Feature Flags",
+                  "Deploy code, toggle feature",
+                  "Instant (toggle off)",
+                  "Trung bình"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Database migration with zero downtime (Expand-Contract):\n\n  Phase 1 (Expand): Add new column (nullable)\n\n  ALTER TABLE users ADD COLUMN phone VARCHAR(20);\n\n  Phase 2 (Migrate): Dual-write to both columns\n\n  Phase 3 (Backfill): fill phone for existing rows\n\n  Phase 4 (Switch): code uses only new column\n\n  Phase 5 (Contract): drop old column\n\n  Each phase is a separate deployment, no downtime"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "Service Discovery?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Problem: Microservices don't have static IPs\n\n  -> How does Service A find Service B?\n\nClient-Side Discovery:\n\n  Client queries Service Registry (Consul/Eureka)\n\n  Gets list of healthy instances\n\n  Client load balances itself\n\nServer-Side Discovery:\n\n  Client calls Load Balancer\n\n  LB queries registry -> picks instance\n\n  AWS ALB + Cloud Map\n\nDNS-Based (Kubernetes):\n\n  payment-service.default.svc.cluster.local\n\n  Kubernetes DNS resolves to ClusterIP\n\n  No client changes needed\n\nHealth checks:\n\n  Active:  registry pings /health endpoint\n\n  Passive: detect failed requests\n\n  TTL:     service re-registers every 30s"
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Back-of-Envelope Estimation trong interview?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "10 numbers to memorize:\n\n  Users:\n\n  Twitter: 300M MAU\n\n  Facebook: 2.9B MAU\n\n  YouTube: 2B MAU\n\n  Traffic patterns:\n\n  Read/Write ratio typical: 100:1\n\n  Peak traffic: 3-5x average\n\n  Storage:\n\n  1 tweet: 300 bytes\n\n  1 photo: 300 KB\n\n  1 minute video: 50 MB\n\n  Compute:\n\n  1 DB server: ~1,000 QPS (simple queries)\n\n  1 Cache server: ~100,000 QPS\n\n  Network: 1 Gbps = 125 MB/s\n\nExample: Design Twitter\n\n  500M tweets/day\n\n  = 500M / 86400 = 5,800 writes/sec\n\n  Peak: 5,800 * 3 = ~17,400 writes/sec\n\n  Storage:\n\n  5,800/s * 300 bytes = 1.7 MB/s\n\n  1 year: 1.7 MB/s * 31.5M = 53 TB/year"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Security trong System Design?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Layer",
+                  "Security measures"
+                ],
+                [
+                  "Network",
+                  "HTTPS/TLS 1.3, firewall, VPN, DDoS protection (Cloudflare)"
+                ],
+                [
+                  "Authentication",
+                  "OAuth 2.0 + OIDC, MFA, JWT (short-lived), API keys"
+                ],
+                [
+                  "Authorization",
+                  "RBAC/ABAC, principle of least privilege, resource ownership"
+                ],
+                [
+                  "Data",
+                  "Encryption at rest (AES-256), encryption in transit (TLS)"
+                ],
+                [
+                  "API",
+                  "Rate limiting, input validation, CORS, CSRF tokens"
+                ],
+                [
+                  "Infrastructure",
+                  "Secrets management (Vault/AWS SSM), no hardcoded credentials"
+                ],
+                [
+                  "Logging",
+                  "Audit logs, PII masking, anomaly detection"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "Idempotency đểm đạt trong Distributed Systems?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Why it matters:\n\n  Network failure: was the request processed or not?\n\n  Retry: must not double-charge, double-send, double-create\n\nIdempotency Key pattern:\n\n  Client generates UUID before first attempt\n\n  Includes in header: Idempotency-Key: abc-123\n\n  Server flow:\n\n    1. Check Redis: key 'abc-123' exists?\n\n    2. Yes -> return cached response (no re-process)\n\n    3. No  -> process request\n\n    4. Store: Redis SET idem:abc-123 {response} EX 86400\n\nMethods by nature:\n\n  GET, HEAD, DELETE, PUT: idempotent by definition\n\n  POST: not idempotent, need explicit key\n\nDatabase idempotency:\n\n  INSERT ... ON CONFLICT DO NOTHING\n\n  Unique constraint: (user_id, order_id, event_type)"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "Microservices Data Management Patterns?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pattern",
+                  "Mô tả",
+                  "Use case"
+                ],
+                [
+                  "Database-per-Service",
+                  "Mỗi service có DB riêng, isolated",
+                  "Default pattern"
+                ],
+                [
+                  "Shared Database",
+                  "Services share 1 DB (anti-pattern often)",
+                  "Legacy migration only"
+                ],
+                [
+                  "API Composition",
+                  "Aggregate data via API calls",
+                  "Simple queries across services"
+                ],
+                [
+                  "CQRS",
+                  "Tách read/write models",
+                  "High read/write scale difference"
+                ],
+                [
+                  "Saga",
+                  "Distributed transactions qua events",
+                  "Multi-service business transactions"
+                ],
+                [
+                  "Event Sourcing",
+                  "Events as system of record",
+                  "Audit, compliance, time-travel"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "WebSocket Scaling Challenges?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "js",
+              "text": "Problem: WebSocket is stateful (connection pinned to server)\n\n  User A connected to Server 1\n\n  User B connected to Server 2\n\n  A sends message to B -> Server 1 doesn't have B's connection!\n\nSolution 1: Sticky Sessions (Session Affinity)\n\n  Load balancer: IP Hash -> same user always to same server\n\n  Problem: uneven load, hard to scale down\n\nSolution 2: Pub/Sub with Redis (recommended):\n\n  Server 1                    Server 2\n\n  A connected  <- Redis Pub/Sub -> B connected\n\n  A sends msg                        |\n\n    |   -> PUBLISH chat:roomXYZ msg\n\n         -> Server 2 SUBSCRIBED to chat:roomXYZ\n\n         -> Server 2 sends to B's WebSocket\n\n  Library: Socket.io + socket.io-redis-adapter\n\nSolution 3: Dedicated message broker\n\n  Kafka/RabbitMQ for routing between servers\n\n  More complex but very scalable"
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "System Design Interview Tips?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí đánh giá",
+                  "Interviewer đánh giá điều gì"
+                ],
+                [
+                  "Problem understanding",
+                  "Có clarify requirements, constraints? Biết scope?"
+                ],
+                [
+                  "High-level thinking",
+                  "Vẽ được architecture trước khi đi vào chi tiết?"
+                ],
+                [
+                  "Trade-offs",
+                  "Biết các đánh đổi: SQL vs NoSQL, sync vs async?"
+                ],
+                [
+                  "Scalability",
+                  "Nhận ra bottlenecks và giải quyết được không?"
+                ],
+                [
+                  "Communication",
+                  "Nói to suy nghĩ, proactive, không im lặng quá lâu?"
+                ],
+                [
+                  "Depth",
+                  "Khi đi vào chi tiết có đú sâu không?"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Câu nói quan trọng: 'It depends' + giải thích depends vào cái gì. Tránh đưa ra solution mà không biết trade-off của nó."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "System Design",
+  "color": "#00695C"
+}

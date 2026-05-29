@@ -1,0 +1,1620 @@
+{
+  "title": "OOP Interview Questions",
+  "subtitle": "*Object-Oriented Programming — Cơ bản đến SOLID & Design Patterns*",
+  "sections": [
+    {
+      "name": "Phần I — OOP Cơ Bản (Q1–25)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q1.  OOP là gì? Tại sao dùng OOP?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Object-Oriented Programming (OOP) là paradigm lập trình trong đó chương trình được tổ chức xung quanh objects — kết hợp data (state) và behavior (methods) vào các đơn vị độc lập."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Lợi ích",
+                  "Nhược điểm"
+                ],
+                [
+                  "Code reuse qua inheritance và composition",
+                  "Phức tạp hơn procedural programming"
+                ],
+                [
+                  "Encapsulation bảo vệ data",
+                  "Có thể over-engineer nếu dùng sai"
+                ],
+                [
+                  "Polymorphism giúp mở rộng không sửa code cũ",
+                  "Performance overhead so với procedural"
+                ],
+                [
+                  "Dễ maintain và refactor code lớn",
+                  "Không phù hợp cho mọi loại bài toán"
+                ],
+                [
+                  "Map tự nhiên với real-world entities",
+                  "Các vào lập phải nắm vững tư duy object"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "OOP (Object-Oriented Programming) is a programming paradigm that organises software around objects — units that bundle state (data) and behaviour (methods) together. It promotes code reuse, maintainability, and natural modelling of real-world entities."
+            },
+            {
+              "type": "text",
+              "text": "Benefits: Code reuse via inheritance and composition; encapsulation protects data; polymorphism enables extension without modifying existing code; easier to maintain large codebases."
+            },
+            {
+              "type": "text",
+              "text": "Drawbacks: More complex than procedural programming; risk of over-engineering; slight performance overhead; requires a solid object-oriented mindset."
+            },
+            {
+              "type": "text",
+              "text": "When to use: Large-scale systems, domain-rich applications, and any project that benefits from modular, reusable, and easily extensible design."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q2.  4 Pillars của OOP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pillar",
+                  "Mô tả ngắn",
+                  "Từ khóa nhớ"
+                ],
+                [
+                  "Encapsulation",
+                  "Bó data + methods vào class, ẩn implementation",
+                  "Private/Protected, Getter/Setter"
+                ],
+                [
+                  "Abstraction",
+                  "Chỉ expose cái người dùng cần, ẩn complexity",
+                  "Abstract class, Interface"
+                ],
+                [
+                  "Inheritance",
+                  "Class con kế thừa class cha, tái sử dụng code",
+                  "extends, super()"
+                ],
+                [
+                  "Polymorphism",
+                  "Cùng interface, nhiều hành vi khác nhau",
+                  "Override, Overload"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Cách nhớ: APIE — Abstraction, Polymorphism, Inheritance, Encapsulation. Hay hỏi: 'Cho ví dụ thực tế cho từng pillar.'"
+            },
+            {
+              "type": "text",
+              "text": "The four pillars of OOP are Encapsulation, Abstraction, Inheritance, and Polymorphism (mnemonic: APIE). Together they enable modular, reusable, and maintainable software design."
+            },
+            {
+              "type": "text",
+              "text": "Encapsulation: Bundles data + methods into a class; hides internal details using access modifiers (private, protected)."
+            },
+            {
+              "type": "text",
+              "text": "Abstraction: Exposes only what the user needs; hides complexity via abstract classes and interfaces."
+            },
+            {
+              "type": "text",
+              "text": "Inheritance: Child class reuses parent class properties/methods via extends and super()."
+            },
+            {
+              "type": "text",
+              "text": "Polymorphism: The same interface behaves differently depending on the concrete type — enabled by overriding and overloading."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q3.  Class và Object khác nhau thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Class",
+                  "Object"
+                ],
+                [
+                  "Khái niệm",
+                  "Blueprint / template",
+                  "Instance của class"
+                ],
+                [
+                  "Tồn tại",
+                  "Logical (compile time)",
+                  "Physical (runtime, trong memory)"
+                ],
+                [
+                  "Memory",
+                  "Không chiếm memory",
+                  "Chiếm memory khi tạo"
+                ],
+                [
+                  "Số lượng",
+                  "Một class",
+                  "Nhiều objects từ một class"
+                ],
+                [
+                  "Ví dụ",
+                  "class Car { ... }",
+                  "const myCar = new Car(...)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Car {\n\n  constructor(\n\n    private brand: string,\n\n    private speed: number = 0\n\n  ) {}\n\n  accelerate(amount: number): void { this.speed += amount; }\n\n  getSpeed(): number { return this.speed; }\n\n  }\n\n// Objects - mỗi cái độc lập\n\nconst toyota = new Car('Toyota');\n\nconst honda  = new Car('Honda');\n\ntoyota.accelerate(50);\n\n// toyota.speed = 50, honda.speed = 0\n\nA class is a blueprint or template that defines the structure and behaviour of objects. An object is a concrete runtime instance of a class that occupies memory and holds its own state.\n\n**Class: ****Logical entity defined at compile time; does not occupy memory by itself (e.g. class Car { ... }).**\n\n**Object: ****Physical entity created at runtime via new; each object has independent state (e.g. const toyota = new Car('Toyota')).**\n\n**Key point: ****Multiple objects can be instantiated from a single class, each maintaining separate data.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q4.  Encapsulation là gì? Ví dụ?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Encapsulation là việc bó data và các methods thao tác lên data vào một unit (class), đồng thời ẩn các chi tiết nội bộ và chỉ expose interface cần thiết."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class BankAccount {\n\n  private balance: number;   // ẩn — không ai đọc trực tiếp\n\n  private owner: string;\n\n  constructor(owner: string, initial: number = 0) {\n\n    this.owner   = owner;\n\n    this.balance = initial;\n\n  }\n\n  // Chỉ expose operations có kiểm soát\n\n  deposit(amount: number): void {\n\n    if (amount <= 0) throw new Error('Amount must be positive');\n\n    this.balance += amount;\n\n  }\n\n  withdraw(amount: number): void {\n\n    if (amount > this.balance) throw new Error('Insufficient funds');\n\n    this.balance -= amount;\n\n  }\n\n  getBalance(): number { return this.balance; } // read-only access\n\n  }\n\nconst acc = new BankAccount('Dat', 1000);\n\nacc.deposit(500);\n\n// acc.balance = 999; // Error: private\n\n- **Lợi ích: **Data validation, security, flexibility thay đổi implementation mà không ảnh hưởng outside code.\n\nEncapsulation bundles data and methods into a single class while restricting direct access to internal state. It enforces controlled interaction through a public interface, protecting data integrity.\n\n**Mechanism: ****Use private/protected fields and expose them only via controlled methods (getters, setters, or dedicated operations).**\n\n**Benefits: ****Data validation at the point of mutation, improved security, and flexibility to change internal implementation without affecting external code.**\n\n**Example: ****BankAccount hides the balance field; deposit() and withdraw() enforce business rules before modifying it.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q5.  Abstraction là gì? Khác Encapsulation thế nào?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Encapsulation",
+                  "Abstraction"
+                ],
+                [
+                  "Mục đích",
+                  "Ẩn implementation details",
+                  "Ẩn complexity, chỉ show essentials"
+                ],
+                [
+                  "Cách thực hiện",
+                  "Access modifiers (private, protected)",
+                  "Abstract class, Interface"
+                ],
+                [
+                  "Hỏi 'cái gì'",
+                  "Ẩn dữ liệu nội bộ",
+                  "Giảm phức tạp cho user"
+                ],
+                [
+                  "Ví dụ",
+                  "Bank account ẩn balance",
+                  "ATM: ta chỉ thấy giao diện, không thấy cơ chế bên trong"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Abstraction qua abstract class\n\nabstract class Shape {\n\n  abstract area(): number;     // subclass tự implement\n\n  abstract perimeter(): number;\n\n  describe(): string {         // concrete method chung\n\n    return `Area: ${this.area().toFixed(2)}`;\n\n  }\n\n  }\n\nclass Circle extends Shape {\n\n  constructor(private radius: number) { super(); }\n\n  area()      { return Math.PI * this.radius ** 2; }\n\n  perimeter() { return 2 * Math.PI * this.radius; }\n\n  }\n\nclass Rectangle extends Shape {\n\n  constructor(private w: number, private h: number) { super(); }\n\n  area()      { return this.w * this.h; }\n\n  perimeter() { return 2 * (this.w + this.h); }\n\n  }\n\n// Client code không cần biết implementation\n\nconst shapes: Shape[] = [new Circle(5), new Rectangle(4, 6)];\n\nshapes.forEach(s => console.log(s.describe()));\n\nAbstraction hides unnecessary complexity and exposes only the essential interface a user needs to interact with. Unlike Encapsulation (which hides data), Abstraction hides implementation complexity.\n\n**Encapsulation vs Abstraction: ****Encapsulation hides data using access modifiers; Abstraction hides complexity using abstract classes and interfaces.**\n\n**Implementation: ****Abstract classes define abstract methods that subclasses must implement; client code works against the abstraction, not the concrete type.**\n\n**Example: ****Shape declares abstract area() and perimeter(); Circle and Rectangle provide their own implementations — callers only use the Shape interface.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q6.  Inheritance là gì? Các loại Inheritance?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Inheritance cho phép class con (child/subclass) kế thừa properties và methods của class cha (parent/superclass). Mục đích chính: code reuse và polymorphism."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Mô tả",
+                  "TypeScript hỗ trợ"
+                ],
+                [
+                  "Single",
+                  "1 child extends 1 parent",
+                  "Có"
+                ],
+                [
+                  "Multi-level",
+                  "A -> B -> C (chuỗi)",
+                  "Có"
+                ],
+                [
+                  "Hierarchical",
+                  "Nhiều child extends 1 parent",
+                  "Có"
+                ],
+                [
+                  "Multiple",
+                  "1 child extends nhiều parents",
+                  "Không (dùng interface thay)"
+                ],
+                [
+                  "Hybrid",
+                  "Kết hợp các loại trên",
+                  "Qua interfaces"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Single inheritance\n\nclass Animal {\n\n  constructor(protected name: string) {}\n\n  eat(): void { console.log(`${this.name} is eating`); }\n\n  }\n\nclass Dog extends Animal {\n\n  bark(): void { console.log(`${this.name} says Woof!`); }\n\n  }\n\n// Multi-level inheritance\n\nclass GoldenRetriever extends Dog {\n\n  fetch(): void { console.log(`${this.name} fetches the ball!`); }\n\n  }\n\nconst g = new GoldenRetriever('Buddy');\n\ng.eat();   // từ Animal\n\ng.bark();  // từ Dog\n\ng.fetch(); // riêng của GoldenRetriever\n\nInheritance allows a child class to acquire the properties and methods of a parent class, enabling code reuse and forming the basis for polymorphism.\n\n**Single: ****One child extends one parent — fully supported in TypeScript.**\n\n**Multi-level: ****Chain of inheritance A → B → C — supported in TypeScript.**\n\n**Hierarchical: ****Multiple child classes extend one parent — supported in TypeScript.**\n\n**Multiple: ****One child extends multiple parents — not supported directly in TypeScript; use interfaces instead.**\n\n**Hybrid: ****Combination of the above — achievable via interfaces in TypeScript.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q7.  Polymorphism là gì? Compile-time vs Runtime?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Polymorphism (nhiều hình thái) cho phép cùng interface hoạt động khác nhau tùy context."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Loại",
+                  "Tên khác",
+                  "Cơ chế",
+                  "Ví dụ"
+                ],
+                [
+                  "Compile-time",
+                  "Static / Early binding",
+                  "Method overloading, operator overloading",
+                  "add(int), add(string)"
+                ],
+                [
+                  "Runtime",
+                  "Dynamic / Late binding",
+                  "Method overriding (virtual functions)",
+                  "animal.speak() gọi đúng Dog.speak() hay Cat.speak()"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Runtime Polymorphism (Override)\n\nclass Animal {\n\n  speak(): string { return 'Some sound'; }\n\n  }\n\nclass Dog extends Animal {\n\n  speak(): string { return 'Woof!'; }\n\n  }\n\nclass Cat extends Animal {\n\n  speak(): string { return 'Meow!'; }\n\n  }\n\n// Compile-time Polymorphism (Overload)\n\nclass Calculator {\n\n  add(a: number, b: number): number;\n\n  add(a: string, b: string): string;\n\n  add(a: any, b: any): any { return a + b; }\n\n  }\n\n// Runtime dispatch\n\nconst animals: Animal[] = [new Dog(), new Cat(), new Animal()];\n\nanimals.forEach(a => console.log(a.speak()));\n\n// 'Woof!', 'Meow!', 'Some sound'\n\nPolymorphism ('many forms') lets the same interface produce different behaviour depending on the concrete type at runtime, or at compile time through overloading.\n\n**Compile-time (Static): ****Resolved at compile time via method overloading or operator overloading (e.g. add(int) vs add(string)).**\n\n**Runtime (Dynamic): ****Resolved at runtime via method overriding — the correct subclass implementation is dispatched (e.g. animal.speak() calls Dog.speak() or Cat.speak()).**\n\n**Key benefit: ****Write code against a base type; at runtime the correct subclass behaviour is automatically invoked — open/closed by nature.**"
+            }
+          ]
+        },
+        {
+          "id": "Q8",
+          "q": "Access Modifiers: public, private, protected?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Modifier",
+                  "Class",
+                  "Subclass",
+                  "Bên ngoài"
+                ],
+                [
+                  "public",
+                  "Có",
+                  "Có",
+                  "Có"
+                ],
+                [
+                  "protected",
+                  "Có",
+                  "Có",
+                  "Không"
+                ],
+                [
+                  "private",
+                  "Có",
+                  "Không",
+                  "Không"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Person {\n\n  public    name: string;       // ai cũng truy cập được\n\n  protected age: number;        // chỉ Person và subclass\n\n  private   ssn: string;        // chỉ Person\n\n  constructor(name: string, age: number, ssn: string) {\n\n    this.name = name; this.age = age; this.ssn = ssn;\n\n  }\n\n  }\n\nclass Employee extends Person {\n\n  getAgeGroup(): string {\n\n    return this.age > 40 ? 'Senior' : 'Junior'; // OK: protected\n\n    // return this.ssn; // Error: private\n\n  }\n\n  }\n\nconst e = new Employee('Dat', 25, '123-456');\n\nconsole.log(e.name); // OK\n\n// console.log(e.age); // Error\n\n// console.log(e.ssn); // Error"
+            }
+          ]
+        },
+        {
+          "id": "Q9",
+          "q": "Constructor là gì? Các loại Constructor?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Default Constructor: Không có parameters, compiler tự tạo nếu không khai báo."
+            },
+            {
+              "type": "text",
+              "text": "- Parameterized Constructor: Nhận arguments, linh hoạt hơn."
+            },
+            {
+              "type": "text",
+              "text": "- Copy Constructor: Tạo object mới từ object có sẵn."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Point {\n\n  x: number; y: number;\n\n  // Parameterized\n\n  constructor(x: number, y: number) {\n\n    this.x = x; this.y = y;\n\n  }\n\n  // Static factory (alternative to copy constructor)\n\n  static from(other: Point): Point {\n\n    return new Point(other.x, other.y);\n\n  }\n\n  }\n\nconst p1 = new Point(3, 4);\n\nconst p2 = Point.from(p1); // copy\n\np2.x = 10; // p1 không ảnh hưởng"
+            }
+          ]
+        },
+        {
+          "id": "Q10",
+          "q": "Destructor là gì? JavaScript/TypeScript có không?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Destructor là method tự động chạy khi object bị hủy, dùng để release resources."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Ngôn ngữ",
+                  "Destructor",
+                  "Ghi chú"
+                ],
+                [
+                  "C++",
+                  "~ClassName()",
+                  "Tường dùng giải phóng memory"
+                ],
+                [
+                  "Java",
+                  "finalize() (deprecated)",
+                  "GC tự động — không có destructor thực sự"
+                ],
+                [
+                  "Python",
+                  "__del__()",
+                  "GC dựa trên reference counting"
+                ],
+                [
+                  "JavaScript/TS",
+                  "Không có",
+                  "GC tự động, dùng FinalizationRegistry (experimental)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// JavaScript: resource cleanup pattern\n\nclass DatabaseConnection {\n\n  private conn: Connection | null = null;\n\n  async connect() { this.conn = await db.connect(); }\n\n  // Explicit cleanup thay vì destructor\n\n  async close() {\n\n    if (this.conn) {\n\n      await this.conn.close();\n\n      this.conn = null;\n\n    }\n\n  }\n\n  }\n\n// Dùng try/finally để đảm bảo cleanup\n\nconst db = new DatabaseConnection();\n\ntry {\n\n  await db.connect();\n\n  // ... use db\n\n} finally {\n\n  await db.close(); // always cleanup\n\n}"
+            }
+          ]
+        },
+        {
+          "id": "Q11",
+          "q": "Overloading vs Overriding?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Method Overloading",
+                  "Method Overriding"
+                ],
+                [
+                  "Khi nào quyết định",
+                  "Compile time (static)",
+                  "Runtime (dynamic)"
+                ],
+                [
+                  "Class",
+                  "Cùng class",
+                  "Class con override class cha"
+                ],
+                [
+                  "Signature",
+                  "Khác parameters",
+                  "Giống hoằn toàn"
+                ],
+                [
+                  "Return type",
+                  "Có thể khác",
+                  "Phải giống (hoặc covariant)"
+                ],
+                [
+                  "Inheritance",
+                  "Không cần",
+                  "Cần"
+                ],
+                [
+                  "Mục đích",
+                  "Nhiều cách gọi",
+                  "Thay đổi hành vi"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Overloading (compile-time)\n\nclass StringUtils {\n\n  format(val: string): string;\n\n  format(val: number): string;\n\n  format(val: Date): string;\n\n  format(val: any): string {\n\n    if (typeof val === 'string') return val.toUpperCase();\n\n    if (typeof val === 'number') return val.toFixed(2);\n\n    return val.toISOString();\n\n  }\n\n  }\n\n// Overriding (runtime)\n\nclass Logger {\n\n  log(msg: string): void { console.log(`[LOG] ${msg}`); }\n\n  }\n\nclass ErrorLogger extends Logger {\n\n  log(msg: string): void { console.error(`[ERROR] ${msg}`); } // override\n\n  }\n\nconst logger: Logger = new ErrorLogger();\n\nlogger.log('test'); // '[ERROR] test' (runtime dispatch)"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q12.  Interface vs Abstract Class?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Interface",
+                  "Abstract Class"
+                ],
+                [
+                  "Implementation",
+                  "Không có (chỉ TS default methods)",
+                  "Có thỉ có concrete methods"
+                ],
+                [
+                  "Multiple inheritance",
+                  "Có (implements A, B, C)",
+                  "Không (chỉ extends 1)"
+                ],
+                [
+                  "Constructor",
+                  "Không",
+                  "Có"
+                ],
+                [
+                  "Access modifiers",
+                  "Tất cả public mặc định",
+                  "Có thể có private/protected"
+                ],
+                [
+                  "Dùng khi",
+                  "Define contract, multiple type shapes",
+                  "Base class với common behavior"
+                ],
+                [
+                  "State (fields)",
+                  "Constants only (Java)",
+                  "Có thỉ instance fields"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Interface: contract\n\ninterface Serializable { serialize(): string; deserialize(s: string): void; }\n\ninterface Printable { print(): void; }\n\n// Abstract class: base behavior\n\nabstract class BaseEntity {\n\n  readonly id: string = crypto.randomUUID();\n\n  readonly createdAt: Date = new Date();\n\n  abstract validate(): boolean; // subclass must implement\n\n  toJSON(): object { return { id: this.id, createdAt: this.createdAt }; }\n\n  }\n\n// Combine: abstract class + interface\n\nclass User extends BaseEntity implements Serializable, Printable {\n\n  constructor(public name: string, public email: string) { super(); }\n\n  validate() { return !!this.email.includes('@'); }\n\n  serialize() { return JSON.stringify({ name: this.name, email: this.email }); }\n\n  deserialize(s: string) { const d = JSON.parse(s); this.name = d.name; }\n\n  print() { console.log(`User: ${this.name}`); }\n\n  }\n\nAn interface defines a pure contract (what a class must do), while an abstract class provides a partial base implementation with shared behaviour (how some things are done). In TypeScript, a class can implement multiple interfaces but can only extend one abstract class.\n\n**Interface: ****No implementation (TypeScript allows optional default methods); supports multiple inheritance; all members are public by default; use for defining contracts and multiple type shapes.**\n\n**Abstract class: ****Can have concrete methods and instance fields; supports constructors and access modifiers; only single inheritance; use when classes share common behaviour.**\n\n**Best practice: ****Prefer interface for contracts and abstract class for shared base logic — combine both freely (class User extends BaseEntity implements Serializable).**"
+            }
+          ]
+        },
+        {
+          "id": "Q13",
+          "q": "Virtual Function và Pure Virtual Function?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "- Virtual Function: Method trong base class có thể được override trong subclass. Vẫn có default implementation."
+            },
+            {
+              "type": "text",
+              "text": "- Pure Virtual Function: Không có implementation, subclass bắt buộc phải override (abstract method)."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Trong TypeScript, mọi method đều virtual by default\n\nclass Vehicle {\n\n  // 'virtual' method - có thể override\n\n  startEngine(): string { return 'Vroom!'; }\n\n  }\n\n// abstract = pure virtual\n\nabstract class Shape {\n\n  abstract area(): number;     // pure virtual — phải override\n\n  abstract perimeter(): number;\n\n  describe(): string { return `Area = ${this.area()}`; } // virtual (optional override)\n\n  }\n\nclass Square extends Shape {\n\n  constructor(private side: number) { super(); }\n\n  area()      { return this.side ** 2; }\n\n  perimeter() { return 4 * this.side; }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q14",
+          "q": "Composition vs Inheritance?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "'Favor composition over inheritance' — một trong những nguyên tắc nổi tiếng nhất của OOP (GoF)."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Tiêu chí",
+                  "Inheritance",
+                  "Composition"
+                ],
+                [
+                  "Quan hệ",
+                  "'is-a' (Dog is-a Animal)",
+                  "'has-a' (Car has-a Engine)"
+                ],
+                [
+                  "Coupling",
+                  "Tight (lệ thuộc vào parent)",
+                  "Loose (inject dependency)"
+                ],
+                [
+                  "Flexibility",
+                  "Ít linh hoạt",
+                  "Linh hoạt hơn (swap implementation)"
+                ],
+                [
+                  "Code reuse",
+                  "Tốt",
+                  "Tốt hơn trong nhiều trường hợp"
+                ],
+                [
+                  "Dùng khi",
+                  "Rõ ràng có is-a relationship",
+                  "Không chắc là is-a, muốn reuse behavior"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Inheritance (is-a)\n\nclass Animal { breathe() { return 'breathing'; } }\n\nclass Duck extends Animal {\n\n  fly()  { return 'flying'; }\n\n  swim() { return 'swimming'; }\n\n  }\n\n// Composition (has-a) - linh hoạt hơn\n\ninterface Flyable  { fly():  string; }\n\ninterface Swimmable { swim(): string; }\n\nclass FlyBehavior  implements Flyable  { fly()  { return 'flying'; } }\n\nclass SwimBehavior implements Swimmable { swim() { return 'swimming'; } }\n\nclass Duck2 {\n\n  constructor(\n\n    private fly:  FlyBehavior  = new FlyBehavior(),\n\n    private swim: SwimBehavior = new SwimBehavior()\n\n  ) {}\n\n  doFly()  { return this.fly.fly(); }\n\n  doSwim() { return this.swim.swim(); }\n\n  }\n\n// RubberDuck: swim nhưng không fly -> swap FlyBehavior"
+            }
+          ]
+        },
+        {
+          "id": "Q15",
+          "q": "Static Methods và Properties?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Static members thuộc về class, không thuộc object instance. Truy cập qua tên class, không cần tạo object."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class MathUtils {\n\n  static readonly PI = 3.14159;\n\n  private static instanceCount = 0;\n\n  static add(a: number, b: number): number { return a + b; }\n\n  static getCount(): number { return MathUtils.instanceCount; }\n\n  constructor() { MathUtils.instanceCount++; }\n\n  }\n\nMathUtils.add(1, 2);      // 3 (không cần new)\n\nconsole.log(MathUtils.PI); // 3.14159\n\n// Singleton pattern dùng static\n\nclass Config {\n\n  private static instance: Config | null = null;\n\n  private constructor(private env: string) {}\n\n  static getInstance(env: string): Config {\n\n    if (!Config.instance) Config.instance = new Config(env);\n\n    return Config.instance;\n\n  }\n\n  }\n\nconst c1 = Config.getInstance('production');\n\nconst c2 = Config.getInstance('staging'); // vẫn là c1"
+            }
+          ]
+        },
+        {
+          "id": "Q16",
+          "q": "Getter và Setter?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Temperature {\n\n  private _celsius: number;\n\n  constructor(celsius: number) { this._celsius = celsius; }\n\n  // Getter\n\n  get fahrenheit(): number {\n\n    return this._celsius * 9/5 + 32;\n\n  }\n\n  // Setter với validation\n\n  set celsius(value: number) {\n\n    if (value < -273.15) throw new Error('Below absolute zero!');\n\n    this._celsius = value;\n\n  }\n\n  get celsius(): number { return this._celsius; }\n\n  }\n\nconst t = new Temperature(100);\n\nconsole.log(t.fahrenheit); // 212 (getter)\n\nt.celsius = -300;          // Error: Below absolute zero!"
+            }
+          ]
+        },
+        {
+          "id": "Q17",
+          "q": "this keyword trong OOP?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Counter {\n\n  private count = 0;\n\n  // Arrow function: this = class instance (lexical)\n\n  increment = (): this => {\n\n    this.count++;\n\n    return this; // method chaining\n\n  }\n\n  // Regular method: this dựa vào cách gọi\n\n  decrement(): this {\n\n    this.count--;\n\n    return this;\n\n  }\n\n  getValue(): number { return this.count; }\n\n  }\n\nconst c = new Counter();\n\n// Method chaining\n\nc.increment().increment().decrement();\n\nconsole.log(c.getValue()); // 1\n\n// Arrow function giữ this khi pass callback\n\nsetTimeout(c.increment, 100); // OK với arrow"
+            }
+          ]
+        },
+        {
+          "id": "Q18",
+          "q": "Abstract Class trong TypeScript?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "abstract class Repository<T, ID> {\n\n  // Abstract: subclass phải implement\n\n  abstract findById(id: ID): Promise<T | null>;\n\n  abstract findAll(): Promise<T[]>;\n\n  abstract save(entity: T): Promise<T>;\n\n  abstract delete(id: ID): Promise<void>;\n\n  // Concrete: áp dụng chung cho mọi subclass\n\n  async findOrThrow(id: ID): Promise<T> {\n\n    const entity = await this.findById(id);\n\n    if (!entity) throw new Error(`Entity ${id} not found`);\n\n    return entity;\n\n  }\n\n  async saveAll(entities: T[]): Promise<T[]> {\n\n    return Promise.all(entities.map(e => this.save(e)));\n\n  }\n\n  }\n\nclass UserRepository extends Repository<User, number> {\n\n  async findById(id: number): Promise<User | null> {\n\n    return db.query('SELECT * FROM users WHERE id = ?', [id]);\n\n  }\n\n  // ... implement remaining abstract methods\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q19",
+          "q": "Method Chaining và Fluent Interface?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class QueryBuilder {\n\n  private table  = '';\n\n  private wheres: string[] = [];\n\n  private orderBy = '';\n\n  private limitVal = 0;\n\n  from(table: string): this { this.table = table; return this; }\n\n  where(cond: string):  this { this.wheres.push(cond); return this; }\n\n  order(col: string):   this { this.orderBy = col; return this; }\n\n  limit(n: number):     this { this.limitVal = n; return this; }\n\n  build(): string {\n\n    let q = `SELECT * FROM ${this.table}`;\n\n    if (this.wheres.length) q += ` WHERE ${this.wheres.join(' AND ')}`;\n\n    if (this.orderBy) q += ` ORDER BY ${this.orderBy}`;\n\n    if (this.limitVal) q += ` LIMIT ${this.limitVal}`;\n\n    return q;\n\n  }\n\n  }\n\nconst sql = new QueryBuilder()\n\n  .from('users')\n\n  .where('age > 18')\n\n  .where('active = true')\n\n  .order('name')\n\n  .limit(10)\n\n  .build();"
+            }
+          ]
+        },
+        {
+          "id": "Q20",
+          "q": "Object Cloning: Shallow vs Deep?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Address {\n\n  constructor(public city: string, public country: string) {}\n\n  // Shallow clone\n\n  shallowClone(): Address { return Object.assign(new Address('',''), this); }\n\n  // Deep clone\n\n  deepClone(): Address { return new Address(this.city, this.country); }\n\n  }\n\nclass Person {\n\n  constructor(\n\n    public name: string,\n\n    public address: Address\n\n  ) {}\n\n  shallowClone(): Person {\n\n    // address là same reference!\n\n    return new Person(this.name, this.address);\n\n  }\n\n  deepClone(): Person {\n\n    return new Person(this.name, this.address.deepClone());\n\n  }\n\n  }\n\nconst p1 = new Person('Dat', new Address('HCM', 'VN'));\n\nconst shallow = p1.shallowClone();\n\nshallow.address.city = 'HN';\n\nconsole.log(p1.address.city); // 'HN' (bị thay đổi!)\n\nconst deep = p1.deepClone();\n\ndeep.address.city = 'DN';\n\nconsole.log(p1.address.city); // 'HCM' (an toàn)"
+            }
+          ]
+        },
+        {
+          "id": "Q21",
+          "q": "Mixins trong OOP?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Mixin là cách kết hợp nhiều behaviors mà không dùng multiple inheritance. TypeScript hỗ trợ qua composition."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "type Constructor<T = {}> = new (...args: any[]) => T;\n\n// Mixin functions\n\nfunction Timestamped<TBase extends Constructor>(Base: TBase) {\n\n  return class extends Base {\n\n    createdAt = new Date();\n\n    updatedAt = new Date();\n\n    touch() { this.updatedAt = new Date(); }\n\n  };\n\n  }\n\nfunction SoftDeletable<TBase extends Constructor>(Base: TBase) {\n\n  return class extends Base {\n\n    deletedAt: Date | null = null;\n\n    softDelete() { this.deletedAt = new Date(); }\n\n    isDeleted() { return this.deletedAt !== null; }\n\n  };\n\n  }\n\nclass BaseModel { constructor(public id: number) {} }\n\n// Compose mixins\n\nconst TimestampedDeletable = SoftDeletable(Timestamped(BaseModel));\n\nclass Post extends TimestampedDeletable {\n\n  constructor(id: number, public title: string) { super(id); }\n\n  }\n\nconst post = new Post(1, 'Hello World');\n\npost.touch();\n\npost.softDelete();"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q22.  Dependency Injection (DI) là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Dependency Injection là pattern truyền dependencies vào class từ bên ngoài thay vì tự tạo. Implement Dependency Inversion Principle."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// WITHOUT DI - tight coupling\n\nclass OrderService {\n\n  private db = new MySQLDatabase();     // cứng — khó test\n\n  private emailer = new SMTPEmailer();  // cứng\n\n  }\n\n// WITH DI - loose coupling\n\ninterface Database { findUser(id: number): Promise<User>; }\n\ninterface Emailer   { send(to: string, msg: string): Promise<void>; }\n\nclass OrderService {\n\n  constructor(\n\n    private db:      Database,  // inject từ ngoài\n\n    private emailer: Emailer    // inject từ ngoài\n\n  ) {}\n\n  async processOrder(userId: number): Promise<void> {\n\n    const user = await this.db.findUser(userId);\n\n    await this.emailer.send(user.email, 'Order confirmed!');\n\n  }\n\n  }\n\n// Production\n\nconst service = new OrderService(new MySQLDatabase(), new SMTPEmailer());\n\n// Testing — inject mocks\n\nconst testService = new OrderService(new MockDatabase(), new MockEmailer());\n\nDependency Injection (DI) is a pattern in which a class receives its dependencies from an external source rather than creating them internally. It is the practical application of the Dependency Inversion Principle.\n\n**Without DI: ****Tight coupling — the class hardcodes new MySQLDatabase() and new SMTPEmailer(), making it impossible to swap implementations or inject mocks.**\n\n**With DI: ****Dependencies are injected via the constructor; the class depends on interfaces (Database, Emailer), not concrete classes.**\n\n**Benefits: ****Loose coupling, easier unit testing (inject MockDatabase), and simpler swapping of implementations in production vs. test environments.**\n\n**Common in: ****NestJS, Angular, and most enterprise frameworks that provide a DI container.**"
+            }
+          ]
+        },
+        {
+          "id": "Q23",
+          "q": "Các Programming Paradigms khác so với OOP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Paradigm",
+                  "Cách tư duy",
+                  "Ví dụ"
+                ],
+                [
+                  "Procedural",
+                  "Các bước tuần tự (step by step)",
+                  "C, Pascal"
+                ],
+                [
+                  "OOP",
+                  "Objects interact với nhau",
+                  "Java, C++, TypeScript"
+                ],
+                [
+                  "Functional",
+                  "Pure functions, immutable data",
+                  "Haskell, F#, (JS/TS)"
+                ],
+                [
+                  "Declarative",
+                  "'Cái gì' không phải 'làm thế nào'",
+                  "SQL, HTML, React JSX"
+                ],
+                [
+                  "Event-driven",
+                  "React to events/messages",
+                  "Node.js, GUI frameworks"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q24",
+          "q": "Object Relationships: Association, Aggregation, Composition?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Quan hệ",
+                  "Mô tả",
+                  "Víng đời phụ thuộc",
+                  "Ví dụ"
+                ],
+                [
+                  "Association",
+                  "A dùng B (lưu reference)",
+                  "Không",
+                  "Teacher dạy Student"
+                ],
+                [
+                  "Aggregation",
+                  "'has-a' yếu — có thể tồn tại độc lập",
+                  "Không",
+                  "Department has Employees"
+                ],
+                [
+                  "Composition",
+                  "'has-a' mạnh — không tồn tại độc lập",
+                  "Có",
+                  "House has Rooms"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Aggregation: Department can exist without Employees\n\nclass Employee { constructor(public name: string) {} }\n\nclass Department {\n\n  constructor(public employees: Employee[]) {} // inject employees\n\n  }\n\n// Composition: Room cannot exist without House\n\nclass Room { constructor(private house: House, public name: string) {} }\n\nclass House {\n\n  private rooms: Room[];\n\n  constructor() {\n\n    // tạo rooms khi House được tạo, xóa theo House\n\n    this.rooms = ['Living', 'Kitchen'].map(n => new Room(this, n));\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q25",
+          "q": "Message Passing trong OOP?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Message passing là cơ chế objects giao tiếp bằng cách gọi methods của nhau. Đây là nền tảng của OOP — objects 'nói chuyện' với nhau thông qua well-defined interfaces."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Objects communicate via method calls\n\nclass Order {\n\n  constructor(\n\n    private items: OrderItem[],\n\n    private payment: PaymentService,\n\n    private notifier: NotificationService\n\n  ) {}\n\n  async checkout(): Promise<void> {\n\n    const total = this.items.reduce((sum, i) => sum + i.price, 0);\n\n    await this.payment.charge(total);    // message to PaymentService\n\n    await this.notifier.notify('Order confirmed');  // message to Notifier\n\n  }\n\n  }\n\n// Observer pattern: message broadcasting\n\nclass EventEmitter<T> {\n\n  private listeners = new Map<string, ((data: T) => void)[]>();\n\n  on(event: string, fn: (data: T) => void) { (this.listeners.get(event)||[]).push(fn); }\n\n  emit(event: string, data: T) { this.listeners.get(event)?.forEach(f => f(data)); }\n\n  }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần II — SOLID Principles (Q26–38)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q26.  SOLID Principles là gì?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "SOLID là 5 nguyên tắc thiết kế OOP giúp code dễ maintain, dễ mở rộng và dễ test. Được đặt ra bởi Robert C. Martin (Uncle Bob)."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Letter",
+                  "Nguyên tắc",
+                  "Tóm gọn"
+                ],
+                [
+                  "S",
+                  "Single Responsibility Principle",
+                  "Mỗi class chỉ có một lý do để thay đổi"
+                ],
+                [
+                  "O",
+                  "Open/Closed Principle",
+                  "Mở cho mở rộng, đóng với sửa đổi"
+                ],
+                [
+                  "L",
+                  "Liskov Substitution Principle",
+                  "Subtype thay thế được supertype"
+                ],
+                [
+                  "I",
+                  "Interface Segregation Principle",
+                  "Nhiều interface nhỏ hơn một interface lớn"
+                ],
+                [
+                  "D",
+                  "Dependency Inversion Principle",
+                  "Phụ thuộc abstractions, không phụ thuộc concretions"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "SOLID is a set of five OOP design principles introduced by Robert C. Martin (Uncle Bob) that make software easier to maintain, extend, and test."
+            },
+            {
+              "type": "text",
+              "text": "S — SRP: Each class should have only one reason to change."
+            },
+            {
+              "type": "text",
+              "text": "O — OCP: Open for extension, closed for modification."
+            },
+            {
+              "type": "text",
+              "text": "L — LSP: Subtypes must be substitutable for their supertypes."
+            },
+            {
+              "type": "text",
+              "text": "I — ISP: Prefer multiple small interfaces over one large interface."
+            },
+            {
+              "type": "text",
+              "text": "D — DIP: Depend on abstractions, not on concrete implementations."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q27.  S — Single Responsibility Principle (SRP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Mỗi class chỉ nên có một lý do duy nhất để thay đổi. Mỗi class chịu trách nhiệm chỉ một phần của functionality."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM SRP: UserService làm quá nhiều việc\n\nclass UserService {\n\n  createUser(data: CreateUserDto) { /* ... */ }\n\n  sendWelcomeEmail(user: User) { /* email logic */ }\n\n  generatePdfReport(users: User[]) { /* PDF logic */ }\n\n  logUserActivity(user: User) { /* logging */ }\n\n  validateUserData(data: any) { /* validation */ }\n\n  }\n\n// TUAN THU SRP: tách ra từng class\n\nclass UserService {\n\n  constructor(private userRepo: UserRepository) {}\n\n  createUser(data: CreateUserDto): Promise<User> { /* create only */ }\n\n  }\n\nclass EmailService {\n\n  sendWelcomeEmail(user: User): Promise<void> { /* email only */ }\n\n  }\n\nclass ReportService {\n\n  generatePdfReport(users: User[]): Buffer { /* PDF only */ }\n\n  }\n\nclass UserValidator {\n\n  validate(data: CreateUserDto): ValidationResult { /* validate only */ }\n\n  }\n\n*💡 Câu hỏi kiểm tra SRP: 'Nếu business rule này thay đổi, class này có cần sửa không?' Nếu nhiều bộ phận có thể gây ra thay đổi — vi phạm SRP.*\n\nThe Single Responsibility Principle states that each class should have exactly one reason to change — it should be responsible for only one part of the system's functionality.\n\n**Violation: ****A single UserService that creates users, sends emails, generates PDF reports, and logs activity — too many responsibilities.**\n\n**Compliant: ****Separate into UserService, EmailService, ReportService, and UserValidator — each handles one concern.**\n\n**Test: ****Ask: 'If this business rule changes, does this class need to change?' Multiple yes answers signal an SRP violation.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q28.  O — Open/Closed Principle (OCP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Class nên mở để mở rộng (extension) nhưng đóng để sửa đổi (modification). Thêm tính năng mới mà không sửa code cũ."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM OCP: thêm discount mới phải sửa hàm\n\nfunction getDiscount(type: string, price: number): number {\n\n  if (type === 'vip')    return price * 0.2;\n\n  if (type === 'member') return price * 0.1;\n\n  // Muốn thêm 'student' -> phải sửa hàm này!\n\n  return 0;\n\n  }\n\n// TUAN THU OCP: mở rộng bằng cách thêm class mới\n\ninterface DiscountStrategy {\n\n  calculate(price: number): number;\n\n  }\n\nclass VipDiscount    implements DiscountStrategy { calculate(p) { return p * 0.2; } }\n\nclass MemberDiscount implements DiscountStrategy { calculate(p) { return p * 0.1; } }\n\nclass StudentDiscount implements DiscountStrategy { calculate(p) { return p * 0.15; } }\n\nclass PriceCalculator {\n\n  constructor(private strategy: DiscountStrategy) {}\n\n  getFinalPrice(price: number): number {\n\n    return price - this.strategy.calculate(price);\n\n  }\n\n  }\n\n// Thêm discount mới: chỉ cần tạo class mới, không sửa code cũ\n\nThe Open/Closed Principle states that a class should be open for extension but closed for modification — add new behaviour by adding new code, not by editing existing code.\n\n**Violation: ****A getDiscount() function with if/else branches for each discount type — adding a new type requires modifying the function.**\n\n**Compliant: ****Define a DiscountStrategy interface; each discount type is a new class (VipDiscount, StudentDiscount) — no existing code changes.**\n\n**How to achieve: ****Use interfaces, abstract classes, the Strategy pattern, or composition to introduce new behaviour without touching existing logic.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q29.  L — Liskov Substitution Principle (LSP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Objects của subclass phải có thể thay thế objects của superclass mà không làm sai hành vi của chương trình."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM LSP: Square extends Rectangle\n\nclass Rectangle {\n\n  constructor(protected width: number, protected height: number) {}\n\n  setWidth(w: number)  { this.width = w; }\n\n  setHeight(h: number) { this.height = h; }\n\n  area() { return this.width * this.height; }\n\n  }\n\nclass Square extends Rectangle {\n\n  setWidth(w: number)  { this.width = this.height = w; }  // làm sai Rectangle!\n\n  setHeight(h: number) { this.width = this.height = h; }\n\n  }\n\nfunction resize(rect: Rectangle) {\n\n  rect.setWidth(5); rect.setHeight(10);\n\n  // Expect area = 50, nhưng Square trả về 100!\n\n  }\n\n// TUAN THU LSP: không kế thừa bật buộc\n\nabstract class Shape { abstract area(): number; }\n\nclass Rectangle2 extends Shape {\n\n  constructor(public width: number, public height: number) { super(); }\n\n  area() { return this.width * this.height; }\n\n  }\n\nclass Square2 extends Shape {\n\n  constructor(public side: number) { super(); }\n\n  area() { return this.side ** 2; }\n\n  }\n\nThe Liskov Substitution Principle states that objects of a subclass must be substitutable for objects of the superclass without altering the correctness of the program.\n\n**Violation: ****Square extends Rectangle and overrides setWidth/setHeight to keep both dimensions equal — this breaks the Rectangle contract (setWidth then setHeight should give width × height).**\n\n**Compliant: ****Square and Rectangle both extend a common abstract Shape; each has its own independent area() — no contract is broken.**\n\n**Rule of thumb: ****If substituting a subtype causes unexpected behaviour, the inheritance hierarchy violates LSP — prefer composition.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q30.  I — Interface Segregation Principle (ISP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Client không nên bị buộc phải implement các methods nó không dùng. Nhiều interface nhỏ tốt hơn một interface lớn."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM ISP: một interface quá lớn\n\ninterface Machine {\n\n  print():  void;\n\n  scan():   void;\n\n  fax():    void;\n\n  staple(): void;\n\n  }\n\n// SimplePrinter bị buộc implement scan, fax, staple!\n\nclass SimplePrinter implements Machine {\n\n  print()  { console.log('Printing...'); }\n\n  scan()   { throw new Error('Not supported'); } // lãng phí!\n\n  fax()    { throw new Error('Not supported'); }\n\n  staple() { throw new Error('Not supported'); }\n\n  }\n\n// TUAN THU ISP: tách interface nhỏ\n\ninterface Printable  { print(): void; }\n\ninterface Scannable  { scan():  void; }\n\ninterface Faxable    { fax():   void; }\n\nclass SimplePrinter2 implements Printable {\n\n  print() { console.log('Printing...'); }\n\n  }\n\nclass AllInOne implements Printable, Scannable, Faxable {\n\n  print() { /* ... */ }\n\n  scan()  { /* ... */ }\n\n  fax()   { /* ... */ }\n\n  }\n\nThe Interface Segregation Principle states that no client should be forced to depend on methods it does not use. Prefer many small, focused interfaces over one large general-purpose interface.\n\n**Violation: ****A Machine interface with print(), scan(), fax(), and staple() forces SimplePrinter to implement methods it doesn't support, throwing 'Not supported' errors.**\n\n**Compliant: ****Split into Printable, Scannable, and Faxable; SimplePrinter implements only Printable; AllInOne implements all three.**\n\n**Benefit: ****Classes only depend on the interface members they actually use — leaner contracts and less fragile code.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q31.  D — Dependency Inversion Principle (DIP)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "High-level modules không nên phụ thuộc vào low-level modules. Cả hai nên phụ thuộc vào abstractions."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM DIP\n\nclass OrderService {\n\n  private db = new MySQLDatabase();  // cứng vào MySQL\n\n  async save(order: Order): Promise<void> {\n\n    await this.db.execute('INSERT INTO orders...');\n\n  }\n\n  }\n\n// TUAN THU DIP\n\ninterface OrderRepository {\n\n  save(order: Order): Promise<void>;\n\n  findById(id: string): Promise<Order | null>;\n\n  }\n\n// OrderService (high-level) phụ thuộc vào abstraction\n\nclass OrderService {\n\n  constructor(private repo: OrderRepository) {}  // inject abstraction\n\n  async createOrder(data: CreateOrderDto): Promise<Order> {\n\n    const order = Order.create(data);\n\n    await this.repo.save(order);\n\n    return order;\n\n  }\n\n  }\n\n// MySQL implementation (low-level)\n\nclass MySQLOrderRepository implements OrderRepository {\n\n  async save(order: Order) { /* MySQL specific */ }\n\n  async findById(id: string) { /* MySQL specific */ }\n\n  }\n\n// MongoDB implementation\n\nclass MongoOrderRepository implements OrderRepository {\n\n  async save(order: Order) { /* MongoDB specific */ }\n\n  async findById(id: string) { /* MongoDB specific */ }\n\n  }\n\nThe Dependency Inversion Principle states that high-level modules should not depend on low-level modules — both should depend on abstractions. Abstractions should not depend on details; details should depend on abstractions.\n\n**Violation: ****OrderService directly instantiates new MySQLDatabase() — tightly coupled; switching to MongoDB requires modifying OrderService.**\n\n**Compliant: ****OrderService depends on an OrderRepository interface; MySQLOrderRepository and MongoOrderRepository are low-level implementations injected at runtime.**\n\n**Relationship to DI: ****DI (Dependency Injection) is the mechanism that puts DIP into practice — abstractions are injected, not created internally.**"
+            }
+          ]
+        },
+        {
+          "id": "Q32",
+          "q": "SOLID trong thực tế — khi nào apply?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "SOLID",
+                  "Apply khi",
+                  "Code smell khi vi phạm"
+                ],
+                [
+                  "SRP",
+                  "Class có nhiều method thuoc nhiều lĩnh vực",
+                  "'God class', file hơn 300 dòng"
+                ],
+                [
+                  "OCP",
+                  "Hay thêm các loại mới",
+                  "Nhiều if/switch theo type"
+                ],
+                [
+                  "LSP",
+                  "Inheritance hierarchy",
+                  "Override throw exception"
+                ],
+                [
+                  "ISP",
+                  "Interface lớn với nhiều consumers",
+                  "Method trả về 'not implemented'"
+                ],
+                [
+                  "DIP",
+                  "Unit test, swap implementations",
+                  "'new' bên trong constructor"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "📌 SOLID là guidelines, không phải law. Áp dụng pragmatically — over-engineering cũng là vấn đề."
+            }
+          ]
+        },
+        {
+          "id": "Q33",
+          "q": "DRY, KISS, YAGNI là gì?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Nguyên tắc",
+                  "Viết tắt",
+                  "Mô tả"
+                ],
+                [
+                  "DRY",
+                  "Don't Repeat Yourself",
+                  "Không duplicate logic — mỗi kiến thức chỉ có một nơi"
+                ],
+                [
+                  "KISS",
+                  "Keep It Simple, Stupid",
+                  "Code đơn giản nhất có thể, tránh complexity không cần thiết"
+                ],
+                [
+                  "YAGNI",
+                  "You Aren't Gonna Need It",
+                  "Không viết code cho tính năng chưa cần"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM DRY\n\nfunction validateEmail(email: string) { return /\\S+@\\S+\\.\\S+/.test(email); }\n\nfunction validateUserEmail(u: User) { return /\\S+@\\S+\\.\\S+/.test(u.email); }\n\n// Cùng regex ở 2 nơi!\n\n// TUAN THU DRY\n\nconst emailRegex = /\\S+@\\S+\\.\\S+/;\n\nconst isValidEmail = (email: string): boolean => emailRegex.test(email);"
+            }
+          ]
+        },
+        {
+          "id": "Q34",
+          "q": "Law of Demeter (LoD)?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "'Don't talk to strangers.' Mỗi object chỉ nên gọi methods của: bản thân, các objects được pass vào, các objects nó tự tạo, hoặc các objects được inject."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM LoD - 'Train wreck'\n\nclass Order {\n\n  getCustomer(): Customer { return this.customer; }\n\n  }\n\n// order.getCustomer().getAddress().getCity()  <-- vi pham!\n\n// Order phải biết cả Customer và Address!\n\n// TUAN THU LoD\n\nclass Order {\n\n  getCustomerCity(): string {\n\n    return this.customer.getCity(); // hỏi Customer, không hỏi sâu hơn\n\n  }\n\n  }\n\nclass Customer {\n\n  getCity(): string {\n\n    return this.address.city; // hỏi Address, không expose ra ngoài\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q35",
+          "q": "Cohesion và Coupling?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Khái niệm",
+                  "Mô tả",
+                  "Mục tiêu"
+                ],
+                [
+                  "Cohesion",
+                  "Mức độ các phần trong một module liên quan với nhau",
+                  "HIGH cohesion (cùng mục đích)"
+                ],
+                [
+                  "Coupling",
+                  "Mức độ phụ thuộc giữa các modules",
+                  "LOW coupling (kích lần độc lập)"
+                ]
+              ],
+              "headerDone": true
+            },
+            {
+              "type": "note",
+              "text": "💡 Mục tiêu: HIGH cohesion + LOW coupling. Class có high cohesion khi mọi methods đều làm việc với cùng một domain. Low coupling khi classes ít phụ thuộc nhau."
+            }
+          ]
+        },
+        {
+          "id": "Q36",
+          "q": "Tell, Don't Ask Principle?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Thay vì hỏi object về state rồi quyết định bên ngoài, hãy 'nói' với object để nó tự quyết định."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// VI PHAM: hỏi state rồi quyết định bên ngoài\n\nif (order.getStatus() === 'pending' && order.getTotal() > 1000) {\n\n  order.setStatus('approved');\n\n  order.notify();\n\n  }\n\n// TUAN THU: tell the object\n\nclass Order {\n\n  approve(): void {\n\n    if (!this.canBeApproved()) throw new Error('Cannot approve');\n\n    this.status = 'approved';\n\n    this.notify();\n\n  }\n\n  private canBeApproved(): boolean {\n\n    return this.status === 'pending' && this.total > 1000;\n\n  }\n\n  }\n\norder.approve(); // tell, don't ask"
+            }
+          ]
+        },
+        {
+          "id": "Q37",
+          "q": "GRASP Principles?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "GRASP (General Responsibility Assignment Software Patterns) — 9 nguyên tắc phân công trách nhiệm trong OOD."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "GRASP Pattern",
+                  "Mô tả"
+                ],
+                [
+                  "Information Expert",
+                  "Gán trách nhiệm cho class có thông tin cần thiết"
+                ],
+                [
+                  "Creator",
+                  "Gán trách nhiệm tạo object cho class sử dụng/chứa object đó"
+                ],
+                [
+                  "Low Coupling",
+                  "Giảm phụ thuộc giữa các classes"
+                ],
+                [
+                  "High Cohesion",
+                  "Mỗi class có một focus rõ ràng"
+                ],
+                [
+                  "Controller",
+                  "Class xử lý system events (tương đương Application Service)"
+                ],
+                [
+                  "Polymorphism",
+                  "Sử dụng polymorphism thay if/switch theo type"
+                ],
+                [
+                  "Pure Fabrication",
+                  "Tạo class trợ giúp không đại diện real-world entity"
+                ],
+                [
+                  "Indirection",
+                  "Giớm trung gian giảm coupling trực tiếp"
+                ],
+                [
+                  "Protected Variations",
+                  "Bảo vệ điểm biến đổi sau interface ổn định"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q38",
+          "q": "Refactoring và Code Smells?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Code Smell",
+                  "Mô tả",
+                  "Refactoring solution"
+                ],
+                [
+                  "Long Method",
+                  "Method quá dài",
+                  "Extract Method"
+                ],
+                [
+                  "God Class",
+                  "Class làm quá nhiều việc",
+                  "Extract Class, SRP"
+                ],
+                [
+                  "Feature Envy",
+                  "Method của class A hay dùng data của class B",
+                  "Move Method"
+                ],
+                [
+                  "Duplicate Code",
+                  "Cùng logic ở nhiều nơi",
+                  "Extract Method/Class, DRY"
+                ],
+                [
+                  "Switch Statements",
+                  "Nhiều switch/if theo type",
+                  "Replace with Polymorphism"
+                ],
+                [
+                  "Data Class",
+                  "Class chỉ chứa data, không có behavior",
+                  "Move behavior vào class"
+                ],
+                [
+                  "Shotgun Surgery",
+                  "1 thay đổi nhỏ -> sửa nhiều class",
+                  "Move Method, Extract Class"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phần III — Design Patterns (Q39–58)",
+      "questions": [
+        {
+          "id": "",
+          "q": "---Q39.  Design Patterns là gì? Phân loại?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Design patterns là các giải pháp tái sử dụng được cho các vấn đề phổ biến trong thiết kế phần mềm. Bộ 'Gang of Four' (GoF) có 23 patterns."
+            },
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Category",
+                  "Mô tả",
+                  "Patterns"
+                ],
+                [
+                  "Creational",
+                  "Cách tạo objects",
+                  "Singleton, Factory, Abstract Factory, Builder, Prototype"
+                ],
+                [
+                  "Structural",
+                  "Cách kết hợp classes/objects",
+                  "Adapter, Decorator, Facade, Proxy, Composite, Bridge, Flyweight"
+                ],
+                [
+                  "Behavioral",
+                  "Cách objects tương tác",
+                  "Observer, Strategy, Command, Iterator, State, Chain of Responsibility, Template Method"
+                ]
+              ],
+              "headerDone": true,
+              "closed": true
+            },
+            {
+              "type": "text",
+              "text": "Design patterns are reusable, proven solutions to recurring software design problems. The 'Gang of Four' (GoF) catalogue defines 23 classic patterns grouped into three categories."
+            },
+            {
+              "type": "text",
+              "text": "Creational: Deal with object creation — Singleton, Factory, Abstract Factory, Builder, Prototype."
+            },
+            {
+              "type": "text",
+              "text": "Structural: Deal with composition of classes/objects — Adapter, Decorator, Facade, Proxy, Composite, Bridge, Flyweight."
+            },
+            {
+              "type": "text",
+              "text": "Behavioral: Deal with communication between objects — Observer, Strategy, Command, Iterator, State, Chain of Responsibility, Template Method."
+            },
+            {
+              "type": "text",
+              "text": "Value: Patterns provide a shared vocabulary and battle-tested blueprints — they speed up design decisions and improve code readability."
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q40.  Singleton Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Singleton đảm bảo chỉ có một instance của class. Cung cấp global access point."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class DatabasePool {\n\n  private static instance: DatabasePool | null = null;\n\n  private pool: Connection[] = [];\n\n  private constructor(private maxConnections: number) {\n\n    // private constructor: ngăn tạo từ bên ngoài\n\n    this.initPool();\n\n  }\n\n  static getInstance(maxConn = 10): DatabasePool {\n\n    if (!DatabasePool.instance) {\n\n      DatabasePool.instance = new DatabasePool(maxConn);\n\n    }\n\n    return DatabasePool.instance;\n\n  }\n\n  private initPool() { /* create connections */ }\n\n  getConnection(): Connection { return this.pool.pop()!; }\n\n  }\n\nconst pool1 = DatabasePool.getInstance();\n\nconst pool2 = DatabasePool.getInstance();\n\nconsole.log(pool1 === pool2); // true (cùng instance)\n\n// Thread-safe Singleton (Node.js single-threaded ok)\n\n// Nhược điểm: khó test (global state), tạo coupling\n\nThe Singleton pattern ensures a class has only one instance throughout the application's lifetime and provides a single global access point to it.\n\n**Mechanism: ****A private constructor prevents external instantiation; a static getInstance() method creates or returns the single instance.**\n\n**Use case: ****Shared resources that should exist only once — database connection pools, configuration managers, loggers.**\n\n**Drawbacks: ****Global state makes testing harder (hard to mock) and introduces tight coupling; avoid overusing it.**\n\n**Node.js note: ****Node's module system caches require() results, effectively providing singleton-like behaviour for modules.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q41.  Factory Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Factory ẩn logic tạo objects. Client nhận object mà không cần biết class cụ thể."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Simple Factory\n\ninterface Logger { log(msg: string): void; }\n\nclass ConsoleLogger implements Logger { log(msg: string) { console.log(msg); } }\n\nclass FileLogger    implements Logger { log(msg: string) { /* write to file */ } }\n\nclass CloudLogger   implements Logger { log(msg: string) { /* send to cloud */ } }\n\nclass LoggerFactory {\n\n  static create(type: 'console' | 'file' | 'cloud'): Logger {\n\n    switch (type) {\n\n      case 'console': return new ConsoleLogger();\n\n      case 'file':    return new FileLogger();\n\n      case 'cloud':   return new CloudLogger();\n\n    }\n\n  }\n\n  }\n\n// Factory Method (abstract)\n\nabstract class Notification {\n\n  abstract createChannel(): Channel;\n\n  send(msg: string): void {\n\n    const channel = this.createChannel();\n\n    channel.send(msg);\n\n  }\n\n  }\n\nclass EmailNotification extends Notification {\n\n  createChannel(): Channel { return new EmailChannel(); }\n\n  }\n\nclass SMSNotification extends Notification {\n\n  createChannel(): Channel { return new SMSChannel(); }\n\n  }\n\nThe Factory pattern encapsulates object creation logic so that the client receives an object without needing to know its concrete class. It decouples construction from usage.\n\n**Simple Factory: ****A static method (LoggerFactory.create('console')) returns the right concrete Logger subclass based on a parameter.**\n\n**Factory Method: ****An abstract class declares an abstract createChannel() method; each subclass (EmailNotification, SMSNotification) decides which concrete Channel to create.**\n\n**Use case: ****When the exact type of object to create is determined at runtime, or when creation logic would otherwise pollute client code.**\n\n**Benefit: ****Adding a new product type requires only a new class — existing client code is unchanged (supports OCP).**"
+            }
+          ]
+        },
+        {
+          "id": "Q42",
+          "q": "Builder Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Builder tách việc cấu trúc và biểu diễn của object. Hữu ích khi object có nhiều optional parameters."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "class Email {\n\n  private constructor(\n\n    readonly to: string,\n\n    readonly subject: string,\n\n    readonly body: string,\n\n    readonly cc?: string[],\n\n    readonly attachments?: string[]\n\n  ) {}\n\n  static builder(to: string) { return new EmailBuilder(to); }\n\n  }\n\nclass EmailBuilder {\n\n  private _subject = '';\n\n  private _body    = '';\n\n  private _cc?: string[];\n\n  private _attachments?: string[];\n\n  constructor(private _to: string) {}\n\n  subject(s: string):      this { this._subject = s; return this; }\n\n  body(b: string):          this { this._body    = b; return this; }\n\n  cc(...emails: string[]):  this { this._cc = emails; return this; }\n\n  attach(...files: string[]): this { this._attachments = files; return this; }\n\n  build(): Email {\n\n    if (!this._subject) throw new Error('Subject required');\n\n    if (!this._body)    throw new Error('Body required');\n\n    return new (Email as any)(this._to, this._subject, this._body, this._cc, this._attachments);\n\n  }\n\n  }\n\nconst email = Email.builder('dat@example.com')\n\n  .subject('Hello!')\n\n  .body('Content...')\n\n  .cc('boss@company.com')\n\n  .build();"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q43.  Observer Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Observer định nghĩa 1-to-many dependency. Khi một subject thay đổi, tất cả observers được tự động notify."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface Observer<T> {\n\n  update(data: T): void;\n\n  }\n\nclass EventEmitter<T> {\n\n  private observers = new Set<Observer<T>>();\n\n  subscribe(observer: Observer<T>): () => void {\n\n    this.observers.add(observer);\n\n    return () => this.observers.delete(observer); // unsubscribe\n\n  }\n\n  notify(data: T): void {\n\n    this.observers.forEach(o => o.update(data));\n\n  }\n\n  }\n\n// Real-world: Order events\n\ninterface OrderEvent { orderId: string; status: string; }\n\nconst orderEvents = new EventEmitter<OrderEvent>();\n\n// Multiple observers\n\nconst emailObserver: Observer<OrderEvent> = {\n\n  update: ({ orderId, status }) => sendEmail(`Order ${orderId}: ${status}`)\n\n  };\n\nconst analyticsObserver: Observer<OrderEvent> = {\n\n  update: (event) => trackEvent('order_status_change', event)\n\n  };\n\nconst unsubEmail = orderEvents.subscribe(emailObserver);\n\norderEvents.subscribe(analyticsObserver);\n\norderEvents.notify({ orderId: '123', status: 'shipped' });\n\nunsubEmail(); // unsubscribe email\n\nThe Observer pattern defines a one-to-many dependency between objects: when a subject changes state, all registered observers are automatically notified and updated.\n\n**Participants: ****Subject (EventEmitter) holds a set of observers; observers implement an update(data) method called on each notification.**\n\n**Use case: ****Event-driven systems — order status changes triggering email notifications and analytics tracking simultaneously.**\n\n**Unsubscribe: ****subscribe() returns an unsubscribe function; call it to remove the observer from the set.**\n\n**Real-world: ****DOM event listeners, RxJS Observables, Node.js EventEmitter, and React state management all use this pattern.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q44.  Strategy Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Strategy định nghĩa một family of algorithms, encapsulate chúng và cho phép interchange."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface SortStrategy {\n\n  sort(data: number[]): number[];\n\n  }\n\nclass BubbleSortStrategy implements SortStrategy {\n\n  sort(data: number[]): number[] {\n\n    const arr = [...data];\n\n    for (let i = 0; i < arr.length; i++)\n\n      for (let j = 0; j < arr.length - i - 1; j++)\n\n        if (arr[j] > arr[j+1]) [arr[j], arr[j+1]] = [arr[j+1], arr[j]];\n\n    return arr;\n\n  }\n\n  }\n\nclass QuickSortStrategy implements SortStrategy {\n\n  sort(data: number[]): number[] {\n\n    if (data.length <= 1) return data;\n\n    const pivot = data[0];\n\n    const left  = data.slice(1).filter(x => x <= pivot);\n\n    const right = data.slice(1).filter(x => x > pivot);\n\n    return [...this.sort(left), pivot, ...this.sort(right)];\n\n  }\n\n  }\n\nclass Sorter {\n\n  constructor(private strategy: SortStrategy) {}\n\n  setStrategy(strategy: SortStrategy): void { this.strategy = strategy; }\n\n  sort(data: number[]): number[] { return this.strategy.sort(data); }\n\n  }\n\nconst sorter = new Sorter(new QuickSortStrategy());\n\nsorter.sort([3,1,4,1,5]);\n\nsorter.setStrategy(new BubbleSortStrategy()); // swap at runtime\n\nThe Strategy pattern defines a family of interchangeable algorithms, encapsulates each one in its own class, and allows the algorithm to be swapped at runtime without changing the client.\n\n**Interface: ****SortStrategy defines sort(data): number[] — each concrete strategy (BubbleSortStrategy, QuickSortStrategy) provides its own implementation.**\n\n**Context: ****Sorter holds a strategy reference; setStrategy() swaps algorithms at runtime without altering Sorter's logic.**\n\n**Use case: ****Payment processing (CreditCard, PayPal, Crypto), sorting, compression, and any scenario where behaviour varies by configuration.**\n\n**vs OCP: ****Strategy is a primary way to achieve OCP — new algorithms are new classes, not modifications of the context.**"
+            }
+          ]
+        },
+        {
+          "id": "",
+          "q": "---Q45.  Decorator Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Decorator thêm responsibilities cho object động (runtime) mà không sửa class."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface Coffee { cost(): number; description(): string; }\n\nclass SimpleCoffee implements Coffee {\n\n  cost()        { return 10; }\n\n  description() { return 'Simple coffee'; }\n\n  }\n\n// Base Decorator\n\nabstract class CoffeeDecorator implements Coffee {\n\n  constructor(protected coffee: Coffee) {}\n\n  cost()        { return this.coffee.cost(); }\n\n  description() { return this.coffee.description(); }\n\n  }\n\nclass MilkDecorator extends CoffeeDecorator {\n\n  cost()        { return this.coffee.cost() + 2; }\n\n  description() { return this.coffee.description() + ', milk'; }\n\n  }\n\nclass SugarDecorator extends CoffeeDecorator {\n\n  cost()        { return this.coffee.cost() + 1; }\n\n  description() { return this.coffee.description() + ', sugar'; }\n\n  }\n\nlet coffee: Coffee = new SimpleCoffee();\n\ncoffee = new MilkDecorator(coffee);\n\ncoffee = new SugarDecorator(coffee);\n\nconsole.log(coffee.cost());        // 13\n\nconsole.log(coffee.description()); // 'Simple coffee, milk, sugar'\n\nThe Decorator pattern dynamically adds responsibilities to an object at runtime by wrapping it in decorator objects that share the same interface — without modifying the original class.\n\n**Mechanism: ****Decorators wrap a component (Coffee) and delegate to it while augmenting cost() and description() — stackable in any order.**\n\n**Example: ****SimpleCoffee → MilkDecorator → SugarDecorator produces cost 13 and description 'Simple coffee, milk, sugar'.**\n\n**Use case: ****Adding features (logging, caching, compression, authentication) to objects without subclassing — keeps classes focused and composable.**\n\n**vs Inheritance: ****Inheritance bakes behaviour into the class hierarchy statically; Decorator adds it dynamically and allows arbitrary combinations.**"
+            }
+          ]
+        },
+        {
+          "id": "Q46",
+          "q": "Adapter Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Adapter chuyển đổi interface của một class sang interface khác mà client expect. Giúp incompatible interfaces làm việc cùng nhau."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Legacy system\n\nclass LegacyPayment {\n\n  makePayment(amount: number, currency: string): string {\n\n    return `Paid ${amount} ${currency} via legacy`;\n\n  }\n\n  }\n\n// New interface\n\ninterface PaymentGateway {\n\n  processPayment(params: { amount: number; currency: string }): Promise<string>;\n\n  }\n\n// Adapter: wrap legacy trong new interface\n\nclass LegacyPaymentAdapter implements PaymentGateway {\n\n  constructor(private legacy: LegacyPayment) {}\n\n  async processPayment(params: { amount: number; currency: string }): Promise<string> {\n\n    return this.legacy.makePayment(params.amount, params.currency);\n\n  }\n\n  }\n\n// Client dùng new interface\n\nclass OrderProcessor {\n\n  constructor(private gateway: PaymentGateway) {}\n\n  async processOrder(amount: number): Promise<void> {\n\n    await this.gateway.processPayment({ amount, currency: 'USD' });\n\n  }\n\n  }\n\n// Inject adapter\n\nconst processor = new OrderProcessor(\n\n  new LegacyPaymentAdapter(new LegacyPayment())\n\n  );"
+            }
+          ]
+        },
+        {
+          "id": "Q47",
+          "q": "Facade Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Facade cung cấp một interface đơn giản hoá hơn cho một subsystem phức tạp."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Complex subsystem\n\nclass OrderValidator   { validate(o: Order): boolean { return true; } }\n\nclass InventoryService { reserve(items: Item[]): void { /* ... */ } }\n\nclass PaymentService   { charge(amount: number): Promise<void> { return Promise.resolve(); } }\n\nclass ShippingService  { schedule(order: Order): void { /* ... */ } }\n\nclass NotificationService { notify(userId: string): void { /* ... */ } }\n\n// Facade: đơn giản hoá checkout flow\n\nclass CheckoutFacade {\n\n  constructor(\n\n    private validator:    OrderValidator,\n\n    private inventory:   InventoryService,\n\n    private payment:     PaymentService,\n\n    private shipping:    ShippingService,\n\n    private notifier:    NotificationService\n\n  ) {}\n\n  async checkout(order: Order): Promise<void> {\n\n    if (!this.validator.validate(order)) throw new Error('Invalid order');\n\n    this.inventory.reserve(order.items);\n\n    await this.payment.charge(order.total);\n\n    this.shipping.schedule(order);\n\n    this.notifier.notify(order.userId);\n\n  }\n\n  }\n\n// Client chỉ cần gọi Facade\n\nconst facade = new CheckoutFacade(/* inject all services */);\n\nawait facade.checkout(order);"
+            }
+          ]
+        },
+        {
+          "id": "Q48",
+          "q": "Command Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Command encapsulate một request thành object, cho phép parameterize, queue, undo/redo operations."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface Command {\n\n  execute(): void;\n\n  undo(): void;\n\n  }\n\nclass MoveCommand implements Command {\n\n  constructor(\n\n    private shape: Shape,\n\n    private dx: number, private dy: number\n\n  ) {}\n\n  execute(): void { this.shape.move(this.dx, this.dy); }\n\n  undo():    void { this.shape.move(-this.dx, -this.dy); }\n\n  }\n\nclass CommandHistory {\n\n  private history: Command[] = [];\n\n  execute(cmd: Command): void {\n\n    cmd.execute();\n\n    this.history.push(cmd);\n\n  }\n\n  undo(): void {\n\n    const cmd = this.history.pop();\n\n    cmd?.undo();\n\n  }\n\n  }\n\nconst history = new CommandHistory();\n\nconst shape = new Shape(0, 0);\n\nhistory.execute(new MoveCommand(shape, 10, 0));\n\nhistory.execute(new MoveCommand(shape, 0, 5));\n\nhistory.undo();  // reverse lướt cuối"
+            }
+          ]
+        },
+        {
+          "id": "Q49",
+          "q": "Proxy Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Proxy cung cấp một surrogate hoặc placeholder cho một object khác. Kiểm soát access, lazy loading, logging, caching."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface UserService {\n\n  getUser(id: number): Promise<User>;\n\n  }\n\n// Real implementation\n\nclass RealUserService implements UserService {\n\n  async getUser(id: number): Promise<User> {\n\n    return await db.findUser(id);\n\n  }\n\n  }\n\n// Caching Proxy\n\nclass CachingUserProxy implements UserService {\n\n  private cache = new Map<number, User>();\n\n  constructor(private real: UserService) {}\n\n  async getUser(id: number): Promise<User> {\n\n    if (this.cache.has(id)) {\n\n      console.log('Cache hit:', id);\n\n      return this.cache.get(id)!;\n\n    }\n\n    const user = await this.real.getUser(id);\n\n    this.cache.set(id, user);\n\n    return user;\n\n  }\n\n  }\n\n// Logging Proxy\n\nclass LoggingUserProxy implements UserService {\n\n  constructor(private service: UserService) {}\n\n  async getUser(id: number): Promise<User> {\n\n    console.log(`getUser(${id}) called`);\n\n    const user = await this.service.getUser(id);\n\n    console.log(`getUser(${id}) returned: ${user.name}`);\n\n    return user;\n\n  }\n\n  }\n\n// Chain proxies\n\nconst service = new LoggingUserProxy(\n\n  new CachingUserProxy(new RealUserService())\n\n  );"
+            }
+          ]
+        },
+        {
+          "id": "Q50",
+          "q": "Template Method Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Template Method định nghĩa skeleton của algorithm trong base class, cho phép subclass override các steps cụ thể."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "abstract class DataProcessor {\n\n  // Template method: skeleton của algorithm\n\n  process(): void {\n\n    const data = this.readData();\n\n    const processed = this.processData(data);\n\n    this.saveResults(processed);\n\n  }\n\n  // Abstract steps: subclass phải implement\n\n  protected abstract readData(): any[];\n\n  protected abstract processData(data: any[]): any[];\n\n  // Concrete step: default implementation\n\n  protected saveResults(data: any[]): void {\n\n    console.log('Saving', data.length, 'results');\n\n  }\n\n  }\n\nclass CSVDataProcessor extends DataProcessor {\n\n  protected readData()         { return readCSVFile('data.csv'); }\n\n  protected processData(data)  { return data.map(transformRow); }\n\n  }\n\nclass JSONDataProcessor extends DataProcessor {\n\n  protected readData()         { return JSON.parse(readFile('data.json')); }\n\n  protected processData(data)  { return data.filter(isValid); }\n\n  protected saveResults(data)  { saveToMongoDB(data); } // override save\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q51",
+          "q": "Chain of Responsibility Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "abstract class Handler {\n\n  private next: Handler | null = null;\n\n  setNext(handler: Handler): Handler {\n\n    this.next = handler;\n\n    return handler; // enable chaining\n\n  }\n\n  handle(request: Request): Response | null {\n\n    if (this.next) return this.next.handle(request);\n\n    return null;\n\n  }\n\n  }\n\nclass AuthHandler extends Handler {\n\n  handle(req: Request): Response | null {\n\n    if (!req.token) return { status: 401, body: 'Unauthorized' };\n\n    return super.handle(req); // pass to next\n\n  }\n\n  }\n\nclass RateLimitHandler extends Handler {\n\n  handle(req: Request): Response | null {\n\n    if (this.isRateLimited(req)) return { status: 429, body: 'Too Many Requests' };\n\n    return super.handle(req);\n\n  }\n\n  private isRateLimited(req: Request) { return false; }\n\n  }\n\nclass BusinessHandler extends Handler {\n\n  handle(req: Request): Response | null {\n\n    return { status: 200, body: processRequest(req) };\n\n  }\n\n  }\n\n// Setup chain\n\nconst auth = new AuthHandler();\n\nauth.setNext(new RateLimitHandler()).setNext(new BusinessHandler());"
+            }
+          ]
+        },
+        {
+          "id": "Q52",
+          "q": "State Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "interface OrderState {\n\n  confirm(): void;\n\n  ship(): void;\n\n  cancel(): void;\n\n  }\n\nclass Order {\n\n  private state: OrderState;\n\n  constructor() { this.state = new PendingState(this); }\n\n  setState(state: OrderState): void { this.state = state; }\n\n  confirm(): void { this.state.confirm(); }\n\n  ship():    void { this.state.ship(); }\n\n  cancel():  void { this.state.cancel(); }\n\n  }\n\nclass PendingState implements OrderState {\n\n  constructor(private order: Order) {}\n\n  confirm(): void { this.order.setState(new ConfirmedState(this.order)); }\n\n  ship():    void { throw new Error('Cannot ship pending order'); }\n\n  cancel():  void { this.order.setState(new CancelledState(this.order)); }\n\n  }\n\nclass ConfirmedState implements OrderState {\n\n  constructor(private order: Order) {}\n\n  confirm(): void { throw new Error('Already confirmed'); }\n\n  ship():    void { this.order.setState(new ShippedState(this.order)); }\n\n  cancel():  void { this.order.setState(new CancelledState(this.order)); }\n\n  }\n\n// Each state knows valid transitions"
+            }
+          ]
+        },
+        {
+          "id": "Q53",
+          "q": "Iterator Pattern?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Custom iterator (TypeScript Symbol.iterator)\n\nclass NumberRange {\n\n  constructor(\n\n    private start: number,\n\n    private end: number,\n\n    private step: number = 1\n\n  ) {}\n\n  [Symbol.iterator]() {\n\n    let current = this.start;\n\n    const end  = this.end;\n\n    const step = this.step;\n\n    return {\n\n      next(): IteratorResult<number> {\n\n        if (current <= end) {\n\n          const value = current;\n\n          current += step;\n\n          return { value, done: false };\n\n        }\n\n        return { value: undefined, done: true };\n\n      }\n\n    };\n\n  }\n\n  }\n\nconst range = new NumberRange(1, 10, 2);\n\nfor (const n of range) console.log(n); // 1 3 5 7 9\n\nconsole.log([...range]);               // [1, 3, 5, 7, 9]"
+            }
+          ]
+        },
+        {
+          "id": "Q54",
+          "q": "Repository Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Repository pattern tách biệt business logic khỏi data access. Đây là pattern quan trọng nhất trong Enterprise applications."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Interface (abstraction)\n\ninterface UserRepository {\n\n  findById(id: number): Promise<User | null>;\n\n  findByEmail(email: string): Promise<User | null>;\n\n  findAll(filter?: UserFilter): Promise<User[]>;\n\n  save(user: User): Promise<User>;\n\n  update(id: number, data: Partial<User>): Promise<User>;\n\n  delete(id: number): Promise<void>;\n\n  }\n\n// TypeORM implementation\n\nclass TypeORMUserRepository implements UserRepository {\n\n  constructor(private repo: Repository<UserEntity>) {}\n\n  async findById(id: number): Promise<User | null> {\n\n    const entity = await this.repo.findOne({ where: { id } });\n\n    return entity ? UserMapper.toDomain(entity) : null;\n\n  }\n\n  async save(user: User): Promise<User> {\n\n    const entity = UserMapper.toEntity(user);\n\n    const saved  = await this.repo.save(entity);\n\n    return UserMapper.toDomain(saved);\n\n  }\n\n  }\n\n// Service: chỉ biết interface\n\nclass UserService {\n\n  constructor(private userRepo: UserRepository) {}\n\n  async getUserProfile(id: number): Promise<UserProfile> {\n\n    const user = await this.userRepo.findById(id);\n\n    if (!user) throw new NotFoundException(`User ${id} not found`);\n\n    return UserProfile.from(user);\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q55",
+          "q": "Event-Driven Architecture và OOP?",
+          "blocks": [
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Domain Events\n\nabstract class DomainEvent {\n\n  readonly occurredAt: Date = new Date();\n\n  abstract readonly eventName: string;\n\n  }\n\nclass OrderPlacedEvent extends DomainEvent {\n\n  readonly eventName = 'order.placed';\n\n  constructor(\n\n    readonly orderId: string,\n\n    readonly userId:  string,\n\n    readonly total:   number\n\n  ) { super(); }\n\n  }\n\n// Aggregate Root (DDD)\n\nclass Order {\n\n  private events: DomainEvent[] = [];\n\n  static place(data: CreateOrderDto): Order {\n\n    const order = new Order(data);\n\n    order.events.push(new OrderPlacedEvent(order.id, order.userId, order.total));\n\n    return order;\n\n  }\n\n  getEvents(): DomainEvent[] { return [...this.events]; }\n\n  clearEvents(): void { this.events = []; }\n\n  }\n\n// Application Service: dispatch events\n\nclass OrderApplicationService {\n\n  async placeOrder(dto: CreateOrderDto): Promise<void> {\n\n    const order = Order.place(dto);\n\n    await this.orderRepo.save(order);\n\n    // dispatch events to message bus\n\n    order.getEvents().forEach(e => this.eventBus.publish(e));\n\n    order.clearEvents();\n\n  }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q56",
+          "q": "CQRS Pattern?",
+          "blocks": [
+            {
+              "type": "text",
+              "text": "Command Query Responsibility Segregation — tách commands (write) và queries (read) thành các paths riêng biệt."
+            },
+            {
+              "type": "code",
+              "lang": "ts",
+              "text": "// Command (write side)\n\ninterface Command { readonly type: string; }\n\nclass CreateUserCommand implements Command {\n\n  readonly type = 'CreateUser';\n\n  constructor(readonly name: string, readonly email: string) {}\n\n  }\n\nclass CreateUserHandler {\n\n  constructor(private repo: UserRepository) {}\n\n  async handle(cmd: CreateUserCommand): Promise<string> {\n\n    const user = User.create(cmd.name, cmd.email);\n\n    await this.repo.save(user);\n\n    return user.id;\n\n  }\n\n  }\n\n// Query (read side - can use different model/DB)\n\nclass GetUserQuery {\n\n  constructor(readonly userId: string) {}\n\n  }\n\nclass GetUserHandler {\n\n  constructor(private readDb: ReadDatabase) {}\n\n  async handle(query: GetUserQuery): Promise<UserDto> {\n\n    return this.readDb.query('SELECT * FROM user_view WHERE id = ?', [query.userId]);\n\n  }\n\n  }\n\n// CQRS Bus\n\nclass CommandBus {\n\n  async dispatch(cmd: Command): Promise<any> { /* route to handler */ }\n\n  }\n\nclass QueryBus {\n\n  async execute(query: any): Promise<any> { /* route to handler */ }\n\n  }"
+            }
+          ]
+        },
+        {
+          "id": "Q57",
+          "q": "Khác nhau giữa Patterns — Strategy vs Template Method vs Command?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Pattern",
+                  "Hỏi 'cái gì'",
+                  "Khi nào dùng"
+                ],
+                [
+                  "Strategy",
+                  "Thay algorithm at runtime",
+                  "Nhiều algorithms có thể interchange, chọn tại runtime"
+                ],
+                [
+                  "Template Method",
+                  "Subclass override steps",
+                  "Algorithm cố định, một số steps thay đổi theo subclass"
+                ],
+                [
+                  "Command",
+                  "Encapsulate operation as object",
+                  "Undo/redo, queue operations, audit log"
+                ],
+                [
+                  "Observer",
+                  "Notify many when one changes",
+                  "Event-driven, 1-to-many dependency"
+                ],
+                [
+                  "Decorator",
+                  "Add behavior dynamically",
+                  "Layer behaviors without modifying class"
+                ],
+                [
+                  "Proxy",
+                  "Control access to object",
+                  "Caching, logging, access control, lazy loading"
+                ],
+                [
+                  "Facade",
+                  "Simplify complex subsystem",
+                  "Complex library, legacy system wrapper"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        },
+        {
+          "id": "Q58",
+          "q": "Anti-patterns cần tránh trong OOP?",
+          "blocks": [
+            {
+              "type": "table",
+              "rows": [
+                [
+                  "Anti-pattern",
+                  "Mô tả",
+                  "Giải pháp"
+                ],
+                [
+                  "God Object",
+                  "Một class biết quá nhiều, làm quá nhiều",
+                  "SRP, tách class"
+                ],
+                [
+                  "Anemic Domain Model",
+                  "Objects chỉ có data, không có behavior",
+                  "Rich domain model, DDD"
+                ],
+                [
+                  "Golden Hammer",
+                  "Dùng mọi nơi pattern quen thuộc",
+                  "Evaluate options, right tool for job"
+                ],
+                [
+                  "Spaghetti Code",
+                  "Code không có cấu trúc rõ ràng",
+                  "Refactor, design patterns, SOLID"
+                ],
+                [
+                  "Deep Inheritance",
+                  "Chain kế thừa quá sâu (5+ cấp)",
+                  "Favor composition, max 2-3 cấp"
+                ],
+                [
+                  "Premature Optimization",
+                  "Tối ưu trước khi cần thiết",
+                  "YAGNI, profile first, optimize later"
+                ],
+                [
+                  "Singleton Overuse",
+                  "Sử dụng Singleton khắp nơi như global",
+                  "DI, limit Singleton usage"
+                ],
+                [
+                  "Magic Numbers",
+                  "Hardcode số/string không rõ nghĩa",
+                  "Named constants, enums"
+                ]
+              ],
+              "headerDone": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "OOP",
+  "color": "#880E4F"
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "key": "javascript",
+    "label": "JavaScript",
+    "title": "JavaScript Interview Questions",
+    "subtitle": "*Top 58 câu hỏi phỏng vấn JavaScript — Basic đến Advanced*",
+    "color": "#F57F17",
+    "questionCount": 58
+  },
+  {
+    "key": "typescript",
+    "label": "TypeScript",
+    "title": "TypeScript Interview Questions",
+    "subtitle": "*Top 58 câu hỏi phỏng vấn TypeScript — Fresher đến Experienced*",
+    "color": "#0D47A1",
+    "questionCount": 58
+  },
+  {
+    "key": "nodejs",
+    "label": "Node.js",
+    "title": "Node.js Interview Questions",
+    "subtitle": "*Top 58+ câu hỏi phỏng vấn — Fresher đến Experienced*",
+    "color": "#2E7D32",
+    "questionCount": 60
+  },
+  {
+    "key": "dsa",
+    "label": "DSA",
+    "title": "Data Structures & Algorithms",
+    "subtitle": "*Câu hỏi phỏng vấn DSA thường gặp — Cơ bản đến Nâng cao*",
+    "color": "#B71C1C",
+    "questionCount": 58
+  },
+  {
+    "key": "oop",
+    "label": "OOP",
+    "title": "OOP Interview Questions",
+    "subtitle": "*Object-Oriented Programming — Cơ bản đến SOLID & Design Patterns*",
+    "color": "#880E4F",
+    "questionCount": 58
+  },
+  {
+    "key": "os",
+    "label": "Operating Systems",
+    "title": "Operating Systems Interview Questions",
+    "subtitle": "*Câu hỏi phỏng vấn OS — Process, Memory, Concurrency, File System*",
+    "color": "#5D4037",
+    "questionCount": 58
+  },
+  {
+    "key": "networking",
+    "label": "Networking",
+    "title": "Networking Interview Questions",
+    "subtitle": "*Mạng máy tính — OSI, TCP/IP, HTTP, DNS, Security và Backend*",
+    "color": "#0A3D62",
+    "questionCount": 58
+  },
+  {
+    "key": "dbms",
+    "label": "DBMS",
+    "title": "DBMS",
+    "subtitle": "*Câu hỏi phỏng vấn Database Management System — Cơ bản đến Nâng cao*",
+    "color": "#7B5200",
+    "questionCount": 58
+  },
+  {
+    "key": "system",
+    "label": "System Design",
+    "title": "System Design Interview Questions",
+    "subtitle": "*HLD • LLD • Scalability • Classic Designs • Backend Focus*",
+    "color": "#00695C",
+    "questionCount": 58
+  }
+]
