@@ -89,10 +89,6 @@ export function render(): void {
           updateGlobalProgress();
           return;
         }
-        if (state.quiz) {
-          card.classList.toggle('reveal');
-          return;
-        }
         state.open[openKey] = !state.open[openKey];
         card.classList.toggle('open');
       });

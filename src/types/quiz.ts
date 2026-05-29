@@ -38,7 +38,6 @@ export type OpenMap = Record<string, boolean>;
 
 export interface AppState {
   topic: string;
-  quiz: boolean;
   progress: ProgressMap;
   open: OpenMap;
 }

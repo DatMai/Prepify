@@ -6,7 +6,6 @@ const STORAGE_KEY = 'quiz:progress';
 
 export const state: AppState = {
   topic: 'javascript',
-  quiz: false,
   progress: {},
   open: {},
 };

@@ -1,15 +1,11 @@
 import { render } from './render/content';
-import { state } from './state/progress';
+import { showQuizLauncher } from './quiz/launcher';
 
 export function bindEvents(): void {
   document.getElementById('search')?.addEventListener('input', () => render());
 
-  const quizToggle = document.getElementById('quizToggle');
-  quizToggle?.addEventListener('click', () => {
-    state.quiz = !state.quiz;
-    quizToggle.classList.toggle('on', state.quiz);
-    document.getElementById('content')?.classList.toggle('quiz-mode', state.quiz);
-    quizToggle.textContent = state.quiz ? '🎯 Quiz: ON' : '🎯 Quiz mode';
+  document.getElementById('quizToggle')?.addEventListener('click', () => {
+    showQuizLauncher();
   });
 
   document.getElementById('menuBtn')?.addEventListener('click', () => {

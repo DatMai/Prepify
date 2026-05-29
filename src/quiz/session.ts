@@ -1,112 +1,33 @@
-import type { TextBlock } from '../types/quiz';
 import { DATA } from '../data/loader';
-import { keyOf, state } from '../state/progress';
+import { keyOf } from '../state/progress';
+import { isMcqEligible } from './mcq';
+import type { ProgressMap } from '../types/quiz';
+import type { QuizConfig, QuizSession, SessionQuestion } from './types';
 
-export type QuizMode = 'flashcard' | 'mcq';
-export type QuestionSet = 'all' | 'unlearned' | 'random20';
-export type FlashcardResult = 'know' | 'unsure' | 'nope';
-export type McqResult = 'correct' | 'wrong';
-export type QuizResult = FlashcardResult | McqResult | null;
+export function buildSession(config: QuizConfig, progress: ProgressMap): QuizSession {
+  const topic = DATA[config.topicKey];
+  let questions: SessionQuestion[] = [];
 
-export interface QuizItem {
-  topicKey: string;
-  sIdx: number;
-  qIdx: number;
-  question: import('../types/quiz').Question;
-  progressKey: string;
-  hasMcq: boolean;
-}
-
-export interface McqOption {
-  text: string;
-  correct: boolean;
-}
-
-export interface QuizSession {
-  topic: string;
-  mode: QuizMode;
-  items: QuizItem[];
-  currentIdx: number;
-  results: QuizResult[];
-}
-
-export function buildSession(topic: string, mode: QuizMode, set: QuestionSet): QuizSession {
-  const t = DATA[topic];
-  if (!t) throw new Error('Unknown topic: ' + topic);
-
-  const allItems: QuizItem[] = [];
-  t.sections.forEach((sec, si) => {
+  topic.sections.forEach((sec, si) => {
     sec.questions.forEach((q, qi) => {
-      const hasMcq = q.blocks.some(
-        b => b.type === 'text' && (b as TextBlock).text.length >= 20,
-      );
-      allItems.push({
-        topicKey: topic,
-        sIdx: si,
-        qIdx: qi,
-        question: q,
-        progressKey: keyOf(topic, si, qi),
-        hasMcq,
-      });
+      if (config.mode === 'mcq' && !isMcqEligible(q)) return;
+      const key = keyOf(config.topicKey, si, qi);
+      questions.push({ topicKey: config.topicKey, sectionIdx: si, questionIdx: qi, progressKey: key });
     });
   });
 
-  let filtered: QuizItem[];
-  if (set === 'unlearned') {
-    const unlearned = allItems.filter(item => !state.progress[item.progressKey]);
-    filtered = unlearned.length > 0 ? unlearned : allItems;
-  } else {
-    filtered = allItems;
+  if (config.questionSet === 'unlearned') {
+    questions = questions.filter(q => !progress[q.progressKey]);
   }
 
-  const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-  const items = set === 'random20' ? shuffled.slice(0, Math.min(20, shuffled.length)) : shuffled;
-
-  return {
-    topic,
-    mode,
-    items,
-    currentIdx: 0,
-    results: new Array(items.length).fill(null) as QuizResult[],
-  };
-}
-
-export function getMcqOptions(item: QuizItem): McqOption[] {
-  const t = DATA[item.topicKey];
-  if (!t) return [];
-
-  const correctBlock = item.question.blocks.find(b => b.type === 'text') as TextBlock | undefined;
-  if (!correctBlock) return [];
-
-  const distractors: string[] = [];
-  t.sections.forEach((sec, si) => {
-    sec.questions.forEach((q, qi) => {
-      if (si === item.sIdx && qi === item.qIdx) return;
-      const tb = q.blocks.find(b => b.type === 'text') as TextBlock | undefined;
-      if (tb && tb.text.length >= 20) distractors.push(tb.text);
-    });
-  });
-
-  if (distractors.length < 3) return [];
-
-  const shuffledD = [...distractors].sort(() => Math.random() - 0.5).slice(0, 3);
-  return [
-    { text: correctBlock.text, correct: true },
-    ...shuffledD.map(text => ({ text, correct: false })),
-  ].sort(() => Math.random() - 0.5);
-}
-
-export function countItems(topic: string, set: QuestionSet): number {
-  const t = DATA[topic];
-  if (!t) return 0;
-  if (set === 'all' || set === 'random20') {
-    return t.sections.reduce((a, s) => a + s.questions.length, 0);
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [questions[i], questions[j]] = [questions[j], questions[i]];
   }
-  let count = 0;
-  t.sections.forEach((sec, si) => {
-    sec.questions.forEach((_q, qi) => {
-      if (!state.progress[keyOf(topic, si, qi)]) count++;
-    });
-  });
-  return count;
+
+  if (config.questionSet === 'random') {
+    questions = questions.slice(0, config.randomCount);
+  }
+
+  return { config, questions, currentIdx: 0, answers: {}, startedAt: Date.now() };
 }
