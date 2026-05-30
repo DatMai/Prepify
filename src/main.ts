@@ -3,7 +3,8 @@ import { bindEvents } from './events';
 import { render } from './render/content';
 import { loadProgress } from './state/progress';
 import { restoreSession, isLoggedIn } from './state/auth';
-import { initAuthModal, bindAuthBtn, setProfileOpener } from './ui/authModal';
+import { initAuthModal, bindAuthBtn, setProfileOpener, setPendingResetToken, showModal } from './ui/authModal';
+import { loadFavorites } from './state/favorites';
 import { loadStreak, resetStreak } from './state/streak';
 import { initLeaderboardModal, openLeaderboard } from './ui/leaderboard';
 import { initDailyBtn, refreshDailyDot } from './ui/dailyBtn';
@@ -37,6 +38,13 @@ async function init(): Promise<void> {
       showToast('Link xác minh không hợp lệ hoặc đã hết hạn.', 'error');
     }
   }
+
+  const resetTokenParam = params.get('reset_token');
+  if (resetTokenParam) {
+    window.history.replaceState({}, '', window.location.pathname);
+    setPendingResetToken(resetTokenParam);
+  }
+
   initAuthModal(() => {
     render();
     if (isLoggedIn()) {
@@ -45,6 +53,7 @@ async function init(): Promise<void> {
     }
   });
   bindAuthBtn();
+  if (resetTokenParam) showModal('reset');
   setProfileOpener(openProfile);
   initProfileModal(() => resetStreak());
   initLeaderboardModal();
@@ -56,6 +65,7 @@ async function init(): Promise<void> {
 
   await restoreSession();
   await loadProgress();
+  loadFavorites();
   bindEvents();
   render();
 

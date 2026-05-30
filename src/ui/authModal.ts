@@ -10,10 +10,18 @@ const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http:/
 let _openProfile: (() => void) | null = null;
 export function setProfileOpener(fn: () => void): void { _openProfile = fn; }
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'forgot' | 'forgot-question' | 'reset';
 
 let overlay: HTMLElement | null = null;
 let onAuthChange: (() => void) | null = null;
+
+let forgotEmail = '';
+let forgotQuestion = '';
+let _pendingResetToken = '';
+
+export function setPendingResetToken(token: string): void {
+  _pendingResetToken = token;
+}
 
 const SECURITY_QUESTIONS = [
   'Tên thú cưng đầu tiên của bạn?',
@@ -37,9 +45,12 @@ export function initAuthModal(onChange: () => void): void {
 
   overlay.addEventListener('input', (e) => {
     const t = e.target as HTMLInputElement;
-    if (t.id === 'authPass') {
-      const mode = overlay!.querySelector('.modal')?.getAttribute('data-mode') as Mode;
-      if (mode === 'register') updateStrengthMeter(t.value);
+    const mode = overlay!.querySelector('.modal')?.getAttribute('data-mode') as Mode;
+    if (t.id === 'authPass' && mode === 'register') {
+      updateStrengthMeter(t.value);
+    }
+    if (t.id === 'newPassword' && mode === 'reset') {
+      updateStrengthMeter(t.value);
     }
   });
 
@@ -56,59 +67,101 @@ export function initAuthModal(onChange: () => void): void {
   updateAuthBtn();
 }
 
-function buildModal(mode: Mode): string {
-  const isLogin = mode === 'login';
+function strengthMeterHtml(): string {
   return `
-    <div class="modal" data-mode="${mode}">
-      <button class="modal-close" id="modalClose">✕</button>
-      <h2>${isLogin ? 'Đăng nhập' : 'Tạo tài khoản'}</h2>
-      <p>${isLogin ? 'Sync progress trên mọi thiết bị.' : 'Đăng ký để lưu progress.'}</p>
-      ${isLogin ? `
-      <div class="oauth-btns">
-        <a class="oauth-btn google" href="${API_BASE}/auth/google">
-          <img src="/icons/google.svg" alt="" /> Tiếp tục với Google
-        </a>
-        <a class="oauth-btn facebook" href="${API_BASE}/auth/facebook">
-          <img src="/icons/facebook.svg" alt="" /> Tiếp tục với Facebook
-        </a>
-      </div>
-      <div class="or-divider"><span>hoặc</span></div>
-      ` : ''}
-      ${!isLogin ? `<div class="field"><label>Tên hiển thị (tuỳ chọn)</label><input id="authName" placeholder="VD: Minh Dev" autocomplete="name" /></div>` : ''}
-      <div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div>
-      <div class="field"><label>Password</label><input id="authPass" type="password" placeholder="${isLogin ? '••••••' : 'Tối thiểu 8 ký tự'}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" /></div>
-      ${!isLogin ? `
-      <div class="strength-meter">
-        <div class="strength-bar"><div class="strength-fill" id="strengthFill" data-score="0"></div></div>
-        <div class="strength-rules" id="strengthRules">
-          <span class="rule" data-pass="false">8+ ký tự</span>
-          <span class="rule" data-pass="false">Chữ hoa</span>
-          <span class="rule" data-pass="false">Chữ thường</span>
-          <span class="rule" data-pass="false">Chữ số</span>
-          <span class="rule" data-pass="false">Ký tự đặc biệt</span>
-        </div>
-      </div>
-      <div class="security-q-section">
-        <div class="sq-label">Câu hỏi bí mật <span>(tuỳ chọn)</span></div>
-        <select id="secQuestion">
-          <option value="">-- Chọn câu hỏi --</option>
-          ${SECURITY_QUESTIONS.map(q => `<option value="${q}">${q}</option>`).join('')}
-        </select>
-        <div id="secAnswerField" style="display:none" class="field">
-          <label>Câu trả lời</label>
-          <input id="secAnswer" type="text" placeholder="Nhập câu trả lời..." autocomplete="off" />
-        </div>
-      </div>
-      ` : ''}
-      ${isLogin ? `<div class="forgot-link"><a id="goForgot">Quên mật khẩu?</a></div>` : ''}
+  <div class="strength-meter">
+    <div class="strength-bar"><div class="strength-fill" id="strengthFill" data-score="0"></div></div>
+    <div class="strength-rules" id="strengthRules">
+      <span class="rule" data-pass="false">8+ ký tự</span>
+      <span class="rule" data-pass="false">Chữ hoa</span>
+      <span class="rule" data-pass="false">Chữ thường</span>
+      <span class="rule" data-pass="false">Chữ số</span>
+      <span class="rule" data-pass="false">Ký tự đặc biệt</span>
+    </div>
+  </div>`;
+}
+
+function buildModal(mode: Mode): string {
+  const wrap = (inner: string) =>
+    `<div class="modal" data-mode="${mode}"><button class="modal-close" id="modalClose">✕</button>${inner}</div>`;
+
+  if (mode === 'forgot') {
+    return wrap(`
+      <h2>Quên mật khẩu</h2>
+      <p>Nhập email tài khoản của bạn.</p>
+      <div class="field"><label>Email</label><input id="forgotEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div>
       <div class="modal-error" id="authError"></div>
-      <button class="modal-submit" id="authSubmit" ${!isLogin ? 'disabled' : ''}>${isLogin ? 'Đăng nhập' : 'Đăng ký'}</button>
-      <div class="modal-switch">
-        ${isLogin
-          ? `Chưa có tài khoản? <a id="modeSwitch">Đăng ký</a>`
-          : `Đã có tài khoản? <a id="modeSwitch">Đăng nhập</a>`}
+      <div class="forgot-methods">
+        <button id="forgotByEmailBtn">Gửi link về email</button>
+        <button id="forgotByQuestionBtn">Dùng câu hỏi bí mật</button>
       </div>
-    </div>`;
+      <div class="modal-switch"><a id="goLogin">← Quay lại đăng nhập</a></div>
+    `);
+  }
+
+  if (mode === 'forgot-question') {
+    return wrap(`
+      <h2>Câu hỏi bí mật</h2>
+      <div class="sq-display">${forgotQuestion}</div>
+      <div class="field"><label>Câu trả lời</label><input id="sqAnswer" type="text" placeholder="Nhập câu trả lời..." autocomplete="off" /></div>
+      <div class="modal-error" id="authError"></div>
+      <button class="modal-submit" id="authSubmit">Xác nhận</button>
+      <div class="modal-switch"><a id="goForgot">← Quay lại</a></div>
+    `);
+  }
+
+  if (mode === 'reset') {
+    return wrap(`
+      <h2>Đặt lại mật khẩu</h2>
+      <div class="field"><label>Mật khẩu mới</label><input id="newPassword" type="password" placeholder="••••••••" autocomplete="new-password" /></div>
+      ${strengthMeterHtml()}
+      <div class="field"><label>Xác nhận mật khẩu</label><input id="confirmPassword" type="password" placeholder="••••••••" autocomplete="new-password" /></div>
+      <div class="modal-error" id="authError"></div>
+      <button class="modal-submit" id="authSubmit" disabled>Đặt lại mật khẩu</button>
+    `);
+  }
+
+  const isLogin = mode === 'login';
+  return wrap(`
+    <h2>${isLogin ? 'Đăng nhập' : 'Tạo tài khoản'}</h2>
+    <p>${isLogin ? 'Sync progress trên mọi thiết bị.' : 'Đăng ký để lưu progress.'}</p>
+    ${isLogin ? `
+    <div class="oauth-btns">
+      <a class="oauth-btn google" href="${API_BASE}/auth/google">
+        <img src="/icons/google.svg" alt="" /> Tiếp tục với Google
+      </a>
+      <a class="oauth-btn facebook" href="${API_BASE}/auth/facebook">
+        <img src="/icons/facebook.svg" alt="" /> Tiếp tục với Facebook
+      </a>
+    </div>
+    <div class="or-divider"><span>hoặc</span></div>
+    ` : ''}
+    ${!isLogin ? `<div class="field"><label>Tên hiển thị (tuỳ chọn)</label><input id="authName" placeholder="VD: Minh Dev" autocomplete="name" /></div>` : ''}
+    <div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div>
+    <div class="field"><label>Password</label><input id="authPass" type="password" placeholder="${isLogin ? '••••••' : 'Tối thiểu 8 ký tự'}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" /></div>
+    ${!isLogin ? `
+    ${strengthMeterHtml()}
+    <div class="security-q-section">
+      <div class="sq-label">Câu hỏi bí mật <span>(tuỳ chọn)</span></div>
+      <select id="secQuestion">
+        <option value="">-- Chọn câu hỏi --</option>
+        ${SECURITY_QUESTIONS.map(q => `<option value="${q}">${q}</option>`).join('')}
+      </select>
+      <div id="secAnswerField" style="display:none" class="field">
+        <label>Câu trả lời</label>
+        <input id="secAnswer" type="text" placeholder="Nhập câu trả lời..." autocomplete="off" />
+      </div>
+    </div>
+    ` : ''}
+    ${isLogin ? `<div class="forgot-link"><a id="goForgot">Quên mật khẩu?</a></div>` : ''}
+    <div class="modal-error" id="authError"></div>
+    <button class="modal-submit" id="authSubmit" ${!isLogin ? 'disabled' : ''}>${isLogin ? 'Đăng nhập' : 'Đăng ký'}</button>
+    <div class="modal-switch">
+      ${isLogin
+        ? `Chưa có tài khoản? <a id="modeSwitch">Đăng ký</a>`
+        : `Đã có tài khoản? <a id="modeSwitch">Đăng nhập</a>`}
+    </div>
+  `);
 }
 
 function updateStrengthMeter(password: string): void {
@@ -141,8 +194,23 @@ function bindModal(): void {
     }
 
     if (t.id === 'goForgot') {
-      hideModal();
-      showToast('Tính năng đang phát triển.', 'info');
+      overlay!.innerHTML = buildModal('forgot');
+      return;
+    }
+
+    if (t.id === 'goLogin') {
+      overlay!.innerHTML = buildModal('login');
+      return;
+    }
+
+    if (t.id === 'forgotByEmailBtn') {
+      void handleForgotByEmail();
+      return;
+    }
+
+    if (t.id === 'forgotByQuestionBtn') {
+      void handleForgotByQuestion();
+      return;
     }
   });
 
@@ -152,17 +220,89 @@ function bindModal(): void {
   });
 }
 
+async function handleForgotByEmail(): Promise<void> {
+  if (!overlay) return;
+  const email = (overlay.querySelector('#forgotEmail') as HTMLInputElement)?.value.trim();
+  const errEl = overlay.querySelector('#authError') as HTMLElement;
+  const btn = overlay.querySelector('#forgotByEmailBtn') as HTMLButtonElement;
+  errEl.textContent = '';
+  if (!email) { errEl.textContent = 'Vui lòng nhập email.'; return; }
+  btn.disabled = true;
+  try {
+    await api.auth.forgotByEmail(email);
+    errEl.className = 'forgot-success';
+    errEl.textContent = 'Nếu email tồn tại, chúng tôi đã gửi link đặt lại.';
+  } catch (err) {
+    errEl.className = 'modal-error';
+    errEl.textContent = err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.';
+    btn.disabled = false;
+  }
+}
+
+async function handleForgotByQuestion(): Promise<void> {
+  if (!overlay) return;
+  const email = (overlay.querySelector('#forgotEmail') as HTMLInputElement)?.value.trim();
+  const errEl = overlay.querySelector('#authError') as HTMLElement;
+  const btn = overlay.querySelector('#forgotByQuestionBtn') as HTMLButtonElement;
+  errEl.textContent = '';
+  if (!email) { errEl.textContent = 'Vui lòng nhập email.'; return; }
+  btn.disabled = true;
+  try {
+    const res = await api.auth.forgotGetQuestion(email);
+    forgotEmail = email;
+    forgotQuestion = res.question;
+    overlay!.innerHTML = buildModal('forgot-question');
+  } catch (err) {
+    errEl.textContent = err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.';
+    btn.disabled = false;
+  }
+}
+
 async function submitAuth(): Promise<void> {
   if (!overlay) return;
   const mode = overlay.querySelector('.modal')?.getAttribute('data-mode') as Mode;
+  const errEl = overlay.querySelector('#authError') as HTMLElement;
+  const btn = overlay.querySelector('#authSubmit') as HTMLButtonElement;
+  errEl.textContent = '';
+  btn.disabled = true;
+
+  if (mode === 'forgot-question') {
+    const answer = (overlay.querySelector('#sqAnswer') as HTMLInputElement)?.value.trim();
+    if (!answer) { errEl.textContent = 'Vui lòng nhập câu trả lời.'; btn.disabled = false; return; }
+    try {
+      const res = await api.auth.forgotVerifyQuestion(forgotEmail, answer);
+      _pendingResetToken = res.resetToken;
+      overlay!.innerHTML = buildModal('reset');
+    } catch (err) {
+      errEl.textContent = err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.';
+      btn.disabled = false;
+    }
+    return;
+  }
+
+  if (mode === 'reset') {
+    const newPass = (overlay.querySelector('#newPassword') as HTMLInputElement)?.value;
+    const confirmPass = (overlay.querySelector('#confirmPassword') as HTMLInputElement)?.value;
+    if (newPass !== confirmPass) {
+      errEl.textContent = 'Mật khẩu xác nhận không khớp.';
+      btn.disabled = false;
+      return;
+    }
+    try {
+      await api.auth.resetPassword(_pendingResetToken, newPass);
+      _pendingResetToken = '';
+      showToast('Mật khẩu đã được đặt lại!', 'ok');
+      overlay!.innerHTML = buildModal('login');
+    } catch (err) {
+      errEl.textContent = err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.';
+      btn.disabled = false;
+    }
+    return;
+  }
+
   const email = (overlay.querySelector('#authEmail') as HTMLInputElement)?.value.trim();
   const pass = (overlay.querySelector('#authPass') as HTMLInputElement)?.value;
   const name = (overlay.querySelector('#authName') as HTMLInputElement)?.value.trim();
-  const errEl = overlay.querySelector('#authError') as HTMLElement;
-  const btn = overlay.querySelector('#authSubmit') as HTMLButtonElement;
-
-  errEl.textContent = '';
-  btn.disabled = true;
 
   try {
     const res = mode === 'login'
@@ -173,7 +313,6 @@ async function submitAuth(): Promise<void> {
     const localRaw = localStorage.getItem('quiz:progress');
     const local = localRaw ? JSON.parse(localRaw) as Record<string, boolean> : null;
     if (local && Object.keys(local).length > 0) {
-      // server progress takes priority; fall back to local only if server is empty
       const { data } = await api.progress.get();
       state.progress = Object.keys(data).length > 0 ? data : local;
       await api.progress.put(state.progress);
@@ -196,15 +335,16 @@ async function submitAuth(): Promise<void> {
     onAuthChange?.();
   } catch (err) {
     errEl.textContent = err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.';
-    if (mode === 'register') btn.disabled = false; // re-check strength on next keystroke anyway
+    if (mode === 'register') btn.disabled = false;
   } finally {
     if (mode === 'login') btn.disabled = false;
   }
 }
 
-export function showModal(): void {
+export function showModal(mode: Mode = 'login'): void {
+  if (overlay && mode !== 'login') overlay.innerHTML = buildModal(mode);
   overlay?.classList.add('show');
-  setTimeout(() => (overlay?.querySelector('#authEmail') as HTMLInputElement)?.focus(), 50);
+  setTimeout(() => (overlay?.querySelector('input') as HTMLInputElement)?.focus(), 50);
 }
 
 function hideModal(): void {

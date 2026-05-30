@@ -7,6 +7,7 @@ import cors from 'cors';
 import passport from 'passport';
 import swaggerUi from 'swagger-ui-express';
 import authRouter from './routes/auth';
+import forgotPasswordRouter from './routes/forgotPassword';
 import oauthRouter from './routes/oauth';
 import progressRouter from './routes/progress';
 import streakRouter from './routes/streak';
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 app.use('/auth', authRouter);
+app.use('/auth', forgotPasswordRouter);
 app.use('/auth', oauthRouter);
 app.use('/progress', progressRouter);
 app.use('/streak', streakRouter);

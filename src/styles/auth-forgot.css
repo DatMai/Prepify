@@ -1,0 +1,26 @@
+/* Two-option method buttons */
+.forgot-methods { display: flex; gap: 10px; margin-top: 16px; }
+.forgot-methods button {
+  flex: 1; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg2);
+  color: var(--dim); font-family: 'Outfit'; font-size: 13px;
+  cursor: pointer; transition: .15s;
+}
+.forgot-methods button:hover { border-color: var(--accent2); color: var(--txt); }
+.forgot-methods button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Security question display */
+.sq-display {
+  font-size: 15px; font-weight: 500; color: var(--txt);
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 9px; padding: 12px 14px; margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Success message inline */
+.forgot-success {
+  font-size: 13.5px; color: var(--ok);
+  background: rgba(62,207,142,.08); border: 1px solid rgba(62,207,142,.3);
+  border-radius: 9px; padding: 10px 14px; margin-top: 12px;
+  line-height: 1.5;
+}

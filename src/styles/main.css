@@ -7,7 +7,9 @@
 @import './auth.css';
 @import './auth-login.css';
 @import './auth-register.css';
+@import './auth-forgot.css';
 @import './profile.css';
 @import './quiz.css';
 @import './leaderboard.css';
 @import './daily.css';
+@import './favorites.css';

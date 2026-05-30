@@ -1,5 +1,6 @@
-import { DATA } from '../data/loader';
+import { DATA, ORDER } from '../data/loader';
 import { keyOf, toggleProgress, state } from '../state/progress';
+import { favoritesState, favKeyOf, toggleFavorite } from '../state/favorites';
 import { blockHTML } from './block';
 import { esc, hl } from './escape';
 import { runCode } from './runCode';
@@ -14,22 +15,113 @@ function onTopicChange(key: string): void {
 }
 
 export function render(): void {
-  const t = DATA[state.topic];
-  if (!t) return;
-
   const titleEl = document.getElementById('tTitle');
   const subEl = document.getElementById('tSub');
-  if (titleEl) titleEl.textContent = t.label;
-  const total = t.sections.reduce((a, s) => a + s.questions.length, 0);
-  if (subEl) subEl.textContent = `// ${t.subtitle || ''}  ·  ${total} câu`;
+  const inner = document.getElementById('inner');
+  if (!inner) return;
 
   renderTopics(onTopicChange);
   updateGlobalProgress();
 
-  const inner = document.getElementById('inner');
+  // Favorites filter mode
+  if (favoritesState.filterActive) {
+    if (titleEl) titleEl.textContent = 'Yêu thích';
+    inner.innerHTML = '';
+    let shownFav = 0;
+
+    ORDER.forEach((topicKey) => {
+      const topic = DATA[topicKey];
+      if (!topic) return;
+
+      topic.sections.forEach((sec, si) => {
+        const favQuestions = sec.questions
+          .map((q, qi) => ({ q, qi }))
+          .filter(({ qi }) => !!favoritesState.map[favKeyOf(topicKey, si, qi)]);
+
+        if (!favQuestions.length) return;
+
+        const sh = document.createElement('div');
+        sh.className = 'sec-head';
+        sh.innerHTML = `<span class="dot" style="color:${topic.color}">●</span>${esc(topic.label)} · ${esc(sec.name)}`;
+        inner.appendChild(sh);
+
+        favQuestions.forEach(({ q, qi }) => {
+          shownFav++;
+          const k = keyOf(topicKey, si, qi);
+          const done = !!state.progress[k];
+          const openKey = `${topicKey}_${si}_${qi}`;
+          const isOpen = !!state.open[openKey];
+
+          const card = document.createElement('div');
+          card.className = 'card' + (done ? ' done' : '') + (isOpen ? ' open' : '');
+          const qid = `${topicKey}${si}${qi}`;
+          const blocks = q.blocks.map((b, bi) => blockHTML(b, qid, bi)).join('');
+          card.innerHTML = `
+            <div class="q-head">
+              <span class="q-id">${shownFav}</span>
+              <span class="q-text">${esc(q.q)}</span>
+              <button class="q-fav faved" title="Yêu thích">♥</button>
+              <span class="q-check" title="Đánh dấu đã học">✓</span>
+            </div>
+            <button class="quiz-reveal-btn">Hiện đáp án</button>
+            <div class="q-body">${blocks}</div>`;
+
+          const favBtn = card.querySelector<HTMLButtonElement>('.q-fav');
+          favBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            void toggleFavorite(topicKey, si, qi);
+            render();
+          });
+
+          const head = card.querySelector<HTMLElement>('.q-head');
+          head?.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.classList.contains('q-check')) {
+              const newVal = !state.progress[k];
+              void toggleProgress(k, newVal);
+              card.classList.toggle('done');
+              renderTopics(onTopicChange);
+              updateGlobalProgress();
+              return;
+            }
+            state.open[openKey] = !state.open[openKey];
+            card.classList.toggle('open');
+          });
+
+          card.querySelector('.quiz-reveal-btn')?.addEventListener('click', () => {
+            card.classList.add('reveal');
+          });
+
+          card.querySelectorAll<HTMLButtonElement>('.run-btn[data-cid]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const cid = btn.getAttribute('data-cid');
+              if (cid) runCode(cid);
+            });
+          });
+
+          inner.appendChild(card);
+        });
+      });
+    });
+
+    if (subEl) subEl.textContent = `// ${shownFav} câu yêu thích`;
+    if (!shownFav) {
+      inner.innerHTML = '<div class="empty">Chưa có câu hỏi yêu thích nào.</div>';
+    }
+    return;
+  }
+
+  // Normal topic view
+  const t = DATA[state.topic];
+  if (!t) return;
+
+  if (titleEl) titleEl.textContent = t.label;
+  const total = t.sections.reduce((a, s) => a + s.questions.length, 0);
+  if (subEl) subEl.textContent = `// ${t.subtitle || ''}  ·  ${total} câu`;
+
   const searchEl = document.getElementById('search') as HTMLInputElement | null;
   const search = (searchEl?.value || '').trim().toLowerCase();
-  if (!inner) return;
   inner.innerHTML = '';
 
   let shown = 0;
@@ -61,6 +153,8 @@ export function render(): void {
     matched.forEach(({ q, qi }) => {
       shown++;
       const k = keyOf(state.topic, si, qi);
+      const favKey = favKeyOf(state.topic, si, qi);
+      const isFav = !!favoritesState.map[favKey];
       const done = !!state.progress[k];
       const openKey = `${state.topic}_${si}_${qi}`;
       const isOpen = !!state.open[openKey];
@@ -73,10 +167,18 @@ export function render(): void {
         <div class="q-head">
           <span class="q-id">${shown}</span>
           <span class="q-text">${hl(q.q, search)}</span>
+          <button class="q-fav${isFav ? ' faved' : ''}" title="Yêu thích">♥</button>
           <span class="q-check" title="Đánh dấu đã học">✓</span>
         </div>
         <button class="quiz-reveal-btn">Hiện đáp án</button>
         <div class="q-body">${blocks}</div>`;
+
+      const favBtn = card.querySelector<HTMLButtonElement>('.q-fav');
+      favBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        void toggleFavorite(state.topic, si, qi);
+        favBtn.classList.toggle('faved');
+      });
 
       const head = card.querySelector<HTMLElement>('.q-head');
       head?.addEventListener('click', (e) => {

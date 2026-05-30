@@ -66,6 +66,26 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ question, answer }),
       }),
+
+    forgotByEmail: (email: string) =>
+      request<{ ok: boolean; message: string }>('/auth/forgot/email', {
+        method: 'POST', body: JSON.stringify({ email }),
+      }),
+
+    forgotGetQuestion: (email: string) =>
+      request<{ question: string }>('/auth/forgot/question', {
+        method: 'POST', body: JSON.stringify({ email }),
+      }),
+
+    forgotVerifyQuestion: (email: string, answer: string) =>
+      request<{ resetToken: string }>('/auth/forgot/question/verify', {
+        method: 'POST', body: JSON.stringify({ email, answer }),
+      }),
+
+    resetPassword: (token: string, newPassword: string) =>
+      request<{ ok: boolean }>('/auth/reset-password', {
+        method: 'POST', body: JSON.stringify({ token, newPassword }),
+      }),
   },
 
   progress: {
