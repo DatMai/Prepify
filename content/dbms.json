@@ -7,7 +7,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q1.  DBMS là gì?",
+          "q": "DBMS là gì?",
           "blocks": [
             {
               "type": "text",
@@ -65,7 +65,7 @@
         },
         {
           "id": "",
-          "q": "---Q2.  Lợi ích của DBMS?",
+          "q": "Lợi ích của DBMS?",
           "blocks": [
             {
               "type": "text",
@@ -708,7 +708,7 @@
         },
         {
           "id": "",
-          "q": "---Q15.  Schema trong DBMS là gì?",
+          "q": "Schema trong DBMS là gì?",
           "blocks": [
             {
               "type": "text",
@@ -777,7 +777,7 @@
         },
         {
           "id": "",
-          "q": "---Q17.  DELETE vs TRUNCATE vs DROP khác nhau thế nào?",
+          "q": "DELETE vs TRUNCATE vs DROP khác nhau thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -890,7 +890,7 @@
         },
         {
           "id": "",
-          "q": "---Q18.  Index trong DBMS là gì?",
+          "q": "Index trong DBMS là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1060,7 +1060,7 @@
         },
         {
           "id": "",
-          "q": "---Q21.  Các loại JOIN trong SQL?",
+          "q": "Các loại JOIN trong SQL?",
           "blocks": [
             {
               "type": "table",
@@ -1494,7 +1494,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q26.  Transaction trong DBMS là gì?",
+          "q": "Transaction trong DBMS là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1552,7 +1552,7 @@
         },
         {
           "id": "",
-          "q": "---Q27.  ACID properties trong DBMS?",
+          "q": "ACID properties trong DBMS?",
           "blocks": [
             {
               "type": "text",
@@ -1805,7 +1805,7 @@
         },
         {
           "id": "",
-          "q": "---Q30.  Indexing trong DBMS hoạt động như thế nào?",
+          "q": "Indexing trong DBMS hoạt động như thế nào?",
           "blocks": [
             {
               "type": "text",
@@ -1885,7 +1885,7 @@
         },
         {
           "id": "",
-          "q": "---Q31.  Normalization là gì? Các Normal Forms?",
+          "q": "Normalization là gì? Các Normal Forms?",
           "blocks": [
             {
               "type": "text",
@@ -2259,7 +2259,7 @@
         },
         {
           "id": "",
-          "q": "---Q36.  Các loại Database Locks?",
+          "q": "Các loại Database Locks?",
           "blocks": [
             {
               "type": "table",
@@ -2373,7 +2373,7 @@
         },
         {
           "id": "",
-          "q": "---Q38.  COMMIT và ROLLBACK trong Transactions?",
+          "q": "COMMIT và ROLLBACK trong Transactions?",
           "blocks": [
             {
               "type": "text",
@@ -2639,7 +2639,7 @@
         },
         {
           "id": "",
-          "q": "---Q43.  Transaction Log trong DBMS là gì?",
+          "q": "Transaction Log trong DBMS là gì?",
           "blocks": [
             {
               "type": "text",
@@ -2805,7 +2805,7 @@
         },
         {
           "id": "",
-          "q": "---Q46.  GROUP BY trong SQL dùng để làm gì?",
+          "q": "GROUP BY trong SQL dùng để làm gì?",
           "blocks": [
             {
               "type": "text",
@@ -2962,7 +2962,7 @@
         },
         {
           "id": "",
-          "q": "---Q48.  Query Optimization trong DBMS?",
+          "q": "Query Optimization trong DBMS?",
           "blocks": [
             {
               "type": "text",
@@ -3202,7 +3202,7 @@
         },
         {
           "id": "",
-          "q": "---Q52.  B-tree và B+ tree trong DBMS?",
+          "q": "B-tree và B+ tree trong DBMS?",
           "blocks": [
             {
               "type": "table",
@@ -3290,7 +3290,7 @@
         },
         {
           "id": "",
-          "q": "---Q53.  Hashing trong DBMS hoạt động như thế nào?",
+          "q": "Hashing trong DBMS hoạt động như thế nào?",
           "blocks": [
             {
               "type": "text",
@@ -3387,7 +3387,7 @@
         },
         {
           "id": "",
-          "q": "---Q54.  Data Partitioning trong DBMS?",
+          "q": "Data Partitioning trong DBMS?",
           "blocks": [
             {
               "type": "text",

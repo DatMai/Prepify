@@ -108,7 +108,7 @@ lsof -ti :5173 | xargs kill -9   # frontend
 - **Host**: localhost:5432
 - **Database**: `quiz_app`
 - **User**: `daemonthetarnished` (macOS username, không cần password)
-- **Tables**: `users` (id, email, password_hash, display_name, created_at), `progress` (user_id FK, data JSONB, updated_at)
+- **Tables**: `users`, `progress` (user_id FK, data JSONB), `study_days` (user_id, activity_date — streak tracking), `quiz_sessions` (id, user_id, topic_key, mode, total, score), `daily_completions` (user_id, challenge_date, score, total)
 - pgAdmin: connect với host=localhost, port=5432, user=daemonthetarnished, password trống
 
 ---
@@ -130,20 +130,24 @@ Nếu token expired/invalid → `clearSession()` → fallback về guest mode
 
 ---
 
-## Trạng thái hiện tại (2026-05-28)
+## Trạng thái hiện tại (2026-05-29)
 
 **Đã xong:**
 - [x] Frontend refactor hoàn chỉnh (Vite + TS, CSS modular)
 - [x] 9 topics, 524 câu hỏi trong JSON
 - [x] Backend Express + TS với auth JWT
-- [x] PostgreSQL schema + migrations
+- [x] PostgreSQL schema + migrations (001_init, 002_streak_leaderboard)
 - [x] Progress sync (guest localStorage / logged-in API)
 - [x] Swagger UI docs
 - [x] Auth modal UI (login/register/logout)
 
+**Đang làm:**
+- [ ] Quiz mode redesign — xem `.claude/notes/quiz-redesign.md`
+- [ ] Leaderboard + Streak — xem `.claude/notes/leaderboard-streak.md`
+- [ ] Daily Challenge — xem `.claude/notes/daily-challenge.md`
+
 **Chưa làm / có thể làm tiếp:**
 - [ ] Deploy (frontend static + backend server)
-- [ ] Leaderboard / stats
 - [ ] Admin UI để quản lý câu hỏi
 - [ ] Thêm topic mới
 - [ ] Dark/light mode toggle

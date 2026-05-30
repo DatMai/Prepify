@@ -8,9 +8,8 @@ export interface AuthPayload {
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: AuthPayload;
-    }
+    // Passport declares Request.user?: User — extend User with our payload fields
+    interface User extends AuthPayload {}
   }
 }
 

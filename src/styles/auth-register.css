@@ -1,0 +1,117 @@
+/* Password strength meter */
+.strength-meter { margin: -6px 0 14px; }
+
+.strength-bar {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .2s, background .2s;
+  width: 0%;
+}
+.strength-fill[data-score="1"] { width: 20%; background: #e74c3c; }
+.strength-fill[data-score="2"] { width: 40%; background: #e67e22; }
+.strength-fill[data-score="3"] { width: 60%; background: #f1c40f; }
+.strength-fill[data-score="4"] { width: 80%; background: #2ecc71; }
+.strength-fill[data-score="5"] { width: 100%; background: var(--ok, #3ecf8e); }
+
+.strength-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rule {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  transition: border-color .15s, color .15s, background .15s;
+}
+
+.rule[data-pass="true"] {
+  border-color: var(--ok, #3ecf8e);
+  color: var(--ok, #3ecf8e);
+  background: rgba(62, 207, 142, .08);
+}
+
+/* Security question section */
+.security-q-section { margin-bottom: 14px; }
+
+.sq-label {
+  font-size: 12.5px;
+  color: var(--dim);
+  margin-bottom: 6px;
+  font-family: 'Space Mono', monospace;
+}
+
+.sq-label span { color: var(--dim); opacity: .6; }
+
+.security-q-section select {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px 14px;
+  color: var(--fg);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.security-q-section select:focus {
+  border-color: var(--accent2);
+}
+
+/* Verification banner */
+.verify-banner {
+  background: rgba(245, 166, 35, .10);
+  border-bottom: 1px solid rgba(245, 166, 35, .3);
+  color: var(--fg);
+  font-size: 13px;
+  padding: 9px 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.verify-banner strong { color: #f5a623; }
+
+.verify-banner button {
+  border: none;
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.verify-banner button:hover { opacity: .8; }
+
+#resendVerifyBtn {
+  background: #f5a623;
+  color: #1a1205;
+  font-weight: 600;
+}
+
+#dismissVerifyBtn {
+  background: none;
+  color: var(--dim);
+  margin-left: auto;
+  font-size: 16px;
+  padding: 2px 8px;
+}
+
+/* Toast — ok variant */
+.toast-ok { background: #1a3a2a; border: 1px solid #27ae60; color: #2ecc71; }

@@ -7,7 +7,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q1.  OOP là gì? Tại sao dùng OOP?",
+          "q": "OOP là gì? Tại sao dùng OOP?",
           "blocks": [
             {
               "type": "text",
@@ -64,7 +64,7 @@
         },
         {
           "id": "",
-          "q": "---Q2.  4 Pillars của OOP?",
+          "q": "4 Pillars của OOP?",
           "blocks": [
             {
               "type": "table",
@@ -125,7 +125,7 @@
         },
         {
           "id": "",
-          "q": "---Q3.  Class và Object khác nhau thế nào?",
+          "q": "Class và Object khác nhau thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -172,7 +172,7 @@
         },
         {
           "id": "",
-          "q": "---Q4.  Encapsulation là gì? Ví dụ?",
+          "q": "Encapsulation là gì? Ví dụ?",
           "blocks": [
             {
               "type": "text",
@@ -187,7 +187,7 @@
         },
         {
           "id": "",
-          "q": "---Q5.  Abstraction là gì? Khác Encapsulation thế nào?",
+          "q": "Abstraction là gì? Khác Encapsulation thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -229,7 +229,7 @@
         },
         {
           "id": "",
-          "q": "---Q6.  Inheritance là gì? Các loại Inheritance?",
+          "q": "Inheritance là gì? Các loại Inheritance?",
           "blocks": [
             {
               "type": "text",
@@ -280,7 +280,7 @@
         },
         {
           "id": "",
-          "q": "---Q7.  Polymorphism là gì? Compile-time vs Runtime?",
+          "q": "Polymorphism là gì? Compile-time vs Runtime?",
           "blocks": [
             {
               "type": "text",
@@ -481,7 +481,7 @@
         },
         {
           "id": "",
-          "q": "---Q12.  Interface vs Abstract Class?",
+          "q": "Interface vs Abstract Class?",
           "blocks": [
             {
               "type": "table",
@@ -688,7 +688,7 @@
         },
         {
           "id": "",
-          "q": "---Q22.  Dependency Injection (DI) là gì?",
+          "q": "Dependency Injection (DI) là gì?",
           "blocks": [
             {
               "type": "text",
@@ -806,7 +806,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q26.  SOLID Principles là gì?",
+          "q": "SOLID Principles là gì?",
           "blocks": [
             {
               "type": "text",
@@ -877,7 +877,7 @@
         },
         {
           "id": "",
-          "q": "---Q27.  S — Single Responsibility Principle (SRP)?",
+          "q": "S — Single Responsibility Principle (SRP)?",
           "blocks": [
             {
               "type": "text",
@@ -892,7 +892,7 @@
         },
         {
           "id": "",
-          "q": "---Q28.  O — Open/Closed Principle (OCP)?",
+          "q": "O — Open/Closed Principle (OCP)?",
           "blocks": [
             {
               "type": "text",
@@ -907,7 +907,7 @@
         },
         {
           "id": "",
-          "q": "---Q29.  L — Liskov Substitution Principle (LSP)?",
+          "q": "L — Liskov Substitution Principle (LSP)?",
           "blocks": [
             {
               "type": "text",
@@ -922,7 +922,7 @@
         },
         {
           "id": "",
-          "q": "---Q30.  I — Interface Segregation Principle (ISP)?",
+          "q": "I — Interface Segregation Principle (ISP)?",
           "blocks": [
             {
               "type": "text",
@@ -937,7 +937,7 @@
         },
         {
           "id": "",
-          "q": "---Q31.  D — Dependency Inversion Principle (DIP)?",
+          "q": "D — Dependency Inversion Principle (DIP)?",
           "blocks": [
             {
               "type": "text",
@@ -1209,7 +1209,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q39.  Design Patterns là gì? Phân loại?",
+          "q": "Design Patterns là gì? Phân loại?",
           "blocks": [
             {
               "type": "text",
@@ -1266,7 +1266,7 @@
         },
         {
           "id": "",
-          "q": "---Q40.  Singleton Pattern?",
+          "q": "Singleton Pattern?",
           "blocks": [
             {
               "type": "text",
@@ -1281,7 +1281,7 @@
         },
         {
           "id": "",
-          "q": "---Q41.  Factory Pattern?",
+          "q": "Factory Pattern?",
           "blocks": [
             {
               "type": "text",
@@ -1311,7 +1311,7 @@
         },
         {
           "id": "",
-          "q": "---Q43.  Observer Pattern?",
+          "q": "Observer Pattern?",
           "blocks": [
             {
               "type": "text",
@@ -1326,7 +1326,7 @@
         },
         {
           "id": "",
-          "q": "---Q44.  Strategy Pattern?",
+          "q": "Strategy Pattern?",
           "blocks": [
             {
               "type": "text",
@@ -1341,7 +1341,7 @@
         },
         {
           "id": "",
-          "q": "---Q45.  Decorator Pattern?",
+          "q": "Decorator Pattern?",
           "blocks": [
             {
               "type": "text",

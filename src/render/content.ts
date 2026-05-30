@@ -71,7 +71,7 @@ export function render(): void {
       const blocks = q.blocks.map((b, bi) => blockHTML(b, qid, bi)).join('');
       card.innerHTML = `
         <div class="q-head">
-          <span class="q-id">${q.id || 'Q'}</span>
+          <span class="q-id">${shown}</span>
           <span class="q-text">${hl(q.q, search)}</span>
           <span class="q-check" title="Đánh dấu đã học">✓</span>
         </div>

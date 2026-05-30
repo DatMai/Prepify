@@ -26,6 +26,9 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  avatarId?: number;
+  location?: string | null;
+  emailVerifiedAt?: string | null;
 }
 
 export interface AuthResponse {
@@ -48,6 +51,21 @@ export const api = {
       }),
 
     me: () => request<AuthUser>('/auth/me'),
+
+    updateProfile: (data: { displayName?: string; location?: string; avatarId?: number }) =>
+      request<{ displayName: string | null; location: string | null; avatarId: number }>('/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    resendVerification: () =>
+      request<{ ok: boolean }>('/auth/resend-verification', { method: 'POST' }),
+
+    setSecurityQuestion: (question: string, answer: string) =>
+      request<{ ok: boolean }>('/auth/security-question/set', {
+        method: 'POST',
+        body: JSON.stringify({ question, answer }),
+      }),
   },
 
   progress: {

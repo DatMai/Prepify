@@ -7,7 +7,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q0.  JavaScript vs TypeScript — Khác nhau điểm nào?",
+          "q": "JavaScript vs TypeScript — Khác nhau điểm nào?",
           "blocks": [
             {
               "type": "text",
@@ -127,7 +127,7 @@
         },
         {
           "id": "",
-          "q": "---Q1.  Node.js hoạt động như thế nào?",
+          "q": "Node.js hoạt động như thế nào?",
           "blocks": [
             {
               "type": "text",
@@ -197,7 +197,7 @@
         },
         {
           "id": "",
-          "q": "---Q3.  Tại sao Node.js là single-threaded?",
+          "q": "Tại sao Node.js là single-threaded?",
           "blocks": [
             {
               "type": "text",
@@ -243,7 +243,7 @@
         },
         {
           "id": "",
-          "q": "---Q4.  Node.js single-threaded nhưng xử lý concurrency như thế nào?",
+          "q": "Node.js single-threaded nhưng xử lý concurrency như thế nào?",
           "blocks": [
             {
               "type": "text",
@@ -346,7 +346,7 @@
         },
         {
           "id": "",
-          "q": "---Q6.  Khác nhau giữa Synchronous và Asynchronous functions?",
+          "q": "Khác nhau giữa Synchronous và Asynchronous functions?",
           "blocks": [
             {
               "type": "table",
@@ -413,7 +413,7 @@
         },
         {
           "id": "",
-          "q": "---Q7.  Modules trong Node.js là gì?",
+          "q": "Modules trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -508,7 +508,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q11.  Control Flow trong Node.js là gì?",
+          "q": "Control Flow trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -535,7 +535,7 @@
         },
         {
           "id": "",
-          "q": "---Q12.  Event Loop trong Node.js là gì?",
+          "q": "Event Loop trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -605,7 +605,7 @@
         },
         {
           "id": "",
-          "q": "---Q13.  Nhược điểm chính của Node.js?",
+          "q": "Nhược điểm chính của Node.js?",
           "blocks": [
             {
               "type": "text",
@@ -869,7 +869,7 @@
         },
         {
           "id": "",
-          "q": "---Q20.  Promises trong Node.js là gì?",
+          "q": "Promises trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -899,7 +899,7 @@
         },
         {
           "id": "",
-          "q": "---Q22.  Có những loại HTTP Requests nào?",
+          "q": "Có những loại HTTP Requests nào?",
           "blocks": [
             {
               "type": "table",
@@ -988,7 +988,7 @@
       "questions": [
         {
           "id": "",
-          "q": "---Q24.  Event-driven programming trong Node.js là gì?",
+          "q": "Event-driven programming trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1018,7 +1018,7 @@
         },
         {
           "id": "",
-          "q": "---Q26.  Streams trong Node.js là gì?",
+          "q": "Streams trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1079,7 +1079,7 @@
         },
         {
           "id": "",
-          "q": "---Q28.  Callback Hell là gì? Cách giải quyết?",
+          "q": "Callback Hell là gì? Cách giải quyết?",
           "blocks": [
             {
               "type": "text",
@@ -1099,7 +1099,7 @@
         },
         {
           "id": "",
-          "q": "---Q29.  Timers Module trong Node.js.",
+          "q": "Timers Module trong Node.js.",
           "blocks": [
             {
               "type": "text",
@@ -1126,7 +1126,7 @@
         },
         {
           "id": "",
-          "q": "---Q30.  setImmediate() vs process.nextTick() — khác nhau thế nào?",
+          "q": "setImmediate() vs process.nextTick() — khác nhau thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -1188,7 +1188,7 @@
         },
         {
           "id": "",
-          "q": "---Q31.  spawn() vs fork() — khác nhau thế nào?",
+          "q": "spawn() vs fork() — khác nhau thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -1230,7 +1230,7 @@
         },
         {
           "id": "",
-          "q": "---Q32.  CORS trong Node.js là gì?",
+          "q": "CORS trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1245,7 +1245,7 @@
         },
         {
           "id": "",
-          "q": "---Q33.  Fork trong Node.js là gì?",
+          "q": "Fork trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1283,7 +1283,7 @@
         },
         {
           "id": "",
-          "q": "---Q34.  Ba phương pháp tránh Callback Hell?",
+          "q": "Ba phương pháp tránh Callback Hell?",
           "blocks": [
             {
               "type": "text",
@@ -1449,7 +1449,7 @@
         },
         {
           "id": "",
-          "q": "---Q40.  Test Pyramid trong Node.js là gì?",
+          "q": "Test Pyramid trong Node.js là gì?",
           "blocks": [
             {
               "type": "table",
@@ -1614,7 +1614,7 @@
         },
         {
           "id": "",
-          "q": "---Q44.  Cluster trong Node.js là gì?",
+          "q": "Cluster trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1629,7 +1629,7 @@
         },
         {
           "id": "",
-          "q": "---Q45.  Các Cluster Methods phổ biến trong Node.js?",
+          "q": "Các Cluster Methods phổ biến trong Node.js?",
           "blocks": [
             {
               "type": "table",
@@ -1710,7 +1710,7 @@
         },
         {
           "id": "",
-          "q": "---Q46.  Quản lý Sessions trong Node.js như thế nào?",
+          "q": "Quản lý Sessions trong Node.js như thế nào?",
           "blocks": [
             {
               "type": "text",
@@ -1725,7 +1725,7 @@
         },
         {
           "id": "",
-          "q": "---Q47.  Có bao nhiêu loại API functions trong Node.js?",
+          "q": "Có bao nhiêu loại API functions trong Node.js?",
           "blocks": [
             {
               "type": "text",
@@ -1744,7 +1744,7 @@
         },
         {
           "id": "",
-          "q": "---Q48.  Authentication và Authorization trong Node.js — implement như thế nào?",
+          "q": "Authentication và Authorization trong Node.js — implement như thế nào?",
           "blocks": [
             {
               "type": "code",
@@ -1766,7 +1766,7 @@
         },
         {
           "id": "",
-          "q": "---Q50.  Kết nối Node.js với MongoDB?",
+          "q": "Kết nối Node.js với MongoDB?",
           "blocks": [
             {
               "type": "code",
@@ -1788,7 +1788,7 @@
         },
         {
           "id": "",
-          "q": "---Q52.  Redis Module trong Node.js?",
+          "q": "Redis Module trong Node.js?",
           "blocks": [
             {
               "type": "text",
@@ -1803,7 +1803,7 @@
         },
         {
           "id": "",
-          "q": "---Q53.  WebSocket trong Node.js là gì?",
+          "q": "WebSocket trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1856,7 +1856,7 @@
         },
         {
           "id": "",
-          "q": "---Q56.  setImmediate() vs setTimeout() — khác nhau thế nào?",
+          "q": "setImmediate() vs setTimeout() — khác nhau thế nào?",
           "blocks": [
             {
               "type": "table",
@@ -1898,7 +1898,7 @@
         },
         {
           "id": "",
-          "q": "---Q57.  Event Emitter trong Node.js là gì?",
+          "q": "Event Emitter trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -1982,7 +1982,7 @@
         },
         {
           "id": "",
-          "q": "---Q58.  Worker Threads trong Node.js là gì?",
+          "q": "Worker Threads trong Node.js là gì?",
           "blocks": [
             {
               "type": "text",
@@ -2033,7 +2033,7 @@
         },
         {
           "id": "",
-          "q": "---Q59.  Worker Threads vs fork() — So sánh chi tiết",
+          "q": "Worker Threads vs fork() — So sánh chi tiết",
           "blocks": [
             {
               "type": "text",

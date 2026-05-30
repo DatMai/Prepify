@@ -1,0 +1,260 @@
+{
+  "version": 1,
+  "pool": [
+    {
+      "id": "d-mcq-001",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "javascript", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-002",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "javascript", "sectionIdx": 0, "questionIdx": 2 }
+    },
+    {
+      "id": "d-mcq-003",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "javascript", "sectionIdx": 0, "questionIdx": 4 }
+    },
+    {
+      "id": "d-mcq-004",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "javascript", "sectionIdx": 1, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-005",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "typescript", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-006",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "typescript", "sectionIdx": 0, "questionIdx": 3 }
+    },
+    {
+      "id": "d-mcq-007",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "nodejs", "sectionIdx": 0, "questionIdx": 1 }
+    },
+    {
+      "id": "d-mcq-008",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "nodejs", "sectionIdx": 1, "questionIdx": 1 }
+    },
+    {
+      "id": "d-mcq-009",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "dsa", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-010",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "dsa", "sectionIdx": 1, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-011",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "oop", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-012",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "oop", "sectionIdx": 0, "questionIdx": 2 }
+    },
+    {
+      "id": "d-mcq-013",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "os", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-014",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "networking", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-015",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "networking", "sectionIdx": 1, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-016",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "dbms", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-017",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "dbms", "sectionIdx": 1, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-018",
+      "type": "mcq",
+      "difficulty": 2,
+      "ref": { "topicKey": "system", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-019",
+      "type": "mcq",
+      "difficulty": 3,
+      "ref": { "topicKey": "system", "sectionIdx": 1, "questionIdx": 0 }
+    },
+    {
+      "id": "d-mcq-020",
+      "type": "mcq",
+      "difficulty": 3,
+      "ref": { "topicKey": "javascript", "sectionIdx": 2, "questionIdx": 0 }
+    },
+    {
+      "id": "d-fib-001",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "javascript",
+      "prompt": "=== là strict equality — so sánh cả ___ và ___, không convert kiểu.",
+      "blanks": ["giá trị", "kiểu"],
+      "hint": "Hai thứ mà strict equality quan tâm"
+    },
+    {
+      "id": "d-fib-002",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "javascript",
+      "prompt": "Closure là function có thể access variables của ___ scope sau khi outer function đã return.",
+      "blanks": ["outer"],
+      "hint": "Phạm vi bên ngoài function hiện tại"
+    },
+    {
+      "id": "d-fib-003",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "javascript",
+      "prompt": "var có ___ scope, còn let và const có ___ scope.",
+      "blanks": ["function", "block"],
+      "hint": "Hai loại scope phổ biến nhất trong JS"
+    },
+    {
+      "id": "d-fib-004",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "javascript",
+      "prompt": "Promise có 3 trạng thái: ___, fulfilled, và rejected.",
+      "blanks": ["pending"],
+      "hint": "Trạng thái ban đầu của một Promise"
+    },
+    {
+      "id": "d-fib-005",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "typescript",
+      "prompt": "TypeScript là ___ superset của JavaScript — code TS compile thành ___.",
+      "blanks": ["static", "JavaScript"],
+      "hint": "Loại type checking và output language"
+    },
+    {
+      "id": "d-fib-006",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "typescript",
+      "prompt": "Từ khoá ___ trong TypeScript dùng để định nghĩa type alias, còn ___ dùng để định nghĩa contract cho object.",
+      "blanks": ["type", "interface"],
+      "hint": "Hai cách khai báo shape của dữ liệu trong TS"
+    },
+    {
+      "id": "d-fib-007",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "nodejs",
+      "prompt": "Node.js chạy trên ___ Engine của Google và sử dụng mô hình ___ I/O non-blocking.",
+      "blanks": ["V8", "event-driven"],
+      "hint": "Engine JS của Chrome và kiến trúc xử lý I/O"
+    },
+    {
+      "id": "d-fib-008",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "nodejs",
+      "prompt": "Event Loop trong Node.js cho phép xử lý nhiều requests mà không cần tạo thêm ___ cho mỗi request.",
+      "blanks": ["thread"],
+      "hint": "Đơn vị thực thi song song trong OS"
+    },
+    {
+      "id": "d-fib-009",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "oop",
+      "prompt": "4 tính chất của OOP: ___, Encapsulation, ___, và Polymorphism.",
+      "blanks": ["Abstraction", "Inheritance"],
+      "hint": "4 pillars của lập trình hướng đối tượng"
+    },
+    {
+      "id": "d-fib-010",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "oop",
+      "prompt": "SOLID: S là ___ Responsibility, O là ___ Closed, L là Liskov Substitution.",
+      "blanks": ["Single", "Open"],
+      "hint": "Hai chữ đầu tiên trong nguyên tắc SOLID"
+    },
+    {
+      "id": "d-fib-011",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "networking",
+      "prompt": "HTTP là ___ transfer protocol, còn HTTPS thêm lớp ___ để mã hoá.",
+      "blanks": ["hypertext", "SSL/TLS"],
+      "hint": "Tên đầy đủ và lớp bảo mật của HTTPS"
+    },
+    {
+      "id": "d-fib-012",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "networking",
+      "prompt": "TCP đảm bảo ___ và ___ của dữ liệu, UDP thì không.",
+      "blanks": ["thứ tự", "toàn vẹn"],
+      "hint": "Hai đảm bảo mà TCP cung cấp cho dữ liệu"
+    },
+    {
+      "id": "d-fib-013",
+      "type": "fib",
+      "difficulty": 1,
+      "topic": "dbms",
+      "prompt": "ACID trong database: A là ___, C là Consistency, I là ___, D là Durability.",
+      "blanks": ["Atomicity", "Isolation"],
+      "hint": "Chữ A và I trong ACID properties"
+    },
+    {
+      "id": "d-fib-014",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "dbms",
+      "prompt": "Index trong database giúp tăng tốc ___ nhưng làm chậm ___ vì cần cập nhật index.",
+      "blanks": ["đọc", "ghi"],
+      "hint": "Hai thao tác cơ bản bị ảnh hưởng ngược nhau bởi index"
+    },
+    {
+      "id": "d-fib-015",
+      "type": "fib",
+      "difficulty": 2,
+      "topic": "system",
+      "prompt": "CAP Theorem: trong distributed system chỉ có thể đảm bảo tối đa ___ trong 3 thuộc tính: Consistency, Availability, Partition tolerance.",
+      "blanks": ["2"],
+      "hint": "Số thuộc tính có thể đảm bảo đồng thời"
+    }
+  ]
+}
