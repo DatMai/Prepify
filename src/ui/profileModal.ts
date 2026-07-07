@@ -3,6 +3,7 @@ import { auth } from '../state/auth';
 import { state } from '../state/progress';
 import { streakState } from '../state/streak';
 import { updateAuthBtn, doLogout } from './authModal';
+import { t } from '../i18n';
 
 let overlay: HTMLElement | null = null;
 let onLogoutCb: (() => void) | null = null;
@@ -81,8 +82,8 @@ function buildProfileModal(): string {
       </div>
 
       <div class="profile-actions">
-        <button class="modal-submit profile-save" id="profileSave">Lưu thay đổi</button>
-        <button class="profile-logout" id="profileLogout">Đăng xuất</button>
+        <button class="modal-submit profile-save" id="profileSave">${t('profile.save')}</button>
+        <button class="profile-logout" id="profileLogout">${t('profile.logout')}</button>
       </div>
     </div>`;
 }
@@ -156,7 +157,7 @@ async function saveProfile(): Promise<void> {
     updateAuthBtn();
     closeProfile();
   } catch {
-    errEl.textContent = 'Có lỗi xảy ra, thử lại sau.';
+    errEl.textContent = t('profile.errGeneric');
   } finally {
     saveBtn.disabled = false;
   }

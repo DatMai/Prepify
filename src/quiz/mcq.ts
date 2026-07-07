@@ -3,6 +3,7 @@ import type { McqData } from './types';
 import { DATA } from '../data/loader';
 import { esc } from '../render/escape';
 import { blockHTML } from '../render/block';
+import { t } from '../i18n';
 
 export function isMcqEligible(q: Question): boolean {
   const t = q.blocks.find(b => b.type === 'text');
@@ -59,7 +60,7 @@ export function renderMcq(
 
   if (answered) {
     const isCorrect = selectedIdx === mcqData.correctIdx;
-    resultHTML = `<div class="mcq-result ${isCorrect ? 'ok' : 'bad'}">${isCorrect ? '✓ Đúng rồi!' : '✗ Sai rồi!'}</div>`;
+    resultHTML = `<div class="mcq-result ${isCorrect ? 'ok' : 'bad'}">${isCorrect ? t('mcq.correct') : t('mcq.wrong')}</div>`;
     explanationHTML = `<div class="mcq-explanation">
       ${q.blocks.map((b, bi) => blockHTML(b, 'mcq', bi)).join('')}
     </div>`;

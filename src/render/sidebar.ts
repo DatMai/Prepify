@@ -1,7 +1,10 @@
 import { DATA, ORDER } from '../data/loader';
 import { keyOf, state } from '../state/progress';
 
-export function renderTopics(onTopicChange: (key: string) => void): void {
+let _onTopicChange: ((key: string) => void) | null = null;
+
+export function renderTopics(onTopicChange?: (key: string) => void): void {
+  if (onTopicChange) _onTopicChange = onTopicChange;
   const el = document.getElementById('topics');
   if (!el) return;
   el.innerHTML = '';
@@ -18,7 +21,7 @@ export function renderTopics(onTopicChange: (key: string) => void): void {
     div.className = 'topic' + (k === state.topic ? ' active' : '');
     div.innerHTML = `<span class="dot" style="color:${t.color};background:${t.color}"></span>
       <span class="nm">${t.label}</span><span class="ct">${done}/${total}</span>`;
-    div.addEventListener('click', () => onTopicChange(k));
+    div.addEventListener('click', () => _onTopicChange?.(k));
     el.appendChild(div);
   });
 }

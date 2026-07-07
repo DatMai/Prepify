@@ -1,5 +1,6 @@
 import type { FibDailyQuestion } from './types';
 import { gradeFib } from './grader';
+import { t } from '../i18n';
 
 export interface FibResult {
   correct: boolean;
@@ -34,11 +35,11 @@ export function renderFibCard(
   card.innerHTML = `
     <div class="daily-fib-prompt">${promptHtml}</div>
     ${q.hint ? `
-      <button class="fib-hint-btn" id="fib-hint-${q.id}">💡 Gợi ý</button>
+      <button class="fib-hint-btn" id="fib-hint-${q.id}">${t('fib.hint')}</button>
       <div class="fib-hint" id="fib-hint-text-${q.id}" hidden>${escHtml(q.hint)}</div>
     ` : ''}
     <div class="daily-fib-actions">
-      <button class="daily-submit-btn" id="fib-submit-${q.id}">Kiểm tra</button>
+      <button class="daily-submit-btn" id="fib-submit-${q.id}">${t('fib.check')}</button>
     </div>
     <div class="fib-feedback" id="fib-feedback-${q.id}" hidden></div>
   `;
@@ -75,11 +76,10 @@ export function renderFibCard(
       feedback.hidden = false;
       if (allCorrect) {
         feedback.className = 'fib-feedback fib-feedback-ok';
-        feedback.textContent = '✓ Chính xác!';
+        feedback.textContent = t('fib.correct');
       } else {
         feedback.className = 'fib-feedback fib-feedback-err';
-        const answers = q.blanks.join(', ');
-        feedback.textContent = `✗ Đáp án: ${answers}`;
+        feedback.textContent = t('fib.wrong', { answer: q.blanks.join(', ') });
       }
     }
 

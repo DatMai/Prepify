@@ -1,15 +1,38 @@
 import './styles/main.css';
 import { bindEvents } from './events';
 import { render } from './render/content';
+import { renderTopics } from './render/sidebar';
 import { loadProgress } from './state/progress';
 import { restoreSession, isLoggedIn } from './state/auth';
-import { initAuthModal, bindAuthBtn, setProfileOpener, setPendingResetToken, showModal } from './ui/authModal';
+import { initAuthModal, bindAuthBtn, setProfileOpener, setPendingResetToken, showModal, updateAuthBtn } from './ui/authModal';
 import { loadFavorites } from './state/favorites';
 import { loadStreak, resetStreak } from './state/streak';
 import { initLeaderboardModal, openLeaderboard } from './ui/leaderboard';
 import { initDailyBtn, refreshDailyDot } from './ui/dailyBtn';
 import { initProfileModal, openProfile } from './ui/profileModal';
 import { showToast } from './ui/toast';
+import { showQuizLauncher } from './quiz/launcher';
+import { repaintQuiz } from './quiz/quizView';
+import { getLang, setLang, t, type Lang } from './i18n';
+
+function applyLang(): void {
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) langBtn.textContent = t('topbar.langSwitch');
+
+  const quizToggle = document.getElementById('quizToggle');
+  if (quizToggle) quizToggle.textContent = t('topbar.quizMode');
+
+  updateAuthBtn();
+  renderTopics();
+
+  // Re-render quiz launcher if it's open
+  if (document.getElementById('quizLauncher')?.classList.contains('show')) {
+    showQuizLauncher();
+  }
+
+  // Re-render quiz overlay current card if visible
+  repaintQuiz();
+}
 
 async function init(): Promise<void> {
   const params = new URLSearchParams(window.location.search);
@@ -43,6 +66,17 @@ async function init(): Promise<void> {
   if (resetTokenParam) {
     window.history.replaceState({}, '', window.location.pathname);
     setPendingResetToken(resetTokenParam);
+  }
+
+  // Init lang toggle button
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) {
+    langBtn.textContent = t('topbar.langSwitch');
+    langBtn.addEventListener('click', () => {
+      const next: Lang = getLang() === 'vi' ? 'en' : 'vi';
+      setLang(next);
+      applyLang();
+    });
   }
 
   initAuthModal(() => {

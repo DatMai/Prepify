@@ -1,0 +1,161 @@
+export const en: Record<string, string> = {
+  // Topbar
+  'topbar.quizMode': 'Quiz mode',
+  'topbar.langSwitch': 'VI',
+  'topbar.login': 'Log in',
+  'topbar.viewProfile': 'View profile',
+
+  // Quiz launcher
+  'ql.title': '🎯 Quiz Mode',
+  'ql.topicLabel': 'Topic',
+  'ql.modeLabel': 'Mode',
+  'ql.flashcard': 'Flashcard',
+  'ql.mcq': 'Multiple Choice',
+  'ql.questionsLabel': 'Questions',
+  'ql.allQ': 'All ({n} questions)',
+  'ql.unlearnedQ': 'Unlearned ({n})',
+  'ql.randomQ': 'Random {n}',
+  'ql.start': 'Start →',
+  'ql.mcqDisabled': 'Not enough questions for Multiple Choice',
+  'ql.mcqNeedMore': '(needs ≥ 4, currently {n})',
+  'ql.mcqEligible': '({n} eligible)',
+
+  // Quiz view
+  'qv.exit': '← Exit',
+  'qv.prev': '← Prev',
+  'qv.next': 'Next →',
+  'qv.results': 'Results →',
+  'qv.exitConfirm': 'Exit quiz? Graded progress will be saved.',
+  'qv.allLearned': 'All done! Choose "All" to review.',
+  'qv.modeLabelFc': 'Flashcard',
+  'qv.modeLabelMcq': 'Multiple Choice',
+
+  // Summary
+  'sum.title': 'Results',
+  'sum.gotIt': 'Got it ✅',
+  'sum.unsure': 'Unsure 🤔',
+  'sum.forgot': 'Forgot 😰',
+  'sum.correct': 'Correct',
+  'sum.ratio': 'Score',
+  'sum.time': 'Time',
+  'sum.retry': 'Retry',
+  'sum.back': 'Back to study',
+
+  // Flashcard
+  'fc.flipHint': 'Press Space or click to flip',
+  'fc.forgot': '😰 Forgot',
+  'fc.unsure': '🤔 Unsure',
+  'fc.gotIt': '✅ Got it',
+
+  // MCQ
+  'mcq.correct': '✓ Correct!',
+  'mcq.wrong': '✗ Wrong!',
+
+  // Daily
+  'daily.loading': 'Loading questions…',
+  'daily.loadError': 'Failed to load questions. Try again later.',
+  'daily.close': 'Close',
+  'daily.exit': '← Exit',
+  'daily.next': 'Next →',
+  'daily.seeResults': 'See Results',
+  'daily.streakCurrent': '🔥 Current streak: <strong>{n} days</strong>',
+  'daily.streakBest': '🏆 Best: <strong>{n} days</strong>',
+  'daily.loginCta': 'Log in to save your streak!',
+  'daily.login': 'Log in',
+  'daily.alreadySaved': 'Already recorded!',
+  'daily.saveFailed': 'Failed to save results.',
+  'daily.completedToday': '✓ Completed today',
+  'daily.scoreCorrect': '{n} / {total} correct',
+  'daily.streakSimple': '🔥 Streak: <strong>{n} days</strong>',
+  'daily.backToStudy': 'Back to Study',
+
+  // FIB card
+  'fib.hint': '💡 Hint',
+  'fib.check': 'Check',
+  'fib.correct': '✓ Correct!',
+  'fib.wrong': '✗ Answer: {answer}',
+
+  // Leaderboard
+  'lb.title': '🏆 Leaderboard',
+  'lb.loading': 'Loading…',
+  'lb.loadError': 'Failed to load data. Try again later.',
+  'lb.loginCta': 'Log in to join the leaderboard!',
+  'lb.colName': 'Name',
+  'lb.colLearned': 'Learned',
+  'lb.colStreak': 'Streak',
+  'lb.noData': 'No data yet. Be the first!',
+  'lb.mePrefix': '▶ ',
+
+  // Auth modal
+  'auth.loginTitle': 'Log in',
+  'auth.registerTitle': 'Create account',
+  'auth.loginTagline': 'Sync progress across all devices.',
+  'auth.registerTagline': 'Sign up to save your progress.',
+  'auth.continueGoogle': 'Continue with Google',
+  'auth.continueFb': 'Continue with Facebook',
+  'auth.or': 'or',
+  'auth.displayNameLabel': 'Display name (optional)',
+  'auth.displayNamePlaceholder': 'e.g. Minh Dev',
+  'auth.emailLabel': 'Email',
+  'auth.passwordLabel': 'Password',
+  'auth.passwordPlaceholder': 'Minimum 8 characters',
+  'auth.secQuestionLabel': 'Security question',
+  'auth.secQuestionOptional': '(optional)',
+  'auth.selectQuestion': '-- Select question --',
+  'auth.answerLabel': 'Answer',
+  'auth.answerPlaceholder': 'Enter your answer...',
+  'auth.forgotLink': 'Forgot password?',
+  'auth.loginBtn': 'Log in',
+  'auth.registerBtn': 'Sign up',
+  'auth.switchToRegister': "Don't have an account? <a id=\"modeSwitch\">Sign up</a>",
+  'auth.switchToLogin': 'Already have an account? <a id="modeSwitch">Log in</a>',
+  'auth.forgotTitle': 'Forgot Password',
+  'auth.forgotInstructions': 'Enter your account email.',
+  'auth.sendResetLink': 'Send reset link',
+  'auth.useSecQuestion': 'Use security question',
+  'auth.backToLogin': '← Back to login',
+  'auth.secQuestionTitle': 'Security Question',
+  'auth.confirmBtn': 'Confirm',
+  'auth.back': '← Back',
+  'auth.resetTitle': 'Reset Password',
+  'auth.newPasswordLabel': 'New Password',
+  'auth.confirmPasswordLabel': 'Confirm Password',
+  'auth.resetBtn': 'Reset Password',
+
+  // Password strength
+  'pw.chars': '8+ chars',
+  'pw.upper': 'Uppercase',
+  'pw.lower': 'Lowercase',
+  'pw.digit': 'Number',
+  'pw.special': 'Special char',
+
+  // Errors & toasts
+  'err.enterEmail': 'Please enter your email.',
+  'err.enterAnswer': 'Please enter your answer.',
+  'err.passwordMismatch': 'Passwords do not match.',
+  'err.generic': 'An error occurred, try again.',
+  'ok.resetEmailSent': "If the email exists, we've sent a reset link.",
+  'ok.passwordReset': 'Password has been reset!',
+  'ok.registered': 'Registered! Check your email to verify your account.',
+  'ok.verifyEmailResent': 'Verification email resent.',
+
+  // Profile
+  'profile.title': 'Profile',
+  'profile.displayNameLabel': 'Display name',
+  'profile.displayNamePlaceholder': 'Display name',
+  'profile.save': 'Save changes',
+  'profile.logout': 'Log out',
+  'profile.errGeneric': 'An error occurred, try again.',
+
+  // Verify banner
+  'verify.message': 'Please verify your email',
+  'verify.resend': 'Resend',
+
+  // Security questions
+  'sq.0': "What was your first pet's name?",
+  'sq.1': 'What was your elementary school?',
+  'sq.2': 'What city were you born in?',
+  'sq.3': "What was your favorite childhood teacher's name?",
+  'sq.4': 'What was your favorite childhood movie character?',
+  'sq.5': "What's your favorite food?",
+};

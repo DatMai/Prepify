@@ -5,6 +5,7 @@ import { completeDailyChallenge, fetchDailyStatus } from '../api/streak';
 import { isLoggedIn } from '../state/auth';
 import { streakState } from '../state/streak';
 import { renderStreakBadge } from '../ui/streakBadge';
+import { t } from '../i18n';
 
 let overlay: HTMLElement | null = null;
 let session: DailySession | null = null;
@@ -24,7 +25,6 @@ export function initDailyView(): void {
 export async function openDaily(): Promise<void> {
   if (!overlay) initDailyView();
 
-  // Check if already completed today (for logged-in users)
   if (isLoggedIn()) {
     try {
       const status = await fetchDailyStatus();
@@ -38,7 +38,7 @@ export async function openDaily(): Promise<void> {
   }
 
   overlay!.hidden = false;
-  overlay!.innerHTML = '<div class="daily-loading">Đang tải câu hỏi…</div>';
+  overlay!.innerHTML = `<div class="daily-loading">${t('daily.loading')}</div>`;
 
   try {
     const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
@@ -55,7 +55,7 @@ export async function openDaily(): Promise<void> {
 
     renderQuestion();
   } catch {
-    overlay!.innerHTML = '<div class="daily-error">Không thể tải câu hỏi. Thử lại sau.<br><button class="daily-close-btn" onclick="document.getElementById(\'dailyOverlay\').hidden=true">Đóng</button></div>';
+    overlay!.innerHTML = `<div class="daily-error">${t('daily.loadError')}<br><button class="daily-close-btn" onclick="document.getElementById('dailyOverlay').hidden=true">${t('daily.close')}</button></div>`;
   }
 }
 
@@ -76,7 +76,7 @@ function renderQuestion(): void {
   overlay.innerHTML = `
     <div class="daily-panel">
       <div class="daily-header">
-        <button class="daily-back-btn" id="dailyBack">← Thoát</button>
+        <button class="daily-back-btn" id="dailyBack">${t('daily.exit')}</button>
         <span class="daily-title">⚡ Daily Challenge · ${formatDate(session.date)}</span>
         <span class="daily-counter">${currentIdx + 1} / ${total}</span>
       </div>
@@ -85,7 +85,7 @@ function renderQuestion(): void {
       </div>
       <div class="daily-card-area" id="dailyCardArea"></div>
       <div class="daily-footer">
-        <button class="daily-next-btn" id="dailyNext" disabled>Tiếp theo →</button>
+        <button class="daily-next-btn" id="dailyNext" disabled>${t('daily.next')}</button>
       </div>
     </div>
   `;
@@ -99,7 +99,7 @@ function renderQuestion(): void {
     session!.answers.push({ questionId: q.id, correct });
     if (nextBtn) {
       nextBtn.disabled = false;
-      nextBtn.textContent = currentIdx + 1 >= total ? 'Xem kết quả' : 'Tiếp theo →';
+      nextBtn.textContent = currentIdx + 1 >= total ? t('daily.seeResults') : t('daily.next');
     }
   }
 
@@ -109,7 +109,6 @@ function renderQuestion(): void {
   } else if (q.type === 'fib') {
     const card = renderFibCard(q, (r) => onAnswered(r.allCorrect));
     cardArea?.appendChild(card);
-    // Auto-focus first input
     setTimeout(() => {
       (card.querySelector('.fib-input') as HTMLElement | null)?.focus();
     }, 50);
@@ -140,30 +139,29 @@ async function showSummary(): Promise<void> {
     try {
       const result = await completeDailyChallenge({ date: session.date, score: correct, total });
       streakAfter = result.streak.current;
-      // Update streak state
       streakState.current = streakAfter;
       streakState.longest = Math.max(streakState.longest, result.streak.longest);
       renderStreakBadge(streakAfter);
       updateDailyDot(true);
       streakHtml = `
         <div class="daily-streak-info">
-          <div>🔥 Streak hiện tại: <strong>${streakAfter} ngày</strong></div>
-          <div>🏆 Kỷ lục: <strong>${result.streak.longest} ngày</strong></div>
+          <div>${t('daily.streakCurrent', { n: streakAfter })}</div>
+          <div>${t('daily.streakBest', { n: result.streak.longest })}</div>
         </div>
       `;
     } catch (err: unknown) {
       const apiErr = err as { status?: number };
       if (apiErr.status === 409) {
-        streakHtml = '<div class="daily-streak-info">Đã ghi nhận lần trước rồi!</div>';
+        streakHtml = `<div class="daily-streak-info">${t('daily.alreadySaved')}</div>`;
       } else {
-        streakHtml = '<div class="daily-streak-info fib-feedback-err">Không thể lưu kết quả.</div>';
+        streakHtml = `<div class="daily-streak-info fib-feedback-err">${t('daily.saveFailed')}</div>`;
       }
     }
   } else {
     streakHtml = `
       <div class="daily-login-cta">
-        Đăng nhập để lưu streak!<br>
-        <button class="daily-cta-login" id="dailyCTALogin">Đăng nhập</button>
+        ${t('daily.loginCta')}<br>
+        <button class="daily-cta-login" id="dailyCTALogin">${t('daily.login')}</button>
       </div>
     `;
   }
@@ -176,7 +174,7 @@ async function showSummary(): Promise<void> {
       <div class="daily-score">${emoji} ${correct} / ${total}</div>
       ${streakHtml}
       <div class="daily-summary-actions">
-        <button class="daily-close-btn" id="dailySummaryClose">Về học tiếp</button>
+        <button class="daily-close-btn" id="dailySummaryClose">${t('daily.backToStudy')}</button>
       </div>
     </div>
   `;
@@ -194,13 +192,13 @@ function showAlreadyDone(score: number, total: number, streak: number): void {
   overlay.innerHTML = `
     <div class="daily-panel daily-summary">
       <div class="daily-summary-title">⚡ Daily Challenge</div>
-      <div class="daily-score">✓ Đã hoàn thành hôm nay</div>
-      <div class="daily-score-sub">${score} / ${total} đúng</div>
+      <div class="daily-score">${t('daily.completedToday')}</div>
+      <div class="daily-score-sub">${t('daily.scoreCorrect', { n: score, total })}</div>
       <div class="daily-streak-info">
-        🔥 Streak: <strong>${streak} ngày</strong>
+        ${t('daily.streakSimple', { n: streak })}
       </div>
       <div class="daily-summary-actions">
-        <button class="daily-close-btn" id="dailyDoneClose">Về học tiếp</button>
+        <button class="daily-close-btn" id="dailyDoneClose">${t('daily.backToStudy')}</button>
       </div>
     </div>
   `;

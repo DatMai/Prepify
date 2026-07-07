@@ -5,6 +5,7 @@ import { toggleProgress, state } from '../state/progress';
 import { updateGlobalProgress } from '../render/sidebar';
 import { runCode } from '../render/runCode';
 import { DATA } from '../data/loader';
+import { t } from '../i18n';
 import type { QuizConfig, QuizSession, FlashcardGrade, McqData } from './types';
 
 let session: QuizSession | null = null;
@@ -15,7 +16,7 @@ const mcqCache: Record<string, McqData> = {};
 export function startQuiz(config: QuizConfig): void {
   session = buildSession(config, state.progress);
   if (session.questions.length === 0) {
-    alert('Bạn đã học hết rồi! Chọn "Tất cả" để ôn lại.');
+    alert(t('qv.allLearned'));
     return;
   }
   Object.keys(mcqCache).forEach(k => delete mcqCache[k]);
@@ -34,13 +35,18 @@ export function exitQuiz(): void {
   updateGlobalProgress();
 }
 
+export function repaintQuiz(): void {
+  if (!session || !overlayEl?.classList.contains('show')) return;
+  renderCurrentCard();
+  updateNav();
+}
+
 function ensureOverlay(): void {
   if (overlayEl) {
-    // Reset nav for new session
     const nav = overlayEl.querySelector('.quiz-nav');
     if (nav) nav.innerHTML = `
-      <button class="quiz-btn quiz-prev">← Trước</button>
-      <button class="quiz-btn quiz-next" disabled>Tiếp →</button>`;
+      <button class="quiz-btn quiz-prev">${t('qv.prev')}</button>
+      <button class="quiz-btn quiz-next" disabled>${t('qv.next')}</button>`;
     return;
   }
 
@@ -48,22 +54,22 @@ function ensureOverlay(): void {
   overlayEl.className = 'quiz-overlay';
   overlayEl.innerHTML = `
     <div class="quiz-header">
-      <button class="quiz-exit-btn">← Thoát</button>
+      <button class="quiz-exit-btn">${t('qv.exit')}</button>
       <div class="quiz-meta"></div>
       <div class="quiz-counter"></div>
       <div class="quiz-hprogress"><div class="quiz-hprogress-fill"></div></div>
     </div>
     <div class="quiz-content"></div>
     <div class="quiz-nav">
-      <button class="quiz-btn quiz-prev">← Trước</button>
-      <button class="quiz-btn quiz-next" disabled>Tiếp →</button>
+      <button class="quiz-btn quiz-prev">${t('qv.prev')}</button>
+      <button class="quiz-btn quiz-next" disabled>${t('qv.next')}</button>
     </div>`;
 
   document.body.appendChild(overlayEl);
 
   overlayEl.querySelector('.quiz-exit-btn')?.addEventListener('click', () => {
     if (session && Object.keys(session.answers).length > 0) {
-      if (confirm('Thoát quiz? Progress đã grade sẽ được lưu.')) exitQuiz();
+      if (confirm(t('qv.exitConfirm'))) exitQuiz();
     } else {
       exitQuiz();
     }
@@ -99,13 +105,16 @@ function renderCurrentCard(): void {
   const topic = DATA[qInfo.topicKey];
   const q = topic.sections[qInfo.sectionIdx].questions[qInfo.questionIdx];
 
-  // Update header
   overlayEl.querySelector('.quiz-meta')!.textContent =
-    `${topic.label} · ${config.mode === 'flashcard' ? 'Flashcard' : 'Trắc nghiệm'}`;
+    `${topic.label} · ${config.mode === 'flashcard' ? t('qv.modeLabelFc') : t('qv.modeLabelMcq')}`;
   overlayEl.querySelector('.quiz-counter')!.textContent =
     `${currentIdx + 1} / ${questions.length}`;
   const pct = ((currentIdx + 1) / questions.length) * 100;
   (overlayEl.querySelector('.quiz-hprogress-fill') as HTMLElement).style.width = `${pct}%`;
+
+  // Update nav button text
+  const exitBtn = overlayEl.querySelector('.quiz-exit-btn');
+  if (exitBtn) exitBtn.textContent = t('qv.exit');
 
   const contentEl = overlayEl.querySelector('.quiz-content')!;
   contentEl.scrollTop = 0;
@@ -115,7 +124,6 @@ function renderCurrentCard(): void {
   if (config.mode === 'flashcard') {
     contentEl.innerHTML = renderFlashcard(q, qInfo.progressKey, isFlipped);
 
-    // Flip on click (not on grade buttons)
     contentEl.querySelector('.flip-card')?.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('.grade-btn')) return;
       if (!isFlipped) {
@@ -124,7 +132,6 @@ function renderCurrentCard(): void {
       }
     });
 
-    // Grade buttons
     contentEl.querySelectorAll('.grade-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -134,7 +141,6 @@ function renderCurrentCard(): void {
       });
     });
 
-    // Run buttons in code blocks
     contentEl.querySelectorAll<HTMLButtonElement>('.run-btn[data-cid]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -144,7 +150,6 @@ function renderCurrentCard(): void {
     });
 
   } else {
-    // MCQ
     if (!mcqCache[qInfo.progressKey]) {
       mcqCache[qInfo.progressKey] = generateMcqData(q, qInfo.topicKey);
     }
@@ -173,10 +178,13 @@ function updateNav(): void {
 
   const prevBtn = overlayEl.querySelector('.quiz-prev') as HTMLButtonElement;
   const nextBtn = overlayEl.querySelector('.quiz-next') as HTMLButtonElement;
-  if (prevBtn) prevBtn.disabled = currentIdx === 0;
+  if (prevBtn) {
+    prevBtn.disabled = currentIdx === 0;
+    prevBtn.textContent = t('qv.prev');
+  }
   if (nextBtn) {
     nextBtn.disabled = !answered;
-    nextBtn.textContent = currentIdx === questions.length - 1 ? 'Kết quả →' : 'Tiếp →';
+    nextBtn.textContent = currentIdx === questions.length - 1 ? t('qv.results') : t('qv.next');
   }
 }
 
@@ -216,19 +224,19 @@ function showSummary(): void {
       <div class="summary-stats">
         <div class="stat-card">
           <div class="stat-value" style="color:var(--ok)">${grades[3]}</div>
-          <div class="stat-label">Nhớ rồi ✅</div>
+          <div class="stat-label">${t('sum.gotIt')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" style="color:var(--warn)">${grades[2]}</div>
-          <div class="stat-label">Phân vân 🤔</div>
+          <div class="stat-label">${t('sum.unsure')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" style="color:var(--bad)">${grades[1] + unanswered}</div>
-          <div class="stat-label">Chưa nhớ 😰</div>
+          <div class="stat-label">${t('sum.forgot')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">${timeStr}</div>
-          <div class="stat-label">Thời gian</div>
+          <div class="stat-label">${t('sum.time')}</div>
         </div>
       </div>`;
   } else {
@@ -239,15 +247,15 @@ function showSummary(): void {
       <div class="summary-stats">
         <div class="stat-card">
           <div class="stat-value" style="color:var(--ok)">${correct}/${total}</div>
-          <div class="stat-label">Đúng</div>
+          <div class="stat-label">${t('sum.correct')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" style="color:var(--accent)">${pct}%</div>
-          <div class="stat-label">Tỉ lệ</div>
+          <div class="stat-label">${t('sum.ratio')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">${timeStr}</div>
-          <div class="stat-label">Thời gian</div>
+          <div class="stat-label">${t('sum.time')}</div>
         </div>
       </div>`;
   }
@@ -256,11 +264,11 @@ function showSummary(): void {
   const contentEl = overlayEl.querySelector('.quiz-content')!;
   contentEl.innerHTML = `
     <div class="quiz-summary">
-      <h2>Kết quả</h2>
+      <h2>${t('sum.title')}</h2>
       ${statsHTML}
       <div style="display:flex;gap:12px;justify-content:center;margin-top:8px">
-        <button class="quiz-btn" id="quizSummaryRestart">Làm lại</button>
-        <button class="modal-submit" style="width:auto;padding:11px 28px" id="quizSummaryExit">Về study mode</button>
+        <button class="quiz-btn" id="quizSummaryRestart">${t('sum.retry')}</button>
+        <button class="modal-submit" style="width:auto;padding:11px 28px" id="quizSummaryExit">${t('sum.back')}</button>
       </div>
     </div>`;
 
@@ -312,7 +320,6 @@ function handleKeydown(e: KeyboardEvent): void {
     }
   }
 
-  // Navigation shortcuts (only after answering current card)
   if (answered) {
     if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
       overlayEl?.querySelector<HTMLButtonElement>('.quiz-next:not([disabled])')?.click();

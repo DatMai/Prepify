@@ -1,0 +1,161 @@
+export const vi: Record<string, string> = {
+  // Topbar
+  'topbar.quizMode': 'Quiz mode',
+  'topbar.langSwitch': 'EN',
+  'topbar.login': 'Đăng nhập',
+  'topbar.viewProfile': 'Xem profile',
+
+  // Quiz launcher
+  'ql.title': '🎯 Quiz Mode',
+  'ql.topicLabel': 'Chủ đề',
+  'ql.modeLabel': 'Chế độ',
+  'ql.flashcard': 'Flashcard',
+  'ql.mcq': 'Trắc nghiệm',
+  'ql.questionsLabel': 'Câu hỏi',
+  'ql.allQ': 'Tất cả ({n} câu)',
+  'ql.unlearnedQ': 'Chưa học ({n} câu)',
+  'ql.randomQ': 'Ngẫu nhiên {n}',
+  'ql.start': 'Bắt đầu →',
+  'ql.mcqDisabled': 'Topic này không đủ câu để tạo trắc nghiệm',
+  'ql.mcqNeedMore': '(cần ≥ 4 câu có đáp án, hiện có {n})',
+  'ql.mcqEligible': '({n} câu eligible)',
+
+  // Quiz view
+  'qv.exit': '← Thoát',
+  'qv.prev': '← Trước',
+  'qv.next': 'Tiếp →',
+  'qv.results': 'Kết quả →',
+  'qv.exitConfirm': 'Thoát quiz? Progress đã grade sẽ được lưu.',
+  'qv.allLearned': 'Bạn đã học hết rồi! Chọn "Tất cả" để ôn lại.',
+  'qv.modeLabelFc': 'Flashcard',
+  'qv.modeLabelMcq': 'Trắc nghiệm',
+
+  // Summary
+  'sum.title': 'Kết quả',
+  'sum.gotIt': 'Nhớ rồi ✅',
+  'sum.unsure': 'Phân vân 🤔',
+  'sum.forgot': 'Chưa nhớ 😰',
+  'sum.correct': 'Đúng',
+  'sum.ratio': 'Tỉ lệ',
+  'sum.time': 'Thời gian',
+  'sum.retry': 'Làm lại',
+  'sum.back': 'Về study mode',
+
+  // Flashcard
+  'fc.flipHint': 'Nhấn Space hoặc click để lật thẻ',
+  'fc.forgot': '😰 Chưa nhớ',
+  'fc.unsure': '🤔 Còn phân vân',
+  'fc.gotIt': '✅ Nhớ rồi',
+
+  // MCQ
+  'mcq.correct': '✓ Đúng rồi!',
+  'mcq.wrong': '✗ Sai rồi!',
+
+  // Daily
+  'daily.loading': 'Đang tải câu hỏi…',
+  'daily.loadError': 'Không thể tải câu hỏi. Thử lại sau.',
+  'daily.close': 'Đóng',
+  'daily.exit': '← Thoát',
+  'daily.next': 'Tiếp theo →',
+  'daily.seeResults': 'Xem kết quả',
+  'daily.streakCurrent': '🔥 Streak hiện tại: <strong>{n} ngày</strong>',
+  'daily.streakBest': '🏆 Kỷ lục: <strong>{n} ngày</strong>',
+  'daily.loginCta': 'Đăng nhập để lưu streak!',
+  'daily.login': 'Đăng nhập',
+  'daily.alreadySaved': 'Đã ghi nhận lần trước rồi!',
+  'daily.saveFailed': 'Không thể lưu kết quả.',
+  'daily.completedToday': '✓ Đã hoàn thành hôm nay',
+  'daily.scoreCorrect': '{n} / {total} đúng',
+  'daily.streakSimple': '🔥 Streak: <strong>{n} ngày</strong>',
+  'daily.backToStudy': 'Về học tiếp',
+
+  // FIB card
+  'fib.hint': '💡 Gợi ý',
+  'fib.check': 'Kiểm tra',
+  'fib.correct': '✓ Chính xác!',
+  'fib.wrong': '✗ Đáp án: {answer}',
+
+  // Leaderboard
+  'lb.title': '🏆 Leaderboard',
+  'lb.loading': 'Đang tải…',
+  'lb.loadError': 'Không thể tải dữ liệu. Thử lại sau.',
+  'lb.loginCta': 'Đăng nhập để góp mặt vào bảng xếp hạng!',
+  'lb.colName': 'Tên',
+  'lb.colLearned': 'Đã học',
+  'lb.colStreak': 'Streak',
+  'lb.noData': 'Chưa có dữ liệu. Hãy là người đầu tiên!',
+  'lb.mePrefix': '▶ ',
+
+  // Auth modal
+  'auth.loginTitle': 'Đăng nhập',
+  'auth.registerTitle': 'Tạo tài khoản',
+  'auth.loginTagline': 'Sync progress trên mọi thiết bị.',
+  'auth.registerTagline': 'Đăng ký để lưu progress.',
+  'auth.continueGoogle': 'Tiếp tục với Google',
+  'auth.continueFb': 'Tiếp tục với Facebook',
+  'auth.or': 'hoặc',
+  'auth.displayNameLabel': 'Tên hiển thị (tuỳ chọn)',
+  'auth.displayNamePlaceholder': 'VD: Minh Dev',
+  'auth.emailLabel': 'Email',
+  'auth.passwordLabel': 'Password',
+  'auth.passwordPlaceholder': 'Tối thiểu 8 ký tự',
+  'auth.secQuestionLabel': 'Câu hỏi bí mật',
+  'auth.secQuestionOptional': '(tuỳ chọn)',
+  'auth.selectQuestion': '-- Chọn câu hỏi --',
+  'auth.answerLabel': 'Câu trả lời',
+  'auth.answerPlaceholder': 'Nhập câu trả lời...',
+  'auth.forgotLink': 'Quên mật khẩu?',
+  'auth.loginBtn': 'Đăng nhập',
+  'auth.registerBtn': 'Đăng ký',
+  'auth.switchToRegister': 'Chưa có tài khoản? <a id="modeSwitch">Đăng ký</a>',
+  'auth.switchToLogin': 'Đã có tài khoản? <a id="modeSwitch">Đăng nhập</a>',
+  'auth.forgotTitle': 'Quên mật khẩu',
+  'auth.forgotInstructions': 'Nhập email tài khoản của bạn.',
+  'auth.sendResetLink': 'Gửi link về email',
+  'auth.useSecQuestion': 'Dùng câu hỏi bí mật',
+  'auth.backToLogin': '← Quay lại đăng nhập',
+  'auth.secQuestionTitle': 'Câu hỏi bí mật',
+  'auth.confirmBtn': 'Xác nhận',
+  'auth.back': '← Quay lại',
+  'auth.resetTitle': 'Đặt lại mật khẩu',
+  'auth.newPasswordLabel': 'Mật khẩu mới',
+  'auth.confirmPasswordLabel': 'Xác nhận mật khẩu',
+  'auth.resetBtn': 'Đặt lại mật khẩu',
+
+  // Password strength
+  'pw.chars': '8+ ký tự',
+  'pw.upper': 'Chữ hoa',
+  'pw.lower': 'Chữ thường',
+  'pw.digit': 'Chữ số',
+  'pw.special': 'Ký tự đặc biệt',
+
+  // Errors & toasts
+  'err.enterEmail': 'Vui lòng nhập email.',
+  'err.enterAnswer': 'Vui lòng nhập câu trả lời.',
+  'err.passwordMismatch': 'Mật khẩu xác nhận không khớp.',
+  'err.generic': 'Có lỗi xảy ra, thử lại sau.',
+  'ok.resetEmailSent': 'Nếu email tồn tại, chúng tôi đã gửi link đặt lại.',
+  'ok.passwordReset': 'Mật khẩu đã được đặt lại!',
+  'ok.registered': 'Đăng ký thành công! Kiểm tra email để xác minh tài khoản.',
+  'ok.verifyEmailResent': 'Đã gửi lại email xác minh.',
+
+  // Profile
+  'profile.title': 'Hồ sơ',
+  'profile.displayNameLabel': 'Tên hiển thị',
+  'profile.displayNamePlaceholder': 'Tên hiển thị',
+  'profile.save': 'Lưu thay đổi',
+  'profile.logout': 'Đăng xuất',
+  'profile.errGeneric': 'Có lỗi xảy ra, thử lại sau.',
+
+  // Verify banner
+  'verify.message': 'Vui lòng xác minh email',
+  'verify.resend': 'Gửi lại',
+
+  // Security questions
+  'sq.0': 'Tên thú cưng đầu tiên của bạn?',
+  'sq.1': 'Tên trường tiểu học của bạn?',
+  'sq.2': 'Tên thành phố bạn sinh ra?',
+  'sq.3': 'Tên thầy/cô giáo yêu thích thời nhỏ?',
+  'sq.4': 'Tên nhân vật phim yêu thích thời nhỏ?',
+  'sq.5': 'Món ăn yêu thích của bạn?',
+};

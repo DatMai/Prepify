@@ -2,6 +2,7 @@ import { DATA, ORDER, TOPIC_INDEX } from '../data/loader';
 import { state } from '../state/progress';
 import { isMcqEligible } from './mcq';
 import { startQuiz } from './quizView';
+import { t } from '../i18n';
 import type { QuizConfig, QuizMode, QuestionSet } from './types';
 
 export function showQuizLauncher(): void {
@@ -22,32 +23,32 @@ export function showQuizLauncher(): void {
   el.innerHTML = `
     <div class="modal quiz-launcher">
       <button class="modal-close" id="qlClose">✕</button>
-      <h2>🎯 Quiz Mode</h2>
+      <h2>${t('ql.title')}</h2>
 
       <div class="field">
-        <label class="ql-section-label">Chủ đề</label>
+        <label class="ql-section-label">${t('ql.topicLabel')}</label>
         <select id="qlTopic" class="ql-select">${topicOptions}</select>
       </div>
 
       <div style="margin-bottom:16px">
-        <div class="ql-section-label">Chế độ</div>
+        <div class="ql-section-label">${t('ql.modeLabel')}</div>
         <div class="quiz-radio-group">
           <label class="quiz-radio-label">
-            <input type="radio" name="qlMode" value="flashcard" checked> Flashcard
+            <input type="radio" name="qlMode" value="flashcard" checked> ${t('ql.flashcard')}
           </label>
           <label class="quiz-radio-label" id="qlMcqLabel">
-            <input type="radio" name="qlMode" value="mcq" id="qlMcqRadio"> Trắc nghiệm
+            <input type="radio" name="qlMode" value="mcq" id="qlMcqRadio"> ${t('ql.mcq')}
             <span id="qlMcqHint" style="font-size:12px;color:var(--faint);margin-left:4px"></span>
           </label>
         </div>
       </div>
 
       <div style="margin-bottom:24px">
-        <div class="ql-section-label">Câu hỏi</div>
+        <div class="ql-section-label">${t('ql.questionsLabel')}</div>
         <div class="quiz-radio-group" id="qlSetGroup"></div>
       </div>
 
-      <button class="modal-submit" id="qlStart">Bắt đầu →</button>
+      <button class="modal-submit" id="qlStart">${t('ql.start')}</button>
     </div>`;
 
   updateSetOptions(el, currentTopic);
@@ -81,7 +82,7 @@ export function showQuizLauncher(): void {
 
 function updateSetOptions(el: HTMLElement, topicKey: string): void {
   const topic = DATA[topicKey];
-  const entry = TOPIC_INDEX.find(t => t.key === topicKey)!;
+  const entry = TOPIC_INDEX.find(e => e.key === topicKey)!;
   const total = entry.questionCount;
 
   let unlearned = 0;
@@ -96,13 +97,13 @@ function updateSetOptions(el: HTMLElement, topicKey: string): void {
   const group = el.querySelector('#qlSetGroup')!;
   group.innerHTML = `
     <label class="quiz-radio-label">
-      <input type="radio" name="qlSet" value="all" checked> Tất cả (${total} câu)
+      <input type="radio" name="qlSet" value="all" checked> ${t('ql.allQ', { n: total })}
     </label>
     <label class="quiz-radio-label">
-      <input type="radio" name="qlSet" value="unlearned"> Chưa học (${unlearned} câu)
+      <input type="radio" name="qlSet" value="unlearned"> ${t('ql.unlearnedQ', { n: unlearned })}
     </label>
     <label class="quiz-radio-label">
-      <input type="radio" name="qlSet" value="random"> Ngẫu nhiên ${randomCount}
+      <input type="radio" name="qlSet" value="random"> ${t('ql.randomQ', { n: randomCount })}
     </label>`;
 }
 
@@ -114,16 +115,16 @@ function updateMcqState(el: HTMLElement, topicKey: string): void {
 
   if (eligible < 4) {
     label.classList.add('disabled');
-    label.title = 'Topic này không đủ câu để tạo trắc nghiệm';
+    label.title = t('ql.mcqDisabled');
     radio.disabled = true;
-    hint.textContent = `(cần ≥ 4 câu có đáp án, hiện có ${eligible})`;
+    hint.textContent = t('ql.mcqNeedMore', { n: eligible });
     const flashcard = el.querySelector('input[name="qlMode"][value="flashcard"]') as HTMLInputElement;
     if (flashcard) flashcard.checked = true;
   } else {
     label.classList.remove('disabled');
     label.title = '';
     radio.disabled = false;
-    hint.textContent = `(${eligible} câu eligible)`;
+    hint.textContent = t('ql.mcqEligible', { n: eligible });
   }
 }
 
