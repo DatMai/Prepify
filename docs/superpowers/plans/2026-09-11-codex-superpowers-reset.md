@@ -4,7 +4,7 @@
 
 **Goal:** Remove Prepify's legacy Claude workflow and establish one concise Codex entrypoint that delegates process to the official Superpowers plugin.
 
-**Architecture:** `AGENTS.md` owns only stable Prepify context and constraints. Official Superpowers skills remain external and are discovered at runtime; repository documentation records the audited upstream version and the unresolved marketplace version gap.
+**Architecture:** `AGENTS.md` owns only stable Prepify context and constraints. Official Superpowers skills remain external and are discovered at runtime; the official Codex marketplace package and upstream adapter provide the process implementation.
 
 **Tech Stack:** Markdown, shell verification, Git
 
@@ -16,8 +16,9 @@
 - Delete `.claude/` and root `CLAUDE.md`; do not migrate their command framework.
 - Keep `README.md`, both accepted ADRs, and `docs/superpowers/`.
 - Preserve every unrelated dirty working-tree change.
-- Do not edit Codex plugin caches or `~/.codex/config.toml` in this project-scoped phase.
-- Do not claim exact upstream parity while the official installed package remains `5.1.3` and audited upstream is `6.3.0`.
+- Install through the official Codex marketplace; never edit plugin caches.
+- Use Superpowers `6.3.0`, matching the audited upstream release.
+- Apply only the upstream-required Codex adapter keys in `~/.codex/config.toml`.
 - Do not push.
 
 ---
@@ -182,3 +183,68 @@ git commit -m "chore: chuyển quy trình agent sang Codex"
 ```
 
 Expected before commit: staged paths contain only `AGENTS.md`, deletion of `CLAUDE.md`, and the plan; `.claude/` is ignored and therefore removed from disk but absent from Git history. Expected after commit: unrelated working-tree changes remain unstaged.
+
+---
+
+### Task 2: Activate the official Superpowers runtime for Codex
+
+**Files:**
+- Modify outside repository: `~/.codex/config.toml`
+- Install through official marketplace: `superpowers@openai-curated-remote`
+
+**Interfaces:**
+- Consumes: official Codex marketplace package `6.3.0` and the current Codex spawn allowlist.
+- Produces: enabled upstream skills plus multi-agent defaults for future Codex sessions.
+
+- [x] **Step 1: Confirm the official marketplace version**
+
+Run:
+
+```bash
+codex plugin list --available --json
+```
+
+Expected: `superpowers@openai-curated-remote` is available at version `6.3.0`.
+
+- [x] **Step 2: Install the official package**
+
+Run:
+
+```bash
+codex plugin add superpowers@openai-curated-remote --json
+```
+
+Expected: exit `0` with version `6.3.0` and an official cache path.
+
+- [x] **Step 3: Apply the Codex adapter settings**
+
+Update only these keys in `~/.codex/config.toml`:
+
+```toml
+[agents]
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"
+
+[features]
+multi_agent = true
+```
+
+- [x] **Step 4: Verify installation and upstream identity**
+
+Run:
+
+```bash
+codex plugin list --available --json
+SUPERPOWERS_AUDIT_DIR=$(mktemp -d)
+git clone https://github.com/obra/superpowers.git "$SUPERPOWERS_AUDIT_DIR"
+git -C "$SUPERPOWERS_AUDIT_DIR" checkout b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+shasum -a 256 \
+  "$SUPERPOWERS_AUDIT_DIR/skills/using-superpowers/SKILL.md" \
+  ~/.codex/plugins/cache/openai-curated-remote/superpowers/6.3.0/skills/using-superpowers/SKILL.md
+```
+
+Expected: the plugin is installed and enabled at `6.3.0`; both hashes are identical. Repeat the hash comparison for `brainstorming`, `writing-plans`, `executing-plans`, and `verification-before-completion`.
+
+- [x] **Step 5: Preserve the session boundary**
+
+Do not claim that this already-running session reloaded the plugin. Start the next Prepify session normally and confirm the official Superpowers skills appear in its available skill catalog.

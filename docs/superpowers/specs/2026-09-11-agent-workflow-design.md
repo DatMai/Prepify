@@ -65,21 +65,32 @@ It must not reproduce Superpowers procedures. Exact brainstorming, planning,
 TDD, worktree, review, and completion rules are loaded from the installed skill
 at use time.
 
-## Upstream installation boundary
+## Upstream installation
 
 Official upstream says Codex App users install Superpowers from the official
-Codex plugin marketplace. The current machine exposes marketplace package
-`5.1.3`, while the audited upstream repository is `6.3.0`.
+Codex plugin marketplace. The official package
+`superpowers@openai-curated-remote` version `6.3.0` is installed and enabled.
+Selected core skill files have matching SHA-256 hashes against audited upstream
+commit `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`.
 
-Project files may be implemented now, but exact `6.3.0` compliance must not be
-claimed until the official marketplace installation reports that version in a
-fresh Codex session. Plugin caches must never be patched or replaced by the
-temporary audit clone.
+Plugin caches were not patched or replaced by the temporary audit clone. A new
+Codex session is required before the newly installed skill catalog can be
+observed in session context.
 
-Upstream's Codex adapter also recommends machine-level multi-agent defaults in
-`~/.codex/config.toml`. Those settings are outside the user-approved Prepify
-project scope and are therefore documented as a later machine-setup action,
-not changed by this implementation.
+The upstream Codex adapter settings are applied in `~/.codex/config.toml`:
+
+```toml
+[agents]
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"
+
+[features]
+multi_agent = true
+```
+
+`gpt-5.6-terra` is a current mid-tier model from this Codex session's spawn
+allowlist. Each future dispatch must still set both model and reasoning effort
+as the upstream adapter requires.
 
 ## Prepify invariants
 
@@ -112,19 +123,20 @@ Verification must prove:
 2. `AGENTS.md` exists and links only to existing project documentation;
 3. `AGENTS.md` contains product rules but no copied Superpowers workflow;
 4. the pre-existing dirty files outside this scope are unchanged;
-5. project type-checks/tests relevant to documentation-only changes remain at
-   their baseline state.
+5. the official Superpowers plugin reports version `6.3.0`, installed and
+   enabled;
+6. the Codex adapter settings are present;
+7. project type-checks, tests, and builds pass.
 
 Only the spec, plan, deletion of the old agent files, and new `AGENTS.md` may be
 staged for this refactor. No push is performed.
 
 ## Definition of done
 
-The project phase is complete when the old Claude layer is gone, `AGENTS.md` is
-the sole repository-owned Codex entrypoint, verification evidence is fresh, and
-the scoped changes are committed without absorbing unrelated work.
+The phase is complete when the old Claude layer is gone, `AGENTS.md` is the sole
+repository-owned Codex entrypoint, official Superpowers `6.3.0` and the Codex
+adapter are active, verification evidence is fresh, and scoped changes are
+committed without absorbing unrelated work.
 
-Full upstream parity is a separate machine-level checkpoint: the official Codex
-marketplace must expose Superpowers `6.3.0`, and a fresh session must discover
-those skills. Until then the result is accurately described as a clean
-Codex-first project integration with an upstream version gap.
+The next Codex session must confirm skill discovery because this session began
+before the official plugin was installed.
