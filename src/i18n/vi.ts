@@ -9,7 +9,6 @@ export const vi: Record<string, string> = {
   'topbar.favoriteTitle': 'Câu hỏi yêu thích',
   'topbar.daily': 'Daily',
   'topbar.leaderboard': 'Leaderboard',
-  'nav.home': 'Trang chủ',
   'nav.library': 'Library',
   'nav.journey': 'Hành trình',
   'nav.admin': 'Quản trị',
@@ -72,7 +71,6 @@ export const vi: Record<string, string> = {
   // Journey / Obsidian
   'journey.title': 'Hành trình hôm nay',
   'journey.source': 'Obsidian là nguồn dữ liệu gốc',
-  'journey.close': 'Đóng',
   'journey.back': 'Về thư viện',
   'journey.focusLabel': 'FOCUS PROTOCOL',
   'journey.focusEyebrow': 'DEEP WORK · DAILY EXECUTION',
@@ -210,8 +208,6 @@ export const vi: Record<string, string> = {
   // FIB card
   'fib.hint': '💡 Gợi ý',
   'fib.check': 'Kiểm tra',
-  'fib.correct': '✓ Chính xác!',
-  'fib.wrong': '✗ Đáp án: {answer}',
 
   // Leaderboard
   'lb.title': '🏆 Leaderboard',
@@ -325,7 +321,6 @@ export const vi: Record<string, string> = {
 
   // Library authoring
   'libAdmin.locale': 'Ngôn ngữ',
-  'libAdmin.topicsTitle': 'Môn học',
   'libAdmin.newTopic': '+ Môn mới',
   'libAdmin.fieldKey': 'Key (a-z, 0-9, dấu -)',
   'libAdmin.fieldLabel': 'Nhãn',
@@ -346,7 +341,6 @@ export const vi: Record<string, string> = {
   'libAdmin.topicsEmpty': 'Chưa có môn học nào.',
   'libAdmin.formInvalid':
     'Key phải gồm a-z, 0-9, dấu - (2-40 ký tự); nhãn và tiêu đề không được để trống.',
-  'libAdmin.sectionsTitle': 'Các phần',
   'libAdmin.newSection': '+ Phần mới',
   'libAdmin.sectionName': 'Tên phần',
   'libAdmin.newQuestion': '+ Câu mới',
@@ -369,23 +363,18 @@ export const vi: Record<string, string> = {
   'libAdmin.addColumn': '+ Cột',
   'libAdmin.removeRow': '− Dòng',
   'libAdmin.removeColumn': '− Cột',
-  'libAdmin.moveUp': 'Chuyển lên',
-  'libAdmin.moveDown': 'Chuyển xuống',
   'libAdmin.remove': 'Xoá',
   'libAdmin.reorderWarning':
     'Thứ tự câu gắn với tiến độ đã học. Đổi thứ tự sẽ làm tiến độ trỏ sang câu khác. Tiếp tục?',
   'libAdmin.deleteWarning':
     'Xoá vĩnh viễn mục này? Bạn sẽ nhận được một snapshot để khôi phục nếu cần.',
-  'libAdmin.downloadSnapshot': 'Tải snapshot',
   'libAdmin.importTitle': 'Nhập JSON vào môn này',
   'libAdmin.importPaste': 'Dán JSON',
-  'libAdmin.importFile': 'Chọn file .json',
   'libAdmin.importTemplate': 'Chèn template mẫu',
   'libAdmin.importMode': 'Cách nhập',
   'libAdmin.importModeReplace': 'Thay thế toàn bộ nội dung',
   'libAdmin.importModeAppend': 'Thêm vào cuối',
   'libAdmin.importPreview': 'Đọc được {sections} phần · {questions} câu',
-  'libAdmin.importInvalidJson': 'JSON không hợp lệ: {message}',
   'libAdmin.importDone': 'Đã nhập {sections} phần, {questions} câu',
   'libAdmin.saveFailed': 'Không lưu được thay đổi.',
   'libAdmin.saved': 'Đã lưu.',
