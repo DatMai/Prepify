@@ -122,6 +122,53 @@ Design and implementation records:
 `docs/superpowers/specs/2026-09-12-admin-panel-design.md` and
 `docs/superpowers/plans/2026-09-12-admin-panel-implementation.md`.
 
+### Library authoring endpoints
+
+Everything under `/api/v1/library/admin/*` is admin-only and writes the Library
+corpus in PostgreSQL (`server/src/routes/libraryAdmin.ts`).
+
+| Method | Path                                                 | Purpose                                    |
+| ------ | ---------------------------------------------------- | ------------------------------------------ |
+| GET    | `/library/admin/topics?lang=&includeArchived=1`      | Topics with ids, positions and counts      |
+| GET    | `/library/admin/topics/:id`                          | Full topic with sections and questions     |
+| POST   | `/library/admin/topics`                              | Create a topic                             |
+| PATCH  | `/library/admin/topics/:id`                          | Edit metadata or move the topic            |
+| POST   | `/library/admin/topics/:id/archive` (and `/restore`) | Hide or unhide a topic                     |
+| POST   | `/library/admin/topics/:id/sections`                 | Append a section                           |
+| PATCH  | `/library/admin/sections/:id`                        | Rename or move a section                   |
+| DELETE | `/library/admin/sections/:id`                        | Delete a section                           |
+| POST   | `/library/admin/sections/:id/questions`              | Append a question                          |
+| PATCH  | `/library/admin/questions/:id`                       | Edit a question, its level or its position |
+| DELETE | `/library/admin/questions/:id`                       | Delete a question                          |
+| POST   | `/library/admin/topics/:id/import`                   | Import a document (`replace` or `append`)  |
+| GET    | `/library/admin/topics/:id/export`                   | Export the topic as an importable document |
+| GET    | `/library/admin/daily-entries?locale=`               | List the Daily pool                        |
+| POST   | `/library/admin/daily-entries`                       | Add a Daily entry                          |
+| PATCH  | `/library/admin/daily-entries/:id`                   | Edit a Daily entry                         |
+| DELETE | `/library/admin/daily-entries/:id`                   | Remove a Daily entry                       |
+
+Rules worth knowing before you use them:
+
+- **`key` is immutable.** It appears in URLs, in the positional progress key
+  `topic:section:question`, and in Daily references, so renaming it would
+  silently discard learned progress. Only `label`, `title`, `subtitle`, `color`
+  and `position` are editable.
+- **Topics are archived, never deleted.** There is no `DELETE /topics/:id`.
+- **Section and question deletes return a `snapshot`** of the topic as it was
+  before the delete, in the same format `import` accepts — so a delete is
+  undoable by importing the snapshot back.
+- **The Daily pool protects itself.** Deleting a question or section the pool
+  still references returns `409 library_in_use` with the offending `entryIds`;
+  the database's `ON DELETE RESTRICT` foreign key is the final guard.
+- **Archived topics are read-only.** Mutating their sections or questions
+  returns `409 library_archived`; restore the topic first.
+- **`level` is per question** (`basic` / `intermediate` / `advanced`, or `null`).
+  Seeded questions are `null` because the corpus has no levels.
+- **Positions stay gap-free.** Creating appends at the end; a `position` patch
+  renumbers the affected siblings inside one transaction.
+- Invalid bodies return `400 library_invalid_document` with a `path` such as
+  `document.sections[0].questions[1].blocks[0].type`.
+
 ## Spaced repetition
 
 Quiz interactions schedule the question for review with a simplified SM-2

@@ -26,7 +26,9 @@ import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
 import leaderboardRouter from './routes/leaderboard';
 import { createLibraryRouter } from './routes/library';
+import { createLibraryAdminRouter } from './routes/libraryAdmin';
 import { createLibraryRepository, type LibraryQuery } from './modules/library/libraryRepository';
+import { createLibraryAuthoring } from './modules/library/libraryAuthoring';
 import progressRouter from './routes/progress';
 import quizSessionsRouter from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
@@ -58,6 +60,7 @@ function registerRoutes(
     adminRoutes: ReturnType<typeof createAdminRouter>;
     reviewRoutes: ReturnType<typeof createReviewRouter>;
     libraryRoutes: ReturnType<typeof createLibraryRouter>;
+    libraryAdminRoutes: ReturnType<typeof createLibraryAdminRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -72,6 +75,8 @@ function registerRoutes(
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
   app.use('/api/v1/journey', identity.journeyRoutes);
+  // The admin prefix is registered first so it wins over the reader router.
+  app.use('/api/v1/library/admin', identity.libraryAdminRoutes);
   app.use('/api/v1/library', identity.libraryRoutes);
 }
 
@@ -124,7 +129,30 @@ async function main(): Promise<void> {
   const libraryRepository = createLibraryRepository({
     query: pool.query.bind(pool) as unknown as LibraryQuery,
   });
+  const withTransaction = async <T>(fn: (tx: LibraryQuery) => Promise<T>): Promise<T> => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client.query.bind(client) as unknown as LibraryQuery);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
+  const libraryAuthoring = createLibraryAuthoring({
+    query: pool.query.bind(pool) as unknown as LibraryQuery,
+    withTransaction,
+  });
   const libraryRoutes = createLibraryRouter({ repo: libraryRepository });
+  const libraryAdminRoutes = createLibraryAdminRouter({
+    authoring: libraryAuthoring,
+    requireAuth,
+    requireAdmin,
+  });
   const dailyRoutes = createDailyRouter({
     query: pool.query.bind(pool) as unknown as DailyQuery,
     repo: libraryRepository,
@@ -192,6 +220,7 @@ async function main(): Promise<void> {
           adminRoutes,
           reviewRoutes,
           libraryRoutes,
+          libraryAdminRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');
