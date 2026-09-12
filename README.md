@@ -147,6 +147,13 @@ corpus in PostgreSQL (`server/src/routes/libraryAdmin.ts`).
 | PATCH  | `/library/admin/daily-entries/:id`                   | Edit a Daily entry                         |
 | DELETE | `/library/admin/daily-entries/:id`                   | Remove a Daily entry                       |
 
+The admin panel's **Nội dung** (Content) tab is where this authoring happens in
+the UI. It is admin-only, like the endpoints it drives. It warns before
+reordering or deleting because quiz progress is positional — moving a question
+repoints existing progress to a different question. It can also export and
+import the same JSON document format the seed uses, so a subject can be backed
+up, round-tripped through the editor, or restored from a snapshot.
+
 Rules worth knowing before you use them:
 
 - **`key` is immutable.** It appears in URLs, in the positional progress key

@@ -326,3 +326,627 @@ body.admin-page-open {
     justify-content: flex-start;
   }
 }
+
+/* ── Admin tabs ──────────────────────────────────────────────────────── */
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font:
+    600 14px 'Outfit',
+    sans-serif;
+  padding: 10px 16px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.admin-tab:hover {
+  color: var(--txt);
+  background: rgba(74, 163, 255, 0.08);
+}
+
+.admin-tab.is-active {
+  color: var(--txt);
+  border-bottom-color: var(--accent2);
+}
+
+.admin-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Library authoring: shared controls ──────────────────────────────── */
+
+.la-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.la-locale {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.la-locale-label {
+  font:
+    500 12px 'Outfit',
+    sans-serif;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.la-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+  flex: 1 1 160px;
+}
+
+.la-field-label {
+  font:
+    500 12px 'Outfit',
+    sans-serif;
+  color: var(--muted);
+}
+
+.la-input,
+.la-import-text,
+.qe-input,
+.qe-prompt {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--txt);
+  font:
+    400 13px 'Outfit',
+    sans-serif;
+  padding: 8px 10px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.la-input:focus,
+.la-import-text:focus,
+.qe-input:focus,
+.qe-prompt:focus {
+  outline: none;
+  border-color: var(--accent2);
+}
+
+.la-form-error,
+.la-import-error,
+.qe-error {
+  font:
+    400 12px 'Outfit',
+    sans-serif;
+  color: #ff6363;
+  margin: 0;
+  min-height: 16px;
+}
+
+.la-form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.la-import-preview {
+  font:
+    500 12px 'Space Mono',
+    monospace;
+  color: var(--accent2);
+  margin: 0;
+}
+
+/* One button skin for every authoring control, so a new button needs no CSS. */
+.la-locale-btn,
+.la-new-topic,
+.la-edit,
+.la-export,
+.la-import,
+.la-archive,
+.la-restore,
+.la-create-submit,
+.la-create-cancel,
+.la-save-meta,
+.la-back,
+.la-section-rename,
+.la-section-up,
+.la-section-down,
+.la-section-delete,
+.la-new-section,
+.la-section-submit,
+.la-section-cancel,
+.la-move-up,
+.la-move-down,
+.la-edit-question,
+.la-delete,
+.la-import-template,
+.la-import-submit,
+.la-import-cancel,
+.qe-add-block-button,
+.qe-block-up,
+.qe-block-down,
+.qe-block-remove,
+.qe-add-row,
+.qe-remove-row,
+.qe-add-column,
+.qe-remove-column,
+.qe-close,
+.qe-save,
+.qe-cancel {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--txt);
+  font:
+    500 12px 'Outfit',
+    sans-serif;
+  padding: 6px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.la-locale-btn:hover:not(:disabled),
+.la-new-topic:hover:not(:disabled),
+.la-edit:hover:not(:disabled),
+.la-export:hover:not(:disabled),
+.la-import:hover:not(:disabled),
+.la-archive:hover:not(:disabled),
+.la-restore:hover:not(:disabled),
+.la-create-submit:hover:not(:disabled),
+.la-save-meta:hover:not(:disabled),
+.la-back:hover:not(:disabled),
+.la-import-submit:hover:not(:disabled),
+.qe-save:hover:not(:disabled),
+.qe-add-block-button:hover:not(:disabled) {
+  border-color: var(--accent2);
+  background: rgba(74, 163, 255, 0.1);
+}
+
+.la-locale-btn.is-active {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+.la-archive:hover:not(:disabled),
+.la-delete:hover:not(:disabled),
+.la-section-delete:hover:not(:disabled),
+.qe-block-remove:hover:not(:disabled) {
+  border-color: #ff6363;
+  background: rgba(255, 99, 99, 0.1);
+}
+
+.la-import-submit:disabled,
+.qe-save:disabled,
+.la-locale-btn:disabled,
+.la-move-up:disabled,
+.la-move-down:disabled,
+.la-section-up:disabled,
+.la-section-down:disabled,
+.qe-block-up:disabled,
+.qe-block-down:disabled,
+.qe-add-row:disabled,
+.qe-remove-row:disabled,
+.qe-add-column:disabled,
+.qe-remove-column:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.la-empty,
+.la-loading {
+  font:
+    400 14px 'Outfit',
+    sans-serif;
+  color: var(--muted);
+  padding: 20px;
+  text-align: center;
+}
+
+/* ── Subject list ────────────────────────────────────────────────────── */
+
+.la-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.la-topic {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.4fr) minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.la-topic.is-archived {
+  opacity: 0.6;
+}
+
+.la-topic-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.la-topic-label {
+  font:
+    600 15px 'Outfit',
+    sans-serif;
+  color: var(--txt);
+  margin: 0;
+}
+
+.la-topic-key,
+.la-editor-key {
+  font:
+    400 12px 'Space Mono',
+    monospace;
+  color: var(--muted);
+}
+
+.la-badge-archived {
+  font:
+    600 11px 'Outfit',
+    sans-serif;
+  color: #ffb020;
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background: rgba(255, 176, 32, 0.1);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.la-topic-title {
+  font:
+    400 13px 'Outfit',
+    sans-serif;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.la-topic-count {
+  font:
+    500 13px 'Space Mono',
+    monospace;
+  color: var(--accent2);
+  margin: 0;
+}
+
+.la-topic-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.la-new-topic-form,
+.la-new-section-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.la-meta-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* ── Topic editor ────────────────────────────────────────────────────── */
+
+.la-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.la-editor-title {
+  font:
+    700 24px 'Fraunces',
+    serif;
+  color: var(--txt);
+  margin: 0;
+}
+
+.la-back {
+  align-self: flex-start;
+}
+
+.la-editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.la-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.la-section {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.la-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.la-section-name {
+  font:
+    600 15px 'Outfit',
+    sans-serif;
+  color: var(--txt);
+  margin: 0;
+  min-width: 140px;
+}
+
+.la-section-rename-input {
+  flex: 1 1 200px;
+}
+
+.la-section-actions,
+.la-question-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.la-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.la-question {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.la-question-prompt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.la-question-code {
+  font:
+    500 12px 'Space Mono',
+    monospace;
+  color: var(--accent2);
+  white-space: nowrap;
+}
+
+.la-question-text {
+  font:
+    400 13px 'Outfit',
+    sans-serif;
+  color: var(--txt);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.la-level,
+.la-import-mode,
+.qe-level,
+.qe-add-block {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--txt);
+  font:
+    500 12px 'Outfit',
+    sans-serif;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+/* ── Import dialog ───────────────────────────────────────────────────── */
+
+.la-import-overlay,
+.qe-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(4, 8, 16, 0.72);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow-y: auto;
+}
+
+.la-import-panel,
+.qe-panel {
+  width: min(720px, 100%);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.la-import-title,
+.qe-title {
+  font:
+    700 20px 'Fraunces',
+    serif;
+  color: var(--txt);
+  margin: 0;
+}
+
+.la-import-text {
+  min-height: 220px;
+  font:
+    400 12px 'Space Mono',
+    monospace;
+  resize: vertical;
+}
+
+.la-import-mode-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.la-import-footer,
+.qe-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ── Question editor ─────────────────────────────────────────────────── */
+
+.qe-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qe-blocks-title {
+  font:
+    600 13px 'Outfit',
+    sans-serif;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.qe-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qe-block {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qe-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.qe-block-type {
+  font:
+    600 12px 'Space Mono',
+    monospace;
+  color: var(--accent2);
+  margin-right: auto;
+}
+
+.qe-prompt {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.qe-block-text {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.qe-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.qe-table-row {
+  display: flex;
+  gap: 4px;
+}
+
+.qe-cell {
+  min-width: 110px;
+  flex: 1 1 110px;
+}
+
+.qe-table-controls,
+.qe-toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+@media (max-width: 720px) {
+  .la-topic,
+  .la-question {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .la-topic-actions,
+  .la-section-actions,
+  .la-question-actions {
+    justify-content: flex-start;
+  }
+
+  .la-import-panel,
+  .qe-panel {
+    padding: 16px;
+  }
+}
