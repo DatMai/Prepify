@@ -95,8 +95,7 @@ Task 3 verification (2026-09-12): the time-zone boundary tests passed (2 files,
 13 tests), and the full `npm run check` passed, including 105 frontend tests,
 224 server tests, production builds, the private bundle scan, and production
 audits with 0 vulnerabilities. Migration `012_make_quiz_score_nullable.sql`
-was not applied locally because `DATABASE_URL` and `SESSION_SECRET` were not
-available in the environment.
+was applied successfully in the configured local database on 2026-09-12.
 
 The pre-GREEN RED run for commit `03ccb20` is not available as a durable
 historical artifact; no such historical claim is made. The current mutation
