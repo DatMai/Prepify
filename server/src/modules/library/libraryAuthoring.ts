@@ -515,6 +515,175 @@ export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransact
       await deps.query(`DELETE FROM library_questions WHERE id = $1`, [questionId]);
     },
 
+    async importTopic(input: {
+      topicId: string;
+      document: ImportDocument;
+      mode: 'replace' | 'append';
+    }): Promise<{ sections: number; questions: number }> {
+      return deps.withTransaction(async (tx) => {
+        if (input.mode === 'replace') {
+          const entryIds = await listDailyReferencesForTopicWith(tx, input.topicId);
+          if (entryIds.length > 0) throw new LibraryConflictError('library_in_use', entryIds);
+        }
+
+        const updated = await tx(
+          `UPDATE library_topics
+              SET title = $2, subtitle = $3, label = $4, color = $5, updated_at = now()
+            WHERE id = $1
+            RETURNING id`,
+          [
+            input.topicId,
+            input.document.title,
+            input.document.subtitle,
+            input.document.label,
+            input.document.color,
+          ],
+        );
+        if (updated.rows.length === 0) throw new LibraryNotFoundError('library_not_found');
+
+        if (input.mode === 'replace') {
+          await tx(`DELETE FROM library_sections WHERE topic_id = $1`, [input.topicId]);
+        }
+
+        let sections = 0;
+        let questions = 0;
+        for (const section of input.document.sections) {
+          const sectionRow = await tx<{ id: string }>(
+            `INSERT INTO library_sections (topic_id, position, name)
+             VALUES ($1, COALESCE((SELECT MAX(position) + 1 FROM library_sections WHERE topic_id = $1), 0), $2)
+             RETURNING id`,
+            [input.topicId, section.name],
+          );
+          sections += 1;
+          for (const question of section.questions) {
+            await tx(
+              `INSERT INTO library_questions (section_id, position, code, prompt, level, blocks)
+               VALUES ($1, COALESCE((SELECT MAX(position) + 1 FROM library_questions WHERE section_id = $1), 0), $2, $3, $4, $5::jsonb)`,
+              [
+                sectionRow.rows[0]!.id,
+                question.code,
+                question.prompt,
+                question.level,
+                JSON.stringify(question.blocks),
+              ],
+            );
+            questions += 1;
+          }
+        }
+        return { sections, questions };
+      });
+    },
+
+    async listDailyEntries(input: { locale: Locale }): Promise<AdminDailyEntry[]> {
+      const { rows } = await deps.query<{
+        id: string;
+        entry_id: string;
+        locale: Locale;
+        type: 'mcq' | 'fib';
+        difficulty: number;
+        question_id: string | null;
+        topic_key: string | null;
+        prompt: string | null;
+        blanks: string[] | null;
+        hint: string | null;
+        position: number;
+      }>(
+        `SELECT id, entry_id, locale, type, difficulty, question_id, topic_key, prompt,
+                blanks, hint, position
+           FROM library_daily_entries
+          WHERE locale = $1
+          ORDER BY position, entry_id`,
+        [input.locale],
+      );
+      return rows.map((row) => ({
+        id: row.id,
+        entryId: row.entry_id,
+        locale: row.locale,
+        type: row.type,
+        difficulty: Number(row.difficulty),
+        questionId: row.question_id,
+        topicKey: row.topic_key,
+        prompt: row.prompt,
+        blanks: row.blanks,
+        hint: row.hint,
+        position: Number(row.position),
+      }));
+    },
+
+    async createDailyEntry(input: {
+      entryId: string;
+      locale: Locale;
+      type: 'mcq' | 'fib';
+      difficulty: number;
+      questionId?: string | null;
+      topicKey?: string | null;
+      prompt?: string | null;
+      blanks?: string[] | null;
+      hint?: string | null;
+    }): Promise<{ id: string }> {
+      try {
+        const { rows } = await deps.query<{ id: string }>(
+          `INSERT INTO library_daily_entries
+             (entry_id, locale, type, difficulty, question_id, topic_key, prompt, blanks, hint, position)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9,
+                   COALESCE((SELECT MAX(position) + 1 FROM library_daily_entries WHERE locale = $2), 0))
+           RETURNING id`,
+          [
+            input.entryId,
+            input.locale,
+            input.type,
+            input.difficulty,
+            input.questionId ?? null,
+            input.topicKey ?? null,
+            input.prompt ?? null,
+            input.blanks ? JSON.stringify(input.blanks) : null,
+            input.hint ?? null,
+          ],
+        );
+        return { id: rows[0]!.id };
+      } catch (error) {
+        // A duplicate (entry_id, locale) surfaces as a unique violation.
+        throw translateWriteError(error);
+      }
+    },
+
+    async updateDailyEntry(
+      entryId: string,
+      patch: {
+        difficulty?: number;
+        questionId?: string | null;
+        prompt?: string | null;
+        blanks?: string[] | null;
+        hint?: string | null;
+        position?: number;
+      },
+    ): Promise<void> {
+      const builder = patchBuilder();
+      if (patch.difficulty !== undefined) builder.set('difficulty', patch.difficulty);
+      if (patch.questionId !== undefined) builder.set('question_id', patch.questionId);
+      if (patch.prompt !== undefined) builder.set('prompt', patch.prompt);
+      if (patch.blanks !== undefined) {
+        builder.set('blanks', patch.blanks ? JSON.stringify(patch.blanks) : null, '::jsonb');
+      }
+      if (patch.hint !== undefined) builder.set('hint', patch.hint);
+      if (patch.position !== undefined) builder.set('position', patch.position);
+      if (builder.sql.length === 0) return;
+
+      const { rows } = await deps.query<{ id: string }>(
+        `UPDATE library_daily_entries SET ${builder.sql} WHERE id = $${builder.values.length + 1} RETURNING id`,
+        [...builder.values, entryId],
+      );
+      if (rows.length === 0) throw new LibraryNotFoundError('library_not_found');
+    },
+
+    async deleteDailyEntry(entryId: string): Promise<void> {
+      const { rows } = await deps.query<{ id: string }>(
+        `DELETE FROM library_daily_entries WHERE id = $1 RETURNING id`,
+        [entryId],
+      );
+      if (rows.length === 0) throw new LibraryNotFoundError('library_not_found');
+    },
+
     async exportTopicDocument(topicId: string): Promise<ImportDocument | null> {
       const detail = await getTopicDetail({ topicId });
       if (!detail) return null;
