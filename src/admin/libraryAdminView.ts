@@ -441,6 +441,17 @@ function renderSectionBlock(section: AdminSection, index: number): HTMLElement {
   });
   block.appendChild(questions);
 
+  block.appendChild(
+    button('la-new-question', t('libAdmin.newQuestion'), () => {
+      openQuestionEditor({
+        question: null,
+        sectionId: section.id,
+        onSaved: reloadTopicDetail,
+        onCancel: () => undefined,
+      });
+    }),
+  );
+
   return block;
 }
 

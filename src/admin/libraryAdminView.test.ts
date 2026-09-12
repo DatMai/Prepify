@@ -336,6 +336,17 @@ describe('topic editor', () => {
     expect(download).toHaveBeenCalledWith('dsa.json', expect.any(Object));
   });
 
+  it('offers a new-question button per section that opens an empty editor', async () => {
+    const { api } = await import('../api/client');
+    await openEditor(api);
+
+    (document.querySelector('.la-new-question') as HTMLButtonElement).click();
+    await settled();
+
+    expect(document.querySelector('.qe-panel')).not.toBeNull();
+    expect(document.querySelector('[name="prompt"]')).toHaveProperty('value', '');
+  });
+
   it('adds a section through the API and reloads the editor', async () => {
     const { api } = await import('../api/client');
     vi.mocked(api.libraryAdmin.createSection).mockResolvedValue({ id: 's-2' });
