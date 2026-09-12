@@ -186,25 +186,25 @@ where the cookie/SameSite boundary is insufficient.
 
 Every protected endpoint applies a server-side matrix:
 
-| Resource | Anonymous | User | Admin |
-|---|---:|---:|---:|
-| Home/public feed shell | Read | Read | Read |
-| Own session/progress | Deny | Own data | Own data |
-| Library projection | Deny | Deny | Read |
-| Journey projection/mutation | Deny | Deny | Read/write |
-| Sync API | Deny | Deny | Trusted sync credential only |
+| Resource                    | Anonymous |     User |                        Admin |
+| --------------------------- | --------: | -------: | ---------------------------: |
+| Home/public feed shell      |      Read |     Read |                         Read |
+| Own session/progress        |      Deny | Own data |                     Own data |
+| Library projection          |      Deny |     Deny |                         Read |
+| Journey projection/mutation |      Deny |     Deny |                   Read/write |
+| Sync API                    |      Deny |     Deny | Trusted sync credential only |
 
 The frontend route guard improves UX but is never an authorization control.
 
 ## 6. Data ownership and Obsidian integration
 
-| Data | System of record | App read model | Write path |
-|---|---|---|---|
-| Users, roles, sessions | PostgreSQL | PostgreSQL | API transaction |
-| Quiz attempts, progress, streak | PostgreSQL | PostgreSQL | Server computes result |
-| Theory and Library Markdown | Obsidian | PostgreSQL projection | Local sync publishes |
-| Journey/Daily answers | Obsidian after sync | Projection + sync state | API outbox -> local sync -> vault |
-| VI/EN content contract | Obsidian/content source | Locale projection | Schema-validated sync |
+| Data                            | System of record        | App read model          | Write path                        |
+| ------------------------------- | ----------------------- | ----------------------- | --------------------------------- |
+| Users, roles, sessions          | PostgreSQL              | PostgreSQL              | API transaction                   |
+| Quiz attempts, progress, streak | PostgreSQL              | PostgreSQL              | Server computes result            |
+| Theory and Library Markdown     | Obsidian                | PostgreSQL projection   | Local sync publishes              |
+| Journey/Daily answers           | Obsidian after sync     | Projection + sync state | API outbox -> local sync -> vault |
+| VI/EN content contract          | Obsidian/content source | Locale projection       | Schema-validated sync             |
 
 ### Projection flow
 
@@ -240,14 +240,14 @@ editable note.
 
 New schema changes are append-only migrations.
 
-| Table | Responsibility | Important constraints |
-|---|---|---|
-| `sessions` | Revocable browser sessions | unique `token_hash`, user FK, expiry, revocation |
-| `password_reset_tokens` | One-time recovery | unique `token_hash`, expiry, `consumed_at` |
-| `content_projections` | App-readable Obsidian projection | unique source path + locale, hash, revision |
-| `journey_mutations` | Durable vault-write outbox | unique idempotency key, expected revision, status |
-| `quiz_attempts` | Verified learning attempts | user FK, answer snapshot, server-computed score |
-| `audit_events` | Security and sync trail | actor, action, subject, redacted metadata |
+| Table                   | Responsibility                   | Important constraints                             |
+| ----------------------- | -------------------------------- | ------------------------------------------------- |
+| `sessions`              | Revocable browser sessions       | unique `token_hash`, user FK, expiry, revocation  |
+| `password_reset_tokens` | One-time recovery                | unique `token_hash`, expiry, `consumed_at`        |
+| `content_projections`   | App-readable Obsidian projection | unique source path + locale, hash, revision       |
+| `journey_mutations`     | Durable vault-write outbox       | unique idempotency key, expected revision, status |
+| `quiz_attempts`         | Verified learning attempts       | user FK, answer snapshot, server-computed score   |
+| `audit_events`          | Security and sync trail          | actor, action, subject, redacted metadata         |
 
 Existing tables are migrated rather than rewritten in place. Database
 constraints enforce uniqueness, ownership and valid state transitions where

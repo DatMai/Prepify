@@ -26,6 +26,7 @@
 ### Task 1: Replace the legacy Claude layer with the Codex project contract
 
 **Files:**
+
 - Create: `AGENTS.md`
 - Delete: `CLAUDE.md`
 - Delete: `.claude/.DS_Store`
@@ -56,6 +57,7 @@
 - Delete: `.claude/settings.local.json`
 
 **Interfaces:**
+
 - Consumes: project facts from `README.md`, ADR-001, ADR-002, and current package scripts.
 - Produces: one root instruction contract automatically discovered by Codex.
 
@@ -83,7 +85,7 @@ Expected: non-zero exit because `AGENTS.md` is absent and the legacy Claude file
 
 Create `AGENTS.md` with this exact structure and content:
 
-```markdown
+````markdown
 # AGENTS.md — Prepify
 
 ## Agent workflow
@@ -128,13 +130,15 @@ npm --prefix server run typecheck
 npm --prefix server test
 npm --prefix server run build
 ```
+````
 
 ## Architecture references
 
 - Journey/Obsidian write boundary: `docs/ADR-001-obsidian-journey-sync.md`.
 - Private Library and projection boundary: `docs/ADR-002-private-library-and-obsidian-projection.md`.
 - Approved agent design: `docs/superpowers/specs/2026-09-11-agent-workflow-design.md`.
-```
+
+````
 
 - [x] **Step 4: Delete the legacy Claude files**
 
@@ -151,7 +155,7 @@ test -f docs/ADR-001-obsidian-journey-sync.md
 test -f docs/ADR-002-private-library-and-obsidian-projection.md
 test -f docs/superpowers/specs/2026-09-11-agent-workflow-design.md
 ! rg -n 'Three Paths|RED, GREEN|subagent-driven-development|finishing-a-development-branch' AGENTS.md
-```
+````
 
 Expected: every command exits `0`; the final negative search proves the project file does not copy workflow internals.
 
@@ -189,10 +193,12 @@ Expected before commit: staged paths contain only `AGENTS.md`, deletion of `CLAU
 ### Task 2: Activate the official Superpowers runtime for Codex
 
 **Files:**
+
 - Modify outside repository: `~/.codex/config.toml`
 - Install through official marketplace: `superpowers@openai-curated-remote`
 
 **Interfaces:**
+
 - Consumes: official Codex marketplace package `6.3.0` and the current Codex spawn allowlist.
 - Produces: enabled upstream skills plus multi-agent defaults for future Codex sessions.
 

@@ -7,8 +7,6 @@ describe('HTML-safe rendering helpers', () => {
   });
 
   it('highlights a literal query without interpreting regular expressions', () => {
-    expect(hl('Array.from(value)', 'Array.')).toBe(
-      '<span class="hl">Array.</span>from(value)',
-    );
+    expect(hl('Array.from(value)', 'Array.')).toBe('<span class="hl">Array.</span>from(value)');
   });
 });

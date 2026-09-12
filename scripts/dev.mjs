@@ -2,7 +2,12 @@ import { spawn } from 'node:child_process';
 
 const services = [
   { name: 'frontend', command: 'npm', args: ['run', 'dev:frontend'], cwd: process.cwd() },
-  { name: 'backend', command: 'npm', args: ['run', 'dev'], cwd: new URL('../server/', import.meta.url) },
+  {
+    name: 'backend',
+    command: 'npm',
+    args: ['run', 'dev'],
+    cwd: new URL('../server/', import.meta.url),
+  },
 ];
 
 const children = services.map(({ name, command, args, cwd }) => {
@@ -27,8 +32,9 @@ function stop(signal = 'SIGTERM', exitCode = 0) {
   }
   const forceExit = setTimeout(() => process.exit(exitCode), 2_000);
   forceExit.unref();
-  Promise.all(children.map(({ child }) => new Promise((resolve) => child.once('exit', resolve))))
-    .then(() => process.exit(exitCode));
+  Promise.all(
+    children.map(({ child }) => new Promise((resolve) => child.once('exit', resolve))),
+  ).then(() => process.exit(exitCode));
 }
 
 for (const { name, child } of children) {

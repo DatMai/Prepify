@@ -27,6 +27,7 @@
 ### Task 1: Reproducible TypeScript Test Harness
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `server/package.json`
 - Modify: `package-lock.json`
@@ -37,10 +38,11 @@
 - Modify: `server/src/services/obsidianMarkdown.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing `esc`, `hl`, Obsidian Markdown and vault services.
 - Produces: `npm test`, `npm --prefix server test`, and deterministic Vitest suites.
 
-- [ ] **Step 1: Add a frontend characterization test before installing the runner**
+- [x] **Step 1: Add a frontend characterization test before installing the runner**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -52,20 +54,18 @@ describe('HTML-safe rendering helpers', () => {
   });
 
   it('highlights a literal query without interpreting regular expressions', () => {
-    expect(hl('Array.from(value)', 'Array.')).toBe(
-      '<span class="hl">Array.</span>from(value)',
-    );
+    expect(hl('Array.from(value)', 'Array.')).toBe('<span class="hl">Array.</span>from(value)');
   });
 });
 ```
 
-- [ ] **Step 2: Run the test command and verify the missing harness**
+- [x] **Step 2: Run the test command and verify the missing harness**
 
 Run: `npm test`
 
 Expected: FAIL because the root package does not yet define a `test` script or Vitest dependency.
 
-- [ ] **Step 3: Install the test toolchain and add package scripts**
+- [x] **Step 3: Install the test toolchain and add package scripts**
 
 Run:
 
@@ -94,7 +94,7 @@ Set the server test scripts to:
 }
 ```
 
-- [ ] **Step 4: Add explicit Vitest configuration**
+- [x] **Step 4: Add explicit Vitest configuration**
 
 `vitest.config.ts`:
 
@@ -126,7 +126,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 5: Convert the existing Node test imports to Vitest**
+- [x] **Step 5: Convert the existing Node test imports to Vitest**
 
 Replace `node:assert/strict` and `node:test` with:
 
@@ -138,13 +138,13 @@ Keep the seven existing behaviors unchanged, express them with `expect`, and
 move environment restoration into `afterEach` so a failed assertion cannot
 leak process state into the next test.
 
-- [ ] **Step 6: Run both suites**
+- [x] **Step 6: Run both suites**
 
 Run: `npm test && npm --prefix server test`
 
 Expected: PASS with 2 frontend assertions and all 7 existing Obsidian behaviors.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json server/package.json server/package-lock.json vitest.config.ts server/vitest.config.ts src/render/escape.test.ts server/src/services/obsidianMarkdown.test.ts
@@ -156,6 +156,7 @@ git commit -m "test: thiết lập Vitest cho Prepify"
 ### Task 2: Typed Fail-fast Configuration
 
 **Files:**
+
 - Create: `server/src/config/env.ts`
 - Create: `server/src/config/env.test.ts`
 - Modify: `server/src/db/client.ts`
@@ -163,10 +164,11 @@ git commit -m "test: thiết lập Vitest cho Prepify"
 - Modify: `server/.env.example`
 
 **Interfaces:**
+
 - Consumes: raw `NodeJS.ProcessEnv` and Zod.
 - Produces: `loadConfig(env): AppConfig`, `AppConfig`, and `createPool(config.databaseUrl, logger)`.
 
-- [ ] **Step 1: Write failing configuration tests**
+- [x] **Step 1: Write failing configuration tests**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -192,22 +194,24 @@ describe('loadConfig', () => {
   });
 
   it('rejects a remotely bound Obsidian bridge', () => {
-    expect(() => loadConfig({
-      ...valid,
-      OBSIDIAN_SYNC_ENABLED: 'true',
-      HOST: '0.0.0.0',
-    })).toThrow(/Obsidian sync requires a loopback HOST/);
+    expect(() =>
+      loadConfig({
+        ...valid,
+        OBSIDIAN_SYNC_ENABLED: 'true',
+        HOST: '0.0.0.0',
+      }),
+    ).toThrow(/Obsidian sync requires a loopback HOST/);
   });
 });
 ```
 
-- [ ] **Step 2: Verify the tests fail**
+- [x] **Step 2: Verify the tests fail**
 
 Run: `npm --prefix server test -- src/config/env.test.ts`
 
 Expected: FAIL because `loadConfig` does not exist.
 
-- [ ] **Step 3: Implement the validated configuration contract**
+- [x] **Step 3: Implement the validated configuration contract**
 
 ```ts
 import { z } from 'zod';
@@ -244,14 +248,20 @@ export interface AppConfig {
   };
 }
 
-export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | undefined>): AppConfig {
+export function loadConfig(
+  source: NodeJS.ProcessEnv | Record<string, string | undefined>,
+): AppConfig {
   const env = schema.parse(source);
   const obsidianEnabled = env.OBSIDIAN_SYNC_ENABLED === 'true';
   if (obsidianEnabled && env.HOST !== '127.0.0.1' && env.HOST !== '::1') {
     throw new Error('Obsidian sync requires a loopback HOST');
   }
 
-  const split = (value: string) => value.split(',').map((item) => item.trim()).filter(Boolean);
+  const split = (value: string) =>
+    value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
   return {
     nodeEnv: env.NODE_ENV,
     port: env.PORT,
@@ -271,7 +281,7 @@ export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | u
 }
 ```
 
-- [ ] **Step 4: Make the pool explicit instead of proxying global env**
+- [x] **Step 4: Make the pool explicit instead of proxying global env**
 
 ```ts
 import { Pool } from 'pg';
@@ -289,14 +299,14 @@ legacy modules, export a temporary `setDatabasePool(pool)` accessor with a test
 that throws when accessed before initialization; remove it in the later module
 plans.
 
-- [ ] **Step 5: Update migration startup and environment template**
+- [x] **Step 5: Update migration startup and environment template**
 
 Load dotenv only in the migration entry point, call `loadConfig(process.env)`,
 create its pool explicitly, and close it in `finally`. Replace `JWT_SECRET` in
 `server/.env.example` with a 32+ character `SESSION_SECRET` example and document
 all validated keys without real values.
 
-- [ ] **Step 6: Verify configuration, typecheck and migration compilation**
+- [x] **Step 6: Verify configuration, typecheck and migration compilation**
 
 Run:
 
@@ -308,7 +318,7 @@ npm --prefix server run build
 
 Expected: all commands PASS; invalid configuration never starts a listener.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/config/env.ts server/src/config/env.test.ts server/src/db/client.ts server/src/db/migrate.ts server/.env.example
@@ -320,6 +330,7 @@ git commit -m "refactor: kiểm tra cấu hình khi khởi động"
 ### Task 3: Pure Express App Factory and HTTP Contract
 
 **Files:**
+
 - Create: `server/src/app.ts`
 - Create: `server/src/app.test.ts`
 - Create: `server/src/shared/errors/appError.ts`
@@ -328,10 +339,11 @@ git commit -m "refactor: kiểm tra cấu hình khi khởi động"
 - Modify: `server/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: `AppConfig`, Pino logger, existing routers, Express 5.
 - Produces: `createApp(deps): Express`, `AppError`, consistent error envelope, `/health/live`.
 
-- [ ] **Step 1: Write failing app-shell integration tests**
+- [x] **Step 1: Write failing app-shell integration tests**
 
 ```ts
 import request from 'supertest';
@@ -351,7 +363,9 @@ describe('application shell', () => {
     const app = createApp({
       ...testDependencies(),
       registerRoutes(target) {
-        target.get('/failure', () => { throw new AppError(403, 'AUTH_FORBIDDEN', 'Forbidden'); });
+        target.get('/failure', () => {
+          throw new AppError(403, 'AUTH_FORBIDDEN', 'Forbidden');
+        });
       },
     });
     const response = await request(app).get('/failure');
@@ -364,7 +378,9 @@ describe('application shell', () => {
     const app = createApp({
       ...testDependencies(),
       registerRoutes(target) {
-        target.get('/failure', () => { throw new Error('database password leaked'); });
+        target.get('/failure', () => {
+          throw new Error('database password leaked');
+        });
       },
     });
     const response = await request(app).get('/failure');
@@ -377,13 +393,13 @@ describe('application shell', () => {
 `testDependencies()` supplies the valid test config, a silent logger and a
 route registrar that does nothing.
 
-- [ ] **Step 2: Verify the app tests fail**
+- [x] **Step 2: Verify the app tests fail**
 
 Run: `npm --prefix server test -- src/app.test.ts`
 
 Expected: FAIL because the app factory and shared errors do not exist.
 
-- [ ] **Step 3: Implement request IDs and typed application errors**
+- [x] **Step 3: Implement request IDs and typed application errors**
 
 ```ts
 export class AppError extends Error {
@@ -401,7 +417,7 @@ The request-ID middleware accepts an existing `x-request-id` only when it is a
 valid UUID; otherwise it generates `randomUUID()`. It stores the value in
 `res.locals.requestId` and returns it in the response header.
 
-- [ ] **Step 4: Implement the centralized error mapper**
+- [x] **Step 4: Implement the centralized error mapper**
 
 Expected errors use their status/code/message. Unexpected errors are logged
 with `{ err, requestId }` and return:
@@ -416,7 +432,7 @@ with `{ err, requestId }` and return:
 }
 ```
 
-- [ ] **Step 5: Implement `createApp`**
+- [x] **Step 5: Implement `createApp`**
 
 The factory applies, in order: request ID, Pino HTTP logging, Helmet, configured
 CORS with credentials, JSON body limit `256kb`, Passport initialization,
@@ -433,13 +449,13 @@ export interface AppDependencies {
 export function createApp({ config, logger, registerRoutes }: AppDependencies): Express;
 ```
 
-- [ ] **Step 6: Reduce `index.ts` to the composition root**
+- [x] **Step 6: Reduce `index.ts` to the composition root**
 
 `index.ts` loads dotenv, validates config, creates logger/pool, initializes the
 legacy database adapter, registers existing routers, runs admin bootstrap,
 starts one HTTP server, and closes server/pool on `SIGINT` or `SIGTERM`.
 
-- [ ] **Step 7: Verify integration, existing routes and build**
+- [x] **Step 7: Verify integration, existing routes and build**
 
 Run:
 
@@ -452,7 +468,7 @@ npm --prefix server run build
 Expected: app-shell tests and all Obsidian tests PASS; existing route modules
 compile without changing their public paths.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add server/src/app.ts server/src/app.test.ts server/src/index.ts server/src/shared/errors/appError.ts server/src/middleware/errorHandler.ts server/src/middleware/requestId.ts
@@ -464,6 +480,7 @@ git commit -m "refactor: tách application shell khỏi server"
 ### Task 4: Readiness, Structured Logging, and Graceful Shutdown
 
 **Files:**
+
 - Create: `server/src/platform/logger/createLogger.ts`
 - Create: `server/src/platform/server/startServer.ts`
 - Create: `server/src/platform/server/startServer.test.ts`
@@ -472,16 +489,19 @@ git commit -m "refactor: tách application shell khỏi server"
 - Modify: `server/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: Pino, PostgreSQL Pool, `createApp`.
 - Produces: `createLogger(config)`, `startServer(deps)`, `/health/ready`, idempotent `stop()`.
 
-- [ ] **Step 1: Write failing lifecycle tests**
+- [x] **Step 1: Write failing lifecycle tests**
 
 ```ts
 it('reports not ready when the database check fails', async () => {
   const app = createApp({
     ...testDependencies(),
-    readiness: async () => { throw new Error('offline'); },
+    readiness: async () => {
+      throw new Error('offline');
+    },
   });
   const response = await request(app).get('/health/ready');
   expect(response.status).toBe(503);
@@ -498,32 +518,32 @@ it('closes the HTTP server and pool exactly once', async () => {
 });
 ```
 
-- [ ] **Step 2: Verify lifecycle tests fail**
+- [x] **Step 2: Verify lifecycle tests fail**
 
 Run: `npm --prefix server test -- src/platform/server/startServer.test.ts src/app.test.ts`
 
 Expected: FAIL because readiness and `startServer` do not exist.
 
-- [ ] **Step 3: Implement redacted structured logging**
+- [x] **Step 3: Implement redacted structured logging**
 
 `createLogger` selects `debug` in development and `info` otherwise. Configure
 Pino redaction for request authorization/cookie headers, response set-cookie,
 passwords, reset tokens, session tokens and OAuth tokens. Do not add
 `pino-pretty` to production dependencies.
 
-- [ ] **Step 4: Add readiness**
+- [x] **Step 4: Add readiness**
 
 Extend `AppDependencies` with `readiness(): Promise<void>`. `/health/ready`
 runs it with a short timeout, returning only `{ "status": "ok" }` or a 503
 `{ "status": "unavailable" }`; it never returns SQL details.
 
-- [ ] **Step 5: Implement idempotent startup/shutdown**
+- [x] **Step 5: Implement idempotent startup/shutdown**
 
 `startServer` owns the Node HTTP server. Its returned `stop()` memoizes the
 shutdown promise, stops accepting connections, waits at most ten seconds, then
 closes the database pool. Signal handlers call the same function once.
 
-- [ ] **Step 6: Verify lifecycle and build**
+- [x] **Step 6: Verify lifecycle and build**
 
 Run:
 
@@ -535,7 +555,7 @@ npm --prefix server run build
 
 Expected: all tests PASS; repeated shutdown does not duplicate cleanup.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/platform/logger/createLogger.ts server/src/platform/server/startServer.ts server/src/platform/server/startServer.test.ts server/src/app.ts server/src/app.test.ts server/src/index.ts
@@ -547,6 +567,7 @@ git commit -m "feat: thêm health check và graceful shutdown"
 ### Task 5: Formatting, Linting, CI, and the Single Quality Gate
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `package-lock.json`
 - Create: `eslint.config.js`
@@ -558,10 +579,11 @@ git commit -m "feat: thêm health check và graceful shutdown"
 - Modify: source files selected by Prettier
 
 **Interfaces:**
+
 - Consumes: all frontend/backend source, tests and builds.
 - Produces: `npm run format:check`, `npm run lint`, `npm run check`, identical CI gate.
 
-- [ ] **Step 1: Add the quality-gate scripts before their dependencies**
+- [x] **Step 1: Add the quality-gate scripts before their dependencies**
 
 ```json
 {
@@ -572,13 +594,13 @@ git commit -m "feat: thêm health check và graceful shutdown"
 }
 ```
 
-- [ ] **Step 2: Verify the gate fails before setup**
+- [x] **Step 2: Verify the gate fails before setup**
 
 Run: `npm run check`
 
 Expected: FAIL because Prettier and ESLint are not installed/configured.
 
-- [ ] **Step 3: Install and configure formatting/linting**
+- [x] **Step 3: Install and configure formatting/linting**
 
 Run:
 
@@ -612,25 +634,25 @@ to `src/**/*.ts`, `server/src/**/*.ts`, config files and tests, with browser
 globals for frontend and Node globals for server/scripts. Generated output and
 the real content corpus are ignored. Warnings are not allowed.
 
-- [ ] **Step 4: Format owned project files and fix lint findings**
+- [x] **Step 4: Format owned project files and fix lint findings**
 
 Run `npm run format`, inspect the diff for semantic changes, then run
 `npm run lint`. Fix findings rather than disabling rules globally. A narrow
 disable requires a comment explaining the invariant.
 
-- [ ] **Step 5: Add CI using the same gate**
+- [x] **Step 5: Add CI using the same gate**
 
 `.github/workflows/quality.yml` checks out the repository, installs Node 24,
 runs `npm ci`, runs `npm --prefix server ci`, and runs `npm run check`. It has
 read-only repository permissions and no secrets.
 
-- [ ] **Step 6: Document supported setup and branch isolation**
+- [x] **Step 6: Document supported setup and branch isolation**
 
 Update README to state Node `>=22.12`, the two-install setup, `npm run check`,
 the current modular-overhaul status, and that private content is not a frontend
 asset. Add `.worktrees/` to `.gitignore` for future clean tasks.
 
-- [ ] **Step 7: Run the complete gate and production audits**
+- [x] **Step 7: Run the complete gate and production audits**
 
 Run:
 
@@ -644,7 +666,7 @@ Expected: `npm run check` PASS; production audits report zero unexplained high
 or critical vulnerabilities. Any remaining advisory is recorded with package,
 reachability and an explicit remediation decision before continuing.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add package.json package-lock.json eslint.config.js .prettierrc.json .prettierignore .github/workflows/quality.yml .gitignore README.md src server
