@@ -42,7 +42,6 @@ export const en: Record<string, string> = {
   'library.sidebarHint': 'Open a question · ✓ mark as learned',
   'library.favorites': 'Favorites',
   'library.favoriteCount': '// {count} favorite questions',
-  'library.questionCount': '// {subtitle} · {count} questions',
   'library.noFavorites': 'No favorite questions yet.',
   'library.noResults': 'No matching questions found.',
   'library.reveal': 'Show answer',
