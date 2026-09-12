@@ -181,6 +181,14 @@ Use these exact invented fixtures; copy no text from the private corpus.
       "type": "mcq",
       "difficulty": 1,
       "ref": { "topicKey": "sample", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "fixture-fib-1",
+      "type": "fib",
+      "difficulty": 2,
+      "prompt": "A test-only ___ exercises fill-in-the-blank seeding.",
+      "blanks": ["fixture"],
+      "hint": "Synthetic data"
     }
   ]
 }
@@ -194,7 +202,8 @@ Set their corpus constant to:
 const CORPUS = path.resolve(__dirname, '../../../../server/test-fixtures/content');
 ```
 
-Update expected counts to the exact synthetic fixture counts.
+Update expected counts to the exact synthetic fixture counts: one topic, one section,
+one question, and two Daily entries (one MCQ and one FIB).
 
 - [ ] **Step 6: Verify focused tests and typecheck**
 

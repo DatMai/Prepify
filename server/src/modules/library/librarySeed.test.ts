@@ -25,11 +25,15 @@ describe('buildSeedPlan against the synthetic fixture corpus', () => {
     const plan = buildSeedPlan(CORPUS, 'vi');
 
     expect(plan.locale).toBe('vi');
-    expect(plan.daily).toHaveLength(1);
+    expect(plan.daily).toHaveLength(2);
     expect(plan.daily.filter((entry) => entry.type === 'mcq')).toHaveLength(1);
-    expect(plan.daily.filter((entry) => entry.type === 'fib')).toHaveLength(0);
+    expect(plan.daily.filter((entry) => entry.type === 'fib')).toHaveLength(1);
     const first = plan.daily.find((entry) => entry.entryId === 'fixture-mcq-1');
     expect(first?.ref).toEqual({ topicKey: 'sample', sectionIdx: 0, questionIdx: 0 });
+    const fib = plan.daily.find((entry) => entry.entryId === 'fixture-fib-1');
+    expect(fib?.prompt).toBe('A test-only ___ exercises fill-in-the-blank seeding.');
+    expect(fib?.blanks).toEqual(['fixture']);
+    expect(fib?.hint).toBe('Synthetic data');
     // Questions never carry a level: the corpus has none, and the seed must not guess.
     expect(
       plan.topics.flatMap((topic) => topic.sections).flatMap((section) => section.questions),

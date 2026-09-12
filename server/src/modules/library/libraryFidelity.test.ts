@@ -281,17 +281,17 @@ describe('seed → projection fidelity for the synthetic vi fixture corpus', () 
 
     expect(first.topics).toBe(1);
     expect(first.questions).toBe(1);
-    expect(first.daily).toBe(1);
+    expect(first.daily).toBe(2);
     expect(store.sections).toHaveLength(1);
 
     const second = await applySeedPlan(store.query, plan);
     expect(second.topics).toBe(0);
     expect(second.questions).toBe(0);
     expect(second.skippedTopics).toBe(1);
-    expect(second.skippedDaily).toBe(1);
+    expect(second.skippedDaily).toBe(2);
     expect(store.topics).toHaveLength(1);
     expect(store.questions).toHaveLength(1);
-    expect(store.daily).toHaveLength(1);
+    expect(store.daily).toHaveLength(2);
   });
 
   it('reproduces the index file exactly', async () => {
@@ -380,6 +380,13 @@ describe('seed → projection fidelity for the synthetic vi fixture corpus', () 
         hint: entry.hint ?? null,
       })),
     );
+
+    expect(entries.find((entry) => entry.entryId === 'fixture-fib-1')).toMatchObject({
+      type: 'fib',
+      prompt: 'A test-only ___ exercises fill-in-the-blank seeding.',
+      blanks: ['fixture'],
+      hint: 'Synthetic data',
+    });
   });
 
   it('resolves every mcq Daily entry to the question the file pointed at', async () => {
