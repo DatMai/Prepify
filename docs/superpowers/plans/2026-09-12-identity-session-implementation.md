@@ -74,7 +74,7 @@ feat: thêm kho session phía server
 - Modify: `server/src/app.ts`
 - Modify: `server/src/app.test.ts`
 
-- [ ] **Step 1: Write failing middleware tests**
+- [x] **Step 1: Write failing middleware tests**
 
 Prove:
 
@@ -85,17 +85,17 @@ Prove:
 - trusted configured origins pass; safe methods remain usable;
 - cookie parse/clear options match in development and production.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
-- [ ] **Step 3: Implement session-cookie middleware**
+- [x] **Step 3: Implement session-cookie middleware**
 
 Use `HttpOnly`, `SameSite=Lax`, `Path=/`; add `Secure` and the `__Host-` prefix in production. Do not accept bearer JWT as a fallback.
 
-- [ ] **Step 4: Add origin enforcement**
+- [x] **Step 4: Add origin enforcement**
 
 Run the trusted-origin middleware before state-changing routes. Reject missing or non-allowlisted browser origins while permitting health checks and safe methods. CORS remains an independent browser policy.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```text
 refactor: xác thực request bằng session cookie

@@ -7,6 +7,12 @@ import { loadConfig } from './config/env';
 import { createPool, initializeDatabase } from './db/client';
 import { createLogger } from './platform/logger/createLogger';
 import { startServer } from './platform/server/startServer';
+import { initializeAuthMiddleware } from './middleware/auth';
+import { createSessionAuth } from './modules/identity/sessionAuth';
+import {
+  createSessionRepository,
+  type SessionQuery,
+} from './modules/identity/sessionRepository';
 import authRouter from './routes/auth';
 import dailyRouter from './routes/daily';
 import forgotPasswordRouter from './routes/forgotPassword';
@@ -40,6 +46,8 @@ async function main(): Promise<void> {
   const logger = createLogger(config);
   const pool = createPool(config.databaseUrl, logger);
   initializeDatabase(pool);
+  const sessionRepository = createSessionRepository(pool as unknown as SessionQuery);
+  initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
 
   try {
     await syncConfiguredAdmins();
