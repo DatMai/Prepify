@@ -9,6 +9,7 @@ import {
 } from '../api/client';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
+import { openQuestionEditor } from './questionEditor';
 
 let locale: AdminLocale = 'vi';
 let topics: AdminTopicListItem[] = [];
@@ -484,6 +485,14 @@ function renderQuestionRow(
   actions.append(
     up,
     down,
+    button('la-edit-question', t('libAdmin.edit'), () => {
+      openQuestionEditor({
+        question,
+        sectionId: section.id,
+        onSaved: reloadTopicDetail,
+        onCancel: () => undefined,
+      });
+    }),
     button('la-delete', t('libAdmin.remove'), () => void deleteQuestion(question)),
   );
   row.appendChild(actions);

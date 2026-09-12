@@ -351,6 +351,7 @@ export const vi: Record<string, string> = {
   'libAdmin.sectionName': 'Tên phần',
   'libAdmin.newQuestion': '+ Câu mới',
   'libAdmin.questionPrompt': 'Câu hỏi',
+  'libAdmin.questionRequired': 'Câu hỏi không được để trống.',
   'libAdmin.questionCode': 'Mã (vd Q1)',
   'libAdmin.level': 'Level',
   'libAdmin.levelNone': 'Chưa xếp level',

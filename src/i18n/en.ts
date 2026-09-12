@@ -350,6 +350,7 @@ export const en: Record<string, string> = {
   'libAdmin.sectionName': 'Section name',
   'libAdmin.newQuestion': '+ New question',
   'libAdmin.questionPrompt': 'Question',
+  'libAdmin.questionRequired': 'The question prompt is required.',
   'libAdmin.questionCode': 'Code (e.g. Q1)',
   'libAdmin.level': 'Level',
   'libAdmin.levelNone': 'Unclassified',
