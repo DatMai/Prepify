@@ -18,6 +18,7 @@ import { initLeaderboardModal, openLeaderboard } from './ui/leaderboard';
 import { initDailyBtn, refreshDailyDot } from './ui/dailyBtn';
 import { initJourneyBtn } from './ui/journeyBtn';
 import { openJourney, repaintJourney } from './journey/journeyView';
+import { initAdminView, openAdmin, repaintAdmin } from './admin/adminView';
 import { initProfileModal, openProfile } from './ui/profileModal';
 import { showToast } from './ui/toast';
 import { showQuizLauncher } from './quiz/launcher';
@@ -85,6 +86,8 @@ function applyLang(): void {
   if (libraryNav) libraryNav.textContent = t('nav.library');
   const journeyNav = document.getElementById('journeyNav');
   if (journeyNav) journeyNav.textContent = t('nav.journey');
+  const adminNav = document.getElementById('adminNav');
+  if (adminNav) adminNav.textContent = t('nav.admin');
   const homeKicker = document.getElementById('homeKicker');
   if (homeKicker) homeKicker.textContent = t('home.kicker');
   const homeTitle = document.getElementById('homeTitle');
@@ -101,6 +104,7 @@ function applyLang(): void {
   repaintQuiz();
   repaintJourney();
   repaintFeed();
+  repaintAdmin();
 }
 
 let languageSwitchInFlight = false;
@@ -188,10 +192,12 @@ async function init(): Promise<void> {
   initLeaderboardModal();
   initDailyBtn();
   initJourneyBtn();
+  initAdminView();
 
   document.getElementById('homeNav')?.addEventListener('click', () => showHome());
   document.getElementById('libraryNav')?.addEventListener('click', () => void showLibrary());
   document.getElementById('journeyNav')?.addEventListener('click', () => void openJourney());
+  document.getElementById('adminNav')?.addEventListener('click', () => void openAdmin());
 
   document.getElementById('lbBtn')?.addEventListener('click', () => {
     void openLeaderboard();
@@ -224,9 +230,14 @@ async function init(): Promise<void> {
     await openJourney(false);
   }
 
+  if (window.location.hash === '#admin') {
+    await openAdmin(false);
+  }
+
   window.addEventListener('popstate', () => {
     if (window.location.hash === '#library') void showLibrary(false);
-    else if (window.location.hash !== '#journey') showHome(false);
+    else if (window.location.hash !== '#journey' && window.location.hash !== '#admin')
+      showHome(false);
   });
 }
 

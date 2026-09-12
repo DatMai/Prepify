@@ -68,4 +68,33 @@ describe('API client authentication', () => {
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/feed?limit=30');
   });
+
+  it('lists admin users with an encoded search term', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ total: 0, items: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await api.admin.listUsers('a b', 10, 5);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      'http://localhost:3001/api/v1/admin/users?search=a%20b&limit=10&offset=5',
+    );
+  });
+
+  it('patches a user with a role change', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    await api.admin.patchUser('user-1', { role: 'admin' });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/admin/users/user-1');
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('PATCH');
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(JSON.stringify({ role: 'admin' }));
+  });
 });

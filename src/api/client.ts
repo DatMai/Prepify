@@ -175,4 +175,37 @@ export const api = {
   feed: {
     list: (limit = 30) => apiRequest<{ items: FeedArticle[] }>(`/feed?limit=${limit}`),
   },
+
+  admin: {
+    stats: () => apiRequest<AdminStats>('/admin/stats'),
+
+    listUsers: (search = '', limit = 25, offset = 0) =>
+      apiRequest<{ total: number; items: AdminUserItem[] }>(
+        `/admin/users?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`,
+      ),
+
+    patchUser: (id: string, patch: { role?: 'user' | 'admin'; disabled?: boolean }) =>
+      apiRequest<void>(`/admin/users/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      }),
+  },
 };
+
+export interface AdminStats {
+  totalUsers: number;
+  totalAdmins: number;
+  activeSessions: number;
+  dailyCompletionsToday: number;
+}
+
+export interface AdminUserItem {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: 'user' | 'admin';
+  disabled: boolean;
+  emailVerifiedAt: string | null;
+  lastSeenAt: string | null;
+  providers: string[];
+}
