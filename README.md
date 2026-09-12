@@ -1,7 +1,8 @@
 # Prepify
 
 Prepify is a private-first technical interview study app. The public Home page
-is intentionally small; Library and Journey are protected admin surfaces.
+carries a curated programming RSS feed; Library and Journey are protected admin
+surfaces.
 
 The project is currently executing the approved
 [full-overhaul architecture](docs/superpowers/specs/2026-09-12-prepify-full-overhaul-design.md).
@@ -61,16 +62,41 @@ and one quality gate. Existing product routes remain available while later
 plans migrate identity, feature modules and Obsidian projection/outbox flows.
 
 ```text
-Browser -> Express app -> current feature routes -> PostgreSQL
+Browser -> Express app -> feature routes -> PostgreSQL
+                       -> feed service -> public third-party RSS (cached, link-out only)
                        -> local-only Obsidian bridge
 ```
 
 The target architecture and migration order are documented in
 `docs/superpowers/specs/2026-09-12-prepify-full-overhaul-design.md`.
 
+## Public homepage feed
+
+`GET /api/v1/feed?limit=<1..50>` (default 30) is anonymous-readable and returns
+`{ items: [{ title, url, summary, source, publishedAt }] }`.
+
+- Sources are a code-level list in `server/src/modules/feed/sources.ts`
+  (VnExpress Số hóa, Viblo, TopDev, Hacker News, dev.to).
+- The server fetches RSS/Atom itself (`http/https` only, 10s timeout, 1 MB cap),
+  normalizes and dedupes items, and serves a 15-minute in-memory cache with a
+  single in-flight refresh. Nothing is stored in PostgreSQL.
+- A broken source is isolated; the rest of the feed still renders.
+
+Content boundary (see [ADR-003](docs/ADR-003-public-rss-feed.md)):
+
+- Link-out only: title, short excerpt, source name, time, and a link to the
+  original article. Never republish or translate someone else's article.
+- Never host or hotlink third-party images; visuals are Prepify-owned styling.
+- Attribution never replaces permission.
+
+Design and implementation records:
+`docs/superpowers/specs/2026-09-12-home-rss-feed-design.md` and
+`docs/superpowers/plans/2026-09-12-home-rss-feed-implementation.md`.
+
 ## Privacy and authorization
 
 - Library and Journey authorization is checked by the server.
+- The Home feed is public and read-only; it exposes no private data.
 - The frontend build does not import the real `content/*.json` corpus.
 - Current content is served through protected backend routes.
 - The overhaul will replace repository-held real corpus files with an
