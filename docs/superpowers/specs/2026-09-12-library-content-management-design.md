@@ -172,8 +172,9 @@ from the repository instead of the filesystem:
   frontend already treats as optional.
 - Unknown locale still returns 400; unknown key still returns 404 with the
   message `Topic not found`, now carrying the stable code `library_not_found`.
-  Stable codes are a small addition on top of today's body; the success shapes
-  are byte-compatible.
+  Stable error codes are a small addition on top of today's bodies; the success
+  shapes carry the same values as before (`jsonb` does not preserve object key
+  order, so comparison is by value, not by serialized bytes).
 
 `server/src/routes/daily.ts` changes source only; its response shape is
 unchanged:
