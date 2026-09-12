@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { FlashcardActivityPayload } from './streak';
 
 function memoryStorage(): Storage {
   const values = new Map<string, string>();
@@ -142,5 +143,27 @@ describe('API client authentication', () => {
       questionIdx: 1,
       quality: 'good',
     });
+  });
+
+  it('saves flashcard activity without a score', async () => {
+    const payload: FlashcardActivityPayload = {
+      topicKey: 'javascript',
+      mode: 'flashcard',
+      total: 5,
+    };
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'session-1', completedAt: '2026-09-12T10:00:00.000Z' }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const { saveQuizSession } = await import('./streak');
+
+    await saveQuizSession(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe('http://localhost:3001/api/v1/quiz-sessions');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual(payload);
   });
 });

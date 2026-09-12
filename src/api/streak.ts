@@ -21,11 +21,10 @@ export interface LeaderboardResponse {
   myRank: number | null;
 }
 
-export interface QuizSessionPayload {
+export interface FlashcardActivityPayload {
   topicKey: string;
-  mode: 'flashcard' | 'mcq';
+  mode: 'flashcard';
   total: number;
-  score: number;
 }
 
 export interface SavedSession {
@@ -41,7 +40,7 @@ export async function fetchLeaderboard(limit = 20): Promise<LeaderboardResponse>
   return apiRequest<LeaderboardResponse>(`/leaderboard?limit=${limit}`);
 }
 
-export async function saveQuizSession(payload: QuizSessionPayload): Promise<SavedSession> {
+export async function saveQuizSession(payload: FlashcardActivityPayload): Promise<SavedSession> {
   return apiRequest<SavedSession>('/quiz-sessions', {
     method: 'POST',
     body: JSON.stringify(payload),

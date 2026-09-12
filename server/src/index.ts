@@ -30,7 +30,7 @@ import { createLibraryAdminRouter } from './routes/libraryAdmin';
 import { createLibraryRepository, type LibraryQuery } from './modules/library/libraryRepository';
 import { createLibraryAuthoring } from './modules/library/libraryAuthoring';
 import progressRouter from './routes/progress';
-import quizSessionsRouter from './routes/quizSessions';
+import { createQuizSessionsRouter, type QuizSessionQuery } from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
 import { createFeedRouter } from './routes/feed';
 import { createAdminRouter } from './routes/admin';
@@ -61,6 +61,7 @@ function registerRoutes(
     reviewRoutes: ReturnType<typeof createReviewRouter>;
     libraryRoutes: ReturnType<typeof createLibraryRouter>;
     libraryAdminRoutes: ReturnType<typeof createLibraryAdminRouter>;
+    quizSessionsRoutes: ReturnType<typeof createQuizSessionsRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -72,7 +73,7 @@ function registerRoutes(
   app.use('/api/v1/admin', identity.adminRoutes);
   app.use('/api/v1/review', identity.reviewRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
-  app.use('/api/v1/quiz-sessions', quizSessionsRouter);
+  app.use('/api/v1/quiz-sessions', identity.quizSessionsRoutes);
   app.use('/api/v1/daily', identity.dailyRoutes);
   app.use('/api/v1/journey', identity.journeyRoutes);
   // The admin prefix is registered first so it wins over the reader router.
@@ -162,6 +163,10 @@ async function main(): Promise<void> {
     timeZone: config.timeZone,
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
+  const quizSessionsRoutes = createQuizSessionsRouter({
+    query: pool.query.bind(pool) as unknown as QuizSessionQuery,
+    requireAuth,
+  });
   const streakRoutes = createStreakRouter({ pool, timeZone: config.timeZone });
   const feedRoutes = createFeedRouter({
     service: createFeedService({ sources: DEFAULT_FEED_SOURCES }),
@@ -221,6 +226,7 @@ async function main(): Promise<void> {
           reviewRoutes,
           libraryRoutes,
           libraryAdminRoutes,
+          quizSessionsRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');
