@@ -51,7 +51,7 @@ describe('API client authentication', () => {
 
     await api.auth.logout();
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/auth/session');
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/auth/session');
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('DELETE');
   });
 });

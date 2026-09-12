@@ -46,16 +46,16 @@ function registerRoutes(
     dailyRoutes: ReturnType<typeof createDailyRouter>;
   },
 ): void {
-  app.use('/auth', identity.authRoutes);
-  app.use('/auth', identity.recoveryRoutes);
-  app.use('/auth', identity.oauthRoutes);
-  app.use('/progress', progressRouter);
-  app.use('/streak', streakRouter);
-  app.use('/leaderboard', identity.optionalAuth, leaderboardRouter);
-  app.use('/quiz-sessions', quizSessionsRouter);
-  app.use('/daily', identity.dailyRoutes);
-  app.use('/journey', journeyRouter);
-  app.use('/library', libraryRouter);
+  app.use('/api/v1/auth', identity.authRoutes);
+  app.use('/api/v1/auth', identity.recoveryRoutes);
+  app.use('/api/v1/auth', identity.oauthRoutes);
+  app.use('/api/v1/progress', progressRouter);
+  app.use('/api/v1/streak', streakRouter);
+  app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
+  app.use('/api/v1/quiz-sessions', quizSessionsRouter);
+  app.use('/api/v1/daily', identity.dailyRoutes);
+  app.use('/api/v1/journey', journeyRouter);
+  app.use('/api/v1/library', libraryRouter);
 }
 
 async function main(): Promise<void> {
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
     randomToken: () => randomBytes(32).toString('base64url'),
     now: () => new Date(),
     frontendUrl: config.frontendUrl,
-    callbackBaseUrl: config.publicApiUrl,
+    callbackBaseUrl: `${config.publicApiUrl}/api/v1`,
     sendPasswordReset: sendPasswordResetEmail,
     sendVerification: sendVerificationEmail,
   });

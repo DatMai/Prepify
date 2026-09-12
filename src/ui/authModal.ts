@@ -1,12 +1,10 @@
-import { api, ApiError } from '../api/client';
+import { api, ApiError, API_ROOT } from '../api/client';
 import { setSession, clearSession, auth } from '../state/auth';
 import { loadProgress, state } from '../state/progress';
 import { render } from '../render/content';
 import { showToast } from './toast';
 import { checkStrength } from './passwordStrength';
 import { t } from '../i18n';
-
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
 let _openProfile: (() => void) | null = null;
 export function setProfileOpener(fn: () => void): void {
@@ -100,10 +98,10 @@ export function buildModal(mode: Mode): string {
       isLogin
         ? `
     <div class="oauth-btns">
-      <a class="oauth-btn google" href="${API_BASE}/auth/google">
+      <a class="oauth-btn google" href="${API_ROOT}/auth/google">
         <img src="/icons/google.svg" alt="" /> ${t('auth.continueGoogle')}
       </a>
-      <a class="oauth-btn facebook" href="${API_BASE}/auth/facebook">
+      <a class="oauth-btn facebook" href="${API_ROOT}/auth/facebook">
         <img src="/icons/facebook.svg" alt="" /> ${t('auth.continueFb')}
       </a>
     </div>

@@ -2,18 +2,19 @@ import type { JourneyJournal, JourneySnapshot } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
 import { t, type Lang } from '../i18n';
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
+export const API_ROOT = `${API_ORIGIN.replace(/\/$/, '')}/api/v1`;
 
 function authHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' };
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+export async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 10_000);
 
   try {
-    const res = await fetch(BASE + path, {
+    const res = await fetch(API_ROOT + path, {
       ...options,
       headers: { ...authHeaders(), ...options?.headers },
       credentials: 'include',
@@ -21,12 +22,17 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     });
     const json = (res.status === 204 ? undefined : await res.json()) as T;
     if (!res.ok) {
-      const body = json as { error?: string; code?: string };
-      const key = body.code ? `api.${body.code}` : '';
+      const body = json as {
+        error?: string | { code?: string; message?: string };
+        code?: string;
+      };
+      const code = typeof body.error === 'object' ? body.error.code : body.code;
+      const serverMessage = typeof body.error === 'object' ? body.error.message : body.error;
+      const key = code ? `api.${code}` : '';
       const translated = key ? t(key) : '';
       const message =
-        translated && translated !== key ? translated : (body.error ?? t('err.generic'));
-      throw new ApiError(message, res.status, body.code);
+        translated && translated !== key ? translated : (serverMessage ?? t('err.generic'));
+      throw new ApiError(message, res.status, code);
     }
     return json;
   } catch (error: unknown) {
@@ -66,25 +72,25 @@ export interface AuthResponse {
 export const api = {
   auth: {
     register: (email: string, password: string, displayName?: string) =>
-      request<AuthResponse>('/auth/register', {
+      apiRequest<AuthResponse>('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ email, password, displayName }),
       }),
 
     login: (email: string, password: string) =>
-      request<AuthResponse>('/auth/login', {
+      apiRequest<AuthResponse>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }),
 
-    session: () => request<{ user: AuthUser }>('/auth/session'),
+    session: () => apiRequest<{ user: AuthUser }>('/auth/session'),
 
-    me: () => request<AuthUser>('/auth/me'),
+    me: () => apiRequest<AuthUser>('/auth/me'),
 
-    logout: () => request<void>('/auth/session', { method: 'DELETE' }),
+    logout: () => apiRequest<void>('/auth/session', { method: 'DELETE' }),
 
     updateProfile: (data: { displayName?: string; location?: string; avatarId?: number }) =>
-      request<{ displayName: string | null; location: string | null; avatarId: number }>(
+      apiRequest<{ displayName: string | null; location: string | null; avatarId: number }>(
         '/auth/profile',
         {
           method: 'PATCH',
@@ -93,37 +99,37 @@ export const api = {
       ),
 
     resendVerification: () =>
-      request<{ ok: boolean }>('/auth/resend-verification', { method: 'POST' }),
+      apiRequest<{ ok: boolean }>('/auth/resend-verification', { method: 'POST' }),
 
     forgotByEmail: (email: string) =>
-      request<{ ok: boolean; message: string }>('/auth/forgot/email', {
+      apiRequest<{ ok: boolean; message: string }>('/auth/forgot/email', {
         method: 'POST',
         body: JSON.stringify({ email }),
       }),
 
     resetPassword: (token: string, newPassword: string) =>
-      request<{ ok: boolean }>('/auth/reset-password', {
+      apiRequest<{ ok: boolean }>('/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ token, newPassword }),
       }),
   },
 
   progress: {
-    get: () => request<{ data: Record<string, boolean> }>('/progress'),
+    get: () => apiRequest<{ data: Record<string, boolean> }>('/progress'),
     put: (data: Record<string, boolean>) =>
-      request<{ ok: boolean }>('/progress', {
+      apiRequest<{ ok: boolean }>('/progress', {
         method: 'PUT',
         body: JSON.stringify({ data }),
       }),
     patch: (key: string, value: boolean) =>
-      request<{ ok: boolean }>('/progress', {
+      apiRequest<{ ok: boolean }>('/progress', {
         method: 'PATCH',
         body: JSON.stringify({ key, value }),
       }),
   },
 
   journey: {
-    today: () => request<JourneySnapshot>('/journey/today'),
+    today: () => apiRequest<JourneySnapshot>('/journey/today'),
 
     updateTask: (
       taskId: string,
@@ -132,7 +138,7 @@ export const api = {
       revision: string,
       eventId: string,
     ) =>
-      request<JourneySnapshot>(`/journey/today/tasks/${encodeURIComponent(taskId)}`, {
+      apiRequest<JourneySnapshot>(`/journey/today/tasks/${encodeURIComponent(taskId)}`, {
         method: 'PATCH',
         headers: {
           'If-Match': revision,
@@ -142,14 +148,14 @@ export const api = {
       }),
 
     saveJournal: (journal: JourneyJournal, revision: string) =>
-      request<JourneySnapshot>('/journey/today/journal', {
+      apiRequest<JourneySnapshot>('/journey/today/journal', {
         method: 'PUT',
         headers: { 'If-Match': revision },
         body: JSON.stringify(journal),
       }),
 
     addEvidence: (evidence: string, revision: string, eventId: string) =>
-      request<JourneySnapshot>('/journey/today/evidence', {
+      apiRequest<JourneySnapshot>('/journey/today/evidence', {
         method: 'POST',
         headers: {
           'If-Match': revision,
@@ -160,8 +166,8 @@ export const api = {
   },
 
   library: {
-    index: (lang: Lang) => request<TopicIndexEntry[]>(`/library/index?lang=${lang}`),
+    index: (lang: Lang) => apiRequest<TopicIndexEntry[]>(`/library/index?lang=${lang}`),
     topic: (key: string, lang: Lang) =>
-      request<Topic>(`/library/topics/${encodeURIComponent(key)}?lang=${lang}`),
+      apiRequest<Topic>(`/library/topics/${encodeURIComponent(key)}?lang=${lang}`),
   },
 };

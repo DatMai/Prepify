@@ -25,6 +25,7 @@
 ### Task 1: Versioned API and consistent browser client
 
 **Files:**
+
 - Modify: `server/src/index.ts`
 - Modify: `server/src/middleware/errorHandler.ts`
 - Modify: `src/api/client.ts`
@@ -33,18 +34,20 @@
 - Test: `src/api/client.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing Express routers and cookie-session middleware.
 - Produces: `/api/v1/*` routes and one shared `apiRequest<T>()` client.
 
-- [ ] Write failing API tests proving `/api/v1/auth/session` is mounted and failures use `{ error: { code, message, requestId } }` without internal details.
-- [ ] Run the focused tests and capture RED.
-- [ ] Mount application routes under `/api/v1`, keep OAuth callback configuration on the same versioned path, and centralize browser requests through `apiRequest<T>()`.
-- [ ] Run frontend/server focused tests and typechecks.
-- [ ] Commit with `refactor: thống nhất hợp đồng api`.
+- [x] Write failing API tests proving `/api/v1/auth/session` is mounted and failures use `{ error: { code, message, requestId } }` without internal details.
+- [x] Run the focused tests and capture RED.
+- [x] Mount application routes under `/api/v1`, keep OAuth callback configuration on the same versioned path, and centralize browser requests through `apiRequest<T>()`.
+- [x] Run frontend/server focused tests and typechecks.
+- [x] Commit with `refactor: thống nhất hợp đồng api`.
 
 ### Task 2: Inject all runtime configuration at the composition root
 
 **Files:**
+
 - Modify: `server/src/config/env.ts`
 - Modify: `server/src/config/env.test.ts`
 - Modify: `server/src/index.ts`
@@ -55,6 +58,7 @@
 - Test: `server/src/services/obsidianMarkdown.test.ts`
 
 **Interfaces:**
+
 - Consumes: validated `AppConfig`.
 - Produces: `createObsidianVault(config)`, `createJourneyRouter(deps)`, `createMailer(config)`, and `syncConfiguredAdmins(query, emails)` with no runtime `process.env` reads outside composition/bootstrap entrypoints.
 
@@ -67,6 +71,7 @@
 ### Task 3: Server-owned learning results
 
 **Files:**
+
 - Create: `server/src/modules/learning/streak.ts`
 - Create: `server/src/modules/learning/streak.test.ts`
 - Modify: `server/src/routes/streak.ts`
@@ -76,6 +81,7 @@
 - Modify: `src/quiz/quizView.ts`
 
 **Interfaces:**
+
 - Consumes: authenticated user ID, `APP_TIME_ZONE`, sealed daily challenge answers.
 - Produces: deterministic `dateInTimeZone()`, `computeStreak()`, and server-derived stored scores.
 
@@ -88,6 +94,7 @@
 ### Task 4: Private corpus boundary
 
 **Files:**
+
 - Modify: `.gitignore`
 - Modify: `server/src/config/env.ts`
 - Modify: `server/.env.example`
@@ -98,6 +105,7 @@
 - Test: `src/security/privateBundleScan.test.ts`
 
 **Interfaces:**
+
 - Consumes: `CONTENT_ROOT` pointing to an owner-controlled directory.
 - Produces: ignored local corpus at `content/` and committed synthetic fixtures for tests.
 
@@ -110,6 +118,7 @@
 ### Task 5: Durable Journey projection/outbox schema
 
 **Files:**
+
 - Create: `server/migrations/009_add_content_projection_and_journey_outbox.sql`
 - Create: `server/src/modules/journey/outboxRepository.ts`
 - Create: `server/src/modules/journey/outboxRepository.test.ts`
@@ -118,6 +127,7 @@
 - Modify: `docs/ADR-002-private-library-and-obsidian-projection.md`
 
 **Interfaces:**
+
 - Consumes: structured Journey mutation, idempotency key, expected revision.
 - Produces: append-only `content_projections`, `journey_mutations`, and `audit_events`; hosted API enqueues mutations and local adapter remains the only vault writer.
 
@@ -130,12 +140,14 @@
 ### Task 6: Release evidence and documentation
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `AGENTS.md`
 - Modify: `docs/superpowers/plans/2026-09-12-identity-session-implementation.md`
 - Modify: this plan
 
 **Interfaces:**
+
 - Consumes: completed implementation and fresh command output.
 - Produces: documentation matching reality and a clean local `main`.
 

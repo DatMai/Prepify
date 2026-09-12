@@ -1,13 +1,6 @@
 import type { DailyAnswer, DailyResponse } from '../daily/types';
 import type { Lang } from '../i18n';
-
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
-
-function authHeaders(): HeadersInit {
-  return { 'Content-Type': 'application/json' };
-}
-
-const authenticated = { credentials: 'include' as const };
+import { apiRequest } from './client';
 
 export interface StreakInfo {
   current: number;
@@ -41,29 +34,18 @@ export interface SavedSession {
 }
 
 export async function fetchStreak(): Promise<StreakInfo> {
-  const res = await fetch(`${BASE}/streak`, { ...authenticated, headers: authHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch streak');
-  return res.json() as Promise<StreakInfo>;
+  return apiRequest<StreakInfo>('/streak');
 }
 
 export async function fetchLeaderboard(limit = 20): Promise<LeaderboardResponse> {
-  const res = await fetch(`${BASE}/leaderboard?limit=${limit}`, {
-    ...authenticated,
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('Failed to fetch leaderboard');
-  return res.json() as Promise<LeaderboardResponse>;
+  return apiRequest<LeaderboardResponse>(`/leaderboard?limit=${limit}`);
 }
 
 export async function saveQuizSession(payload: QuizSessionPayload): Promise<SavedSession> {
-  const res = await fetch(`${BASE}/quiz-sessions`, {
+  return apiRequest<SavedSession>('/quiz-sessions', {
     method: 'POST',
-    ...authenticated,
-    headers: authHeaders(),
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Failed to save quiz session');
-  return res.json() as Promise<SavedSession>;
 }
 
 export interface DailyStatusResponse {
@@ -75,12 +57,7 @@ export interface DailyStatusResponse {
 }
 
 export async function fetchDailyQuestions(lang: Lang): Promise<DailyResponse> {
-  const res = await fetch(`${BASE}/daily?lang=${lang}`, {
-    ...authenticated,
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('Failed to fetch daily questions');
-  return res.json() as Promise<DailyResponse>;
+  return apiRequest<DailyResponse>(`/daily?lang=${lang}`);
 }
 
 export interface DailyCompletePayload {
@@ -97,27 +74,14 @@ export interface DailyCompleteResult {
 }
 
 export async function fetchDailyStatus(): Promise<DailyStatusResponse> {
-  const res = await fetch(`${BASE}/daily/status`, {
-    ...authenticated,
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('Failed to fetch daily status');
-  return res.json() as Promise<DailyStatusResponse>;
+  return apiRequest<DailyStatusResponse>('/daily/status');
 }
 
 export async function completeDailyChallenge(
   payload: DailyCompletePayload,
 ): Promise<DailyCompleteResult> {
-  const res = await fetch(`${BASE}/daily/complete`, {
+  return apiRequest<DailyCompleteResult>('/daily/complete', {
     method: 'POST',
-    ...authenticated,
-    headers: authHeaders(),
     body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const err = new Error('Failed to complete daily') as Error & { status?: number };
-    err.status = res.status;
-    throw err;
-  }
-  return res.json() as Promise<DailyCompleteResult>;
 }

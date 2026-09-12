@@ -81,7 +81,7 @@ export function createOAuthRoutes(dependencies: OAuthDependencies): Router {
         {
           clientID: config.oauth.google.clientId,
           clientSecret: config.oauth.google.clientSecret,
-          callbackURL: `${config.publicApiUrl}/auth/google/callback`,
+          callbackURL: `${config.publicApiUrl}/api/v1/auth/google/callback`,
           state: true,
           pkce: true,
           store: passportStateStore(dependencies.flows.google) as unknown as StateStore,
@@ -113,7 +113,7 @@ export function createOAuthRoutes(dependencies: OAuthDependencies): Router {
         {
           clientID: config.oauth.facebook.clientId,
           clientSecret: config.oauth.facebook.clientSecret,
-          callbackURL: `${config.publicApiUrl}/auth/facebook/callback`,
+          callbackURL: `${config.publicApiUrl}/api/v1/auth/facebook/callback`,
           profileFields: ['id', 'emails', 'name', 'displayName'],
           state: true,
           pkce: true,
