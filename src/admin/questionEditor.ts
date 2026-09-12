@@ -1,117 +1,21 @@
 import { api, type AdminBlock, type AdminLevel, type AdminQuestion } from '../api/client';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
-
-/** Mirrors the server's `MAX_TABLE_ROWS` / `MAX_TABLE_COLUMNS`. */
-export const MAX_TABLE_ROWS = 50;
-export const MAX_TABLE_COLUMNS = 10;
-
-const DEFAULT_CODE_LANG = 'js';
-
-const BLOCK_LABEL_KEY: Record<AdminBlock['type'], string> = {
-  text: 'libAdmin.blockText',
-  note: 'libAdmin.blockNote',
-  code: 'libAdmin.blockCode',
-  table: 'libAdmin.blockTable',
-};
-
-type TableBlock = Extract<AdminBlock, { type: 'table' }>;
-
-function replaceAt<T>(list: T[], index: number, next: T): T[] {
-  return list.map((entry, current) => (current === index ? next : entry));
-}
-
-function tableAt(blocks: AdminBlock[], index: number): TableBlock | null {
-  const block = blocks[index];
-  return block && block.type === 'table' ? block : null;
-}
-
-export function addBlock(blocks: AdminBlock[], type: AdminBlock['type']): AdminBlock[] {
-  if (type === 'note') return [...blocks, { type: 'note', text: '' }];
-  if (type === 'code') return [...blocks, { type: 'code', lang: DEFAULT_CODE_LANG, text: '' }];
-  if (type === 'table') {
-    return [...blocks, { type: 'table', rows: [['', '']], headerDone: true }];
-  }
-  return [...blocks, { type: 'text', text: '' }];
-}
-
-export function removeBlock(blocks: AdminBlock[], index: number): AdminBlock[] {
-  return blocks.filter((_, current) => current !== index);
-}
-
-export function moveBlock(blocks: AdminBlock[], index: number, delta: -1 | 1): AdminBlock[] {
-  const target = index + delta;
-  if (index < 0 || index >= blocks.length || target < 0 || target >= blocks.length) return blocks;
-
-  const next = [...blocks];
-  const moved = next[index]!;
-  next[index] = next[target]!;
-  next[target] = moved;
-  return next;
-}
-
-export function setBlockText(blocks: AdminBlock[], index: number, text: string): AdminBlock[] {
-  const block = blocks[index];
-  if (!block || block.type === 'table') return blocks;
-  return replaceAt(blocks, index, { ...block, text });
-}
-
-export function setBlockLang(blocks: AdminBlock[], index: number, lang: string): AdminBlock[] {
-  const block = blocks[index];
-  if (!block || block.type !== 'code') return blocks;
-  return replaceAt(blocks, index, { ...block, lang });
-}
-
-export function setTableCell(
-  blocks: AdminBlock[],
-  index: number,
-  row: number,
-  column: number,
-  value: string,
-): AdminBlock[] {
-  const table = tableAt(blocks, index);
-  if (!table) return blocks;
-
-  const rows = table.rows.map((cells, currentRow) =>
-    currentRow === row
-      ? cells.map((cell, currentColumn) => (currentColumn === column ? value : cell))
-      : cells,
-  );
-  return replaceAt(blocks, index, { ...table, rows });
-}
-
-export function addTableRow(blocks: AdminBlock[], index: number): AdminBlock[] {
-  const table = tableAt(blocks, index);
-  if (!table || table.rows.length >= MAX_TABLE_ROWS) return blocks;
-
-  const width = table.rows[0]?.length ?? 1;
-  const empty = Array.from({ length: width }, () => '');
-  return replaceAt(blocks, index, { ...table, rows: [...table.rows, empty] });
-}
-
-export function removeTableRow(blocks: AdminBlock[], index: number): AdminBlock[] {
-  const table = tableAt(blocks, index);
-  if (!table || table.rows.length <= 1) return blocks;
-  return replaceAt(blocks, index, { ...table, rows: table.rows.slice(0, -1) });
-}
-
-export function addTableColumn(blocks: AdminBlock[], index: number): AdminBlock[] {
-  const table = tableAt(blocks, index);
-  const width = table?.rows[0]?.length ?? 0;
-  if (!table || width >= MAX_TABLE_COLUMNS) return blocks;
-
-  const rows = table.rows.map((cells) => [...cells, '']);
-  return replaceAt(blocks, index, { ...table, rows });
-}
-
-export function removeTableColumn(blocks: AdminBlock[], index: number): AdminBlock[] {
-  const table = tableAt(blocks, index);
-  const width = table?.rows[0]?.length ?? 0;
-  if (!table || width <= 1) return blocks;
-
-  const rows = table.rows.map((cells) => cells.slice(0, -1));
-  return replaceAt(blocks, index, { ...table, rows });
-}
+import { button, element } from './adminUi';
+import {
+  addBlock,
+  addTableColumn,
+  addTableRow,
+  MAX_TABLE_COLUMNS,
+  MAX_TABLE_ROWS,
+  moveBlock,
+  removeBlock,
+  removeTableColumn,
+  removeTableRow,
+  setBlockLang,
+  setBlockText,
+  setTableCell,
+} from './blockOps';
 
 export interface OpenQuestionEditorInput {
   question: AdminQuestion | null;
@@ -120,26 +24,17 @@ export interface OpenQuestionEditorInput {
   onCancel: () => void;
 }
 
+type TableBlock = Extract<AdminBlock, { type: 'table' }>;
+
+const BLOCK_LABEL_KEY: Record<AdminBlock['type'], string> = {
+  text: 'libAdmin.blockText',
+  note: 'libAdmin.blockNote',
+  code: 'libAdmin.blockCode',
+  table: 'libAdmin.blockTable',
+};
+
 interface EditorState {
   blocks: AdminBlock[];
-}
-
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className?: string,
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-function button(className: string, label: string, onClick: () => void): HTMLButtonElement {
-  const node = element('button', className, label);
-  node.type = 'button';
-  node.addEventListener('click', onClick);
-  return node;
 }
 
 function levelSelect(

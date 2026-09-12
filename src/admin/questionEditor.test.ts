@@ -1,5 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AdminBlock } from '../api/client';
+import {
+  addBlock,
+  addTableColumn,
+  addTableRow,
+  moveBlock,
+  removeBlock,
+  removeTableColumn,
+  removeTableRow,
+  setBlockLang,
+  setBlockText,
+  setTableCell,
+} from './blockOps';
 
 vi.mock('../api/client', () => ({
   api: {
@@ -28,30 +40,18 @@ const text: AdminBlock = { type: 'text', text: 'a' };
 const code: AdminBlock = { type: 'code', lang: 'js', text: 'b' };
 const table: AdminBlock = { type: 'table', rows: [['A', 'B']] };
 
-type Ops = typeof import('./questionEditor');
-
 describe('block operations', () => {
-  let ops: Ops;
-
-  beforeEach(async () => {
-    vi.resetModules();
-    vi.stubGlobal('localStorage', memoryStorage());
-    ops = await import('./questionEditor');
-  });
-
   it('appends a new block of the requested type with a usable default', () => {
-    expect(ops.addBlock([], 'text')).toEqual([{ type: 'text', text: '' }]);
-    expect(ops.addBlock([], 'note')).toEqual([{ type: 'note', text: '' }]);
-    expect(ops.addBlock([], 'code')).toEqual([{ type: 'code', lang: 'js', text: '' }]);
+    expect(addBlock([], 'text')).toEqual([{ type: 'text', text: '' }]);
+    expect(addBlock([], 'note')).toEqual([{ type: 'note', text: '' }]);
+    expect(addBlock([], 'code')).toEqual([{ type: 'code', lang: 'js', text: '' }]);
     // a new table starts as a 2x1 grid so the first cell is typeable straight away
-    expect(ops.addBlock([], 'table')).toEqual([
-      { type: 'table', rows: [['', '']], headerDone: true },
-    ]);
+    expect(addBlock([], 'table')).toEqual([{ type: 'table', rows: [['', '']], headerDone: true }]);
   });
 
   it('never mutates the input array', () => {
     const blocks = [text];
-    const next = ops.setBlockText(blocks, 0, 'changed');
+    const next = setBlockText(blocks, 0, 'changed');
 
     expect(blocks).toEqual([{ type: 'text', text: 'a' }]);
     expect(next).toEqual([{ type: 'text', text: 'changed' }]);
@@ -60,32 +60,32 @@ describe('block operations', () => {
   it('removes and reorders blocks without leaving holes', () => {
     const blocks = [text, code, table];
 
-    expect(ops.removeBlock(blocks, 1)).toEqual([text, table]);
-    expect(ops.moveBlock(blocks, 2, -1)).toEqual([text, table, code]);
-    expect(ops.moveBlock(blocks, 0, 1)).toEqual([code, text, table]);
+    expect(removeBlock(blocks, 1)).toEqual([text, table]);
+    expect(moveBlock(blocks, 2, -1)).toEqual([text, table, code]);
+    expect(moveBlock(blocks, 0, 1)).toEqual([code, text, table]);
   });
 
   it('ignores an out-of-range move instead of corrupting the list', () => {
     const blocks = [text, code];
 
-    expect(ops.moveBlock(blocks, 0, -1)).toEqual(blocks);
-    expect(ops.moveBlock(blocks, 1, 1)).toEqual(blocks);
-    expect(ops.moveBlock(blocks, 9, 1)).toEqual(blocks);
+    expect(moveBlock(blocks, 0, -1)).toEqual(blocks);
+    expect(moveBlock(blocks, 1, 1)).toEqual(blocks);
+    expect(moveBlock(blocks, 9, 1)).toEqual(blocks);
   });
 
   it('edits only the targeted block field', () => {
-    expect(ops.setBlockText([text, code], 1, 'z')).toEqual([text, { ...code, text: 'z' }]);
-    expect(ops.setBlockLang([code], 0, 'python')).toEqual([{ ...code, lang: 'python' }]);
+    expect(setBlockText([text, code], 1, 'z')).toEqual([text, { ...code, text: 'z' }]);
+    expect(setBlockLang([code], 0, 'python')).toEqual([{ ...code, lang: 'python' }]);
   });
 
   it('writes a single table cell', () => {
     const blocks = [table];
 
-    expect(ops.setTableCell(blocks, 0, 0, 1, 'X')).toEqual([{ type: 'table', rows: [['A', 'X']] }]);
+    expect(setTableCell(blocks, 0, 0, 1, 'X')).toEqual([{ type: 'table', rows: [['A', 'X']] }]);
   });
 
   it('grows a table with an empty row or column', () => {
-    expect(ops.addTableRow([table], 0)).toEqual([
+    expect(addTableRow([table], 0)).toEqual([
       {
         type: 'table',
         rows: [
@@ -94,7 +94,7 @@ describe('block operations', () => {
         ],
       },
     ]);
-    expect(ops.addTableColumn([table], 0)).toEqual([{ type: 'table', rows: [['A', 'B', '']] }]);
+    expect(addTableColumn([table], 0)).toEqual([{ type: 'table', rows: [['A', 'B', '']] }]);
   });
 
   it('shrinks a table but never below one row and one column', () => {
@@ -106,10 +106,10 @@ describe('block operations', () => {
       ],
     };
 
-    expect(ops.removeTableRow([twoByTwo], 0)).toEqual([{ type: 'table', rows: [['A', 'B']] }]);
-    expect(ops.removeTableColumn([twoByTwo], 0)).toEqual([{ type: 'table', rows: [['A'], ['C']] }]);
-    expect(ops.removeTableRow([table], 0)).toEqual([table]);
-    expect(ops.removeTableColumn([{ type: 'table', rows: [['A']] }], 0)).toEqual([
+    expect(removeTableRow([twoByTwo], 0)).toEqual([{ type: 'table', rows: [['A', 'B']] }]);
+    expect(removeTableColumn([twoByTwo], 0)).toEqual([{ type: 'table', rows: [['A'], ['C']] }]);
+    expect(removeTableRow([table], 0)).toEqual([table]);
+    expect(removeTableColumn([{ type: 'table', rows: [['A']] }], 0)).toEqual([
       { type: 'table', rows: [['A']] },
     ]);
   });
@@ -118,13 +118,13 @@ describe('block operations', () => {
     const wide: AdminBlock = { type: 'table', rows: [Array.from({ length: 10 }, () => 'x')] };
     const tall: AdminBlock = { type: 'table', rows: Array.from({ length: 50 }, () => ['x']) };
 
-    expect(ops.addTableColumn([wide], 0)).toEqual([wide]);
-    expect(ops.addTableRow([tall], 0)).toEqual([tall]);
+    expect(addTableColumn([wide], 0)).toEqual([wide]);
+    expect(addTableRow([tall], 0)).toEqual([tall]);
   });
 
   it('leaves non-table blocks alone when a table operation is applied to them', () => {
-    expect(ops.setTableCell([text], 0, 0, 0, 'X')).toEqual([text]);
-    expect(ops.addTableRow([text], 0)).toEqual([text]);
+    expect(setTableCell([text], 0, 0, 0, 'X')).toEqual([text]);
+    expect(addTableRow([text], 0)).toEqual([text]);
   });
 });
 

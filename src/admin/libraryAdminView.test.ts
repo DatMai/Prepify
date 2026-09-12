@@ -347,6 +347,27 @@ describe('topic editor', () => {
     expect(document.querySelector('[name="prompt"]')).toHaveProperty('value', '');
   });
 
+  it('archives from inside the editor and goes back to the list', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.archiveTopic).mockResolvedValue({
+      snapshot: { title: 'T', subtitle: null, label: 'L', color: '#000000', sections: [] },
+    });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { setSnapshotDownloader } = await import('./libraryAdminView');
+    const download = vi.fn();
+    setSnapshotDownloader(download);
+
+    await openEditor(api);
+    (document.querySelector('.la-archive') as HTMLButtonElement).click();
+    await settled();
+    await settled();
+
+    expect(api.libraryAdmin.archiveTopic).toHaveBeenCalledWith('t-1');
+    expect(download).toHaveBeenCalledWith('dsa.json', expect.any(Object));
+    expect(document.querySelector('.la-editor')).toBeNull();
+    expect(api.libraryAdmin.listTopics).toHaveBeenCalledTimes(2);
+  });
+
   it('adds a section through the API and reloads the editor', async () => {
     const { api } = await import('../api/client');
     vi.mocked(api.libraryAdmin.createSection).mockResolvedValue({ id: 's-2' });
