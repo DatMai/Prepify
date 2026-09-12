@@ -43,7 +43,15 @@ export function createApp({ config, logger, registerRoutes, readiness }: AppDepe
       customProps: (_req, res) => ({ requestId: res.locals.requestId }),
     }),
   );
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          workerSrc: ["'self'", 'blob:'],
+        },
+      },
+    }),
+  );
   app.use(
     cors({
       credentials: true,

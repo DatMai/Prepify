@@ -64,9 +64,8 @@ describe('session repository', () => {
 
     await repository.revokeAllForUser('user-1');
 
-    expect(database.query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE user_id = $1'),
-      ['user-1'],
-    );
+    expect(database.query).toHaveBeenCalledWith(expect.stringContaining('WHERE user_id = $1'), [
+      'user-1',
+    ]);
   });
 });

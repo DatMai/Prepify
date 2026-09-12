@@ -2,40 +2,28 @@ import { api, type AuthUser } from '../api/client';
 
 export interface AuthState {
   user: AuthUser | null;
-  token: string | null;
 }
 
 export const auth: AuthState = {
   user: null,
-  token: localStorage.getItem('quiz:token'),
 };
 
 export function isLoggedIn(): boolean {
-  return auth.token !== null && auth.user !== null;
+  return auth.user !== null;
 }
 
-export function setSession(token: string, user: AuthUser): void {
-  auth.token = token;
+export function setSession(user: AuthUser): void {
   auth.user = user;
-  localStorage.setItem('quiz:token', token);
-}
-
-export function adoptToken(token: string): void {
-  auth.token = token;
-  auth.user = null;
-  localStorage.setItem('quiz:token', token);
 }
 
 export function clearSession(): void {
-  auth.token = null;
   auth.user = null;
-  localStorage.removeItem('quiz:token');
 }
 
 export async function restoreSession(): Promise<void> {
-  if (!auth.token) return;
   try {
-    auth.user = await api.auth.me();
+    const session = await api.auth.session();
+    auth.user = session.user;
   } catch {
     clearSession();
   }

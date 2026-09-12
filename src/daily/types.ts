@@ -8,7 +8,6 @@ export interface McqDailyQuestion {
   type: 'mcq';
   q: string;
   options: McqOption[];
-  correctIdx: number;
 }
 
 export interface FibDailyQuestion {
@@ -16,7 +15,6 @@ export interface FibDailyQuestion {
   type: 'fib';
   prompt: string;
   blankCount: number;
-  blanks: string[];
   hint?: string;
   topic?: string;
 }
@@ -25,16 +23,16 @@ export type DailyQuestion = McqDailyQuestion | FibDailyQuestion;
 
 export interface DailyResponse {
   date: string;
+  challenge: string;
   questions: DailyQuestion[];
 }
 
-export interface DailyAnswer {
-  questionId: string;
-  correct: boolean;
-}
+export type DailyAnswer =
+  { questionId: string; selectedIdx: number } | { questionId: string; blanks: string[] };
 
 export interface DailySession {
   date: string;
+  challenge: string;
   questions: DailyQuestion[];
   answers: DailyAnswer[];
   currentIdx: number;
@@ -50,5 +48,7 @@ export interface DailyStatus {
 
 export interface DailyCompleteResponse {
   ok: boolean;
+  score: number;
+  total: number;
   streak: { current: number; longest: number };
 }

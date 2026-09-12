@@ -2,11 +2,13 @@ import express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { requireAdmin } from '../../middleware/admin';
-import { createSessionAuth } from './sessionAuth';
+import { createOptionalSessionAuth, createSessionAuth } from './sessionAuth';
 import { sessionCookieOptions } from './sessionCookie';
 import type { SessionRepository } from './sessionRepository';
 
-function repositoryWith(result: Awaited<ReturnType<SessionRepository['findActive']>>): SessionRepository {
+function repositoryWith(
+  result: Awaited<ReturnType<SessionRepository['findActive']>>,
+): SessionRepository {
   return {
     create: async () => {},
     findActive: async () => result,
@@ -20,16 +22,27 @@ function testApp(repository: SessionRepository) {
   app.get('/private', createSessionAuth(repository, 'prepify_session'), (req, res) => {
     res.json({ user: req.user, sessionId: req.authSession?.id });
   });
-  app.get(
-    '/admin',
-    createSessionAuth(repository, 'prepify_session'),
-    requireAdmin,
-    (_req, res) => res.json({ ok: true }),
+  app.get('/admin', createSessionAuth(repository, 'prepify_session'), requireAdmin, (_req, res) =>
+    res.json({ ok: true }),
   );
   return app;
 }
 
 describe('session authentication', () => {
+  it('keeps a public route anonymous when no session cookie exists', async () => {
+    const app = express();
+    app.get(
+      '/public',
+      createOptionalSessionAuth(repositoryWith(null), 'prepify_session'),
+      (req, res) => res.json({ authenticated: Boolean(req.user) }),
+    );
+
+    const response = await request(app).get('/public');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ authenticated: false });
+  });
+
   it('rejects missing and unknown cookies with the same public response', async () => {
     const app = testApp(repositoryWith(null));
 

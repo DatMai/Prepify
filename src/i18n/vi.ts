@@ -36,14 +36,10 @@ export const vi: Record<string, string> = {
   'api.user_not_found': 'Không tìm thấy tài khoản.',
   'api.email_already_verified': 'Email đã được xác minh.',
   'api.resend_too_soon': 'Vui lòng đợi 5 phút trước khi gửi lại.',
-  'api.missing_security_answer': 'Question và answer là bắt buộc.',
-  'api.invalid_security_question': 'Câu hỏi bí mật không hợp lệ.',
   'api.display_name_too_long': 'Tên hiển thị không được quá 50 ký tự.',
   'api.location_too_long': 'Địa điểm không được quá 100 ký tự.',
   'api.invalid_avatar': 'Avatar không hợp lệ.',
   'api.email_required': 'Email là bắt buộc.',
-  'api.no_security_question': 'Tài khoản không có câu hỏi bí mật.',
-  'api.invalid_security_answer': 'Câu trả lời không đúng.',
   'api.missing_reset_fields': 'Reset token và password mới là bắt buộc.',
   'api.invalid_reset_token': 'Link đã hết hạn hoặc đã được sử dụng. Vui lòng thực hiện lại.',
 
@@ -215,11 +211,6 @@ export const vi: Record<string, string> = {
   'auth.emailLabel': 'Email',
   'auth.passwordLabel': 'Password',
   'auth.passwordPlaceholder': 'Tối thiểu 8 ký tự',
-  'auth.secQuestionLabel': 'Câu hỏi bí mật',
-  'auth.secQuestionOptional': '(tuỳ chọn)',
-  'auth.selectQuestion': '-- Chọn câu hỏi --',
-  'auth.answerLabel': 'Câu trả lời',
-  'auth.answerPlaceholder': 'Nhập câu trả lời...',
   'auth.forgotLink': 'Quên mật khẩu?',
   'auth.loginBtn': 'Đăng nhập',
   'auth.registerBtn': 'Đăng ký',
@@ -228,11 +219,7 @@ export const vi: Record<string, string> = {
   'auth.forgotTitle': 'Quên mật khẩu',
   'auth.forgotInstructions': 'Nhập email tài khoản của bạn.',
   'auth.sendResetLink': 'Gửi link về email',
-  'auth.useSecQuestion': 'Dùng câu hỏi bí mật',
   'auth.backToLogin': '← Quay lại đăng nhập',
-  'auth.secQuestionTitle': 'Câu hỏi bí mật',
-  'auth.confirmBtn': 'Xác nhận',
-  'auth.back': '← Quay lại',
   'auth.resetTitle': 'Đặt lại mật khẩu',
   'auth.newPasswordLabel': 'Mật khẩu mới',
   'auth.confirmPasswordLabel': 'Xác nhận mật khẩu',
@@ -247,7 +234,6 @@ export const vi: Record<string, string> = {
 
   // Errors & toasts
   'err.enterEmail': 'Vui lòng nhập email.',
-  'err.enterAnswer': 'Vui lòng nhập câu trả lời.',
   'err.passwordMismatch': 'Mật khẩu xác nhận không khớp.',
   'err.generic': 'Có lỗi xảy ra, thử lại sau.',
   'ok.resetEmailSent': 'Nếu email tồn tại, chúng tôi đã gửi link đặt lại.',
@@ -274,12 +260,4 @@ export const vi: Record<string, string> = {
   // Verify banner
   'verify.message': 'Vui lòng xác minh email',
   'verify.resend': 'Gửi lại',
-
-  // Security questions
-  'sq.0': 'Tên thú cưng đầu tiên của bạn?',
-  'sq.1': 'Tên trường tiểu học của bạn?',
-  'sq.2': 'Tên thành phố bạn sinh ra?',
-  'sq.3': 'Tên thầy/cô giáo yêu thích thời nhỏ?',
-  'sq.4': 'Tên nhân vật phim yêu thích thời nhỏ?',
-  'sq.5': 'Món ăn yêu thích của bạn?',
 };

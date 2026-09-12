@@ -36,14 +36,10 @@ export const en: Record<string, string> = {
   'api.user_not_found': 'Account not found.',
   'api.email_already_verified': 'This email has already been verified.',
   'api.resend_too_soon': 'Wait 5 minutes before sending another email.',
-  'api.missing_security_answer': 'Question and answer are required.',
-  'api.invalid_security_question': 'This security question is not valid.',
   'api.display_name_too_long': 'Display name must be 50 characters or fewer.',
   'api.location_too_long': 'Location must be 100 characters or fewer.',
   'api.invalid_avatar': 'Choose a valid avatar.',
   'api.email_required': 'Email is required.',
-  'api.no_security_question': 'This account has no security question.',
-  'api.invalid_security_answer': 'That answer is incorrect.',
   'api.missing_reset_fields': 'Reset token and new password are required.',
   'api.invalid_reset_token': 'This link has expired or has already been used. Start again.',
 
@@ -214,11 +210,6 @@ export const en: Record<string, string> = {
   'auth.emailLabel': 'Email',
   'auth.passwordLabel': 'Password',
   'auth.passwordPlaceholder': 'Minimum 8 characters',
-  'auth.secQuestionLabel': 'Security question',
-  'auth.secQuestionOptional': '(optional)',
-  'auth.selectQuestion': '-- Select question --',
-  'auth.answerLabel': 'Answer',
-  'auth.answerPlaceholder': 'Enter your answer...',
   'auth.forgotLink': 'Forgot password?',
   'auth.loginBtn': 'Log in',
   'auth.registerBtn': 'Sign up',
@@ -227,11 +218,7 @@ export const en: Record<string, string> = {
   'auth.forgotTitle': 'Forgot Password',
   'auth.forgotInstructions': 'Enter your account email.',
   'auth.sendResetLink': 'Send reset link',
-  'auth.useSecQuestion': 'Use security question',
   'auth.backToLogin': '← Back to login',
-  'auth.secQuestionTitle': 'Security Question',
-  'auth.confirmBtn': 'Confirm',
-  'auth.back': '← Back',
   'auth.resetTitle': 'Reset Password',
   'auth.newPasswordLabel': 'New Password',
   'auth.confirmPasswordLabel': 'Confirm Password',
@@ -246,7 +233,6 @@ export const en: Record<string, string> = {
 
   // Errors & toasts
   'err.enterEmail': 'Please enter your email.',
-  'err.enterAnswer': 'Please enter your answer.',
   'err.passwordMismatch': 'Passwords do not match.',
   'err.generic': 'An error occurred, try again.',
   'ok.resetEmailSent': "If the email exists, we've sent a reset link.",
@@ -273,12 +259,4 @@ export const en: Record<string, string> = {
   // Verify banner
   'verify.message': 'Please verify your email',
   'verify.resend': 'Resend',
-
-  // Security questions
-  'sq.0': "What was your first pet's name?",
-  'sq.1': 'What was your elementary school?',
-  'sq.2': 'What city were you born in?',
-  'sq.3': "What was your favorite childhood teacher's name?",
-  'sq.4': 'What was your favorite childhood movie character?',
-  'sq.5': "What's your favorite food?",
 };

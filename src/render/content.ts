@@ -97,7 +97,7 @@ export function render(): void {
             btn.addEventListener('click', (e) => {
               e.stopPropagation();
               const cid = btn.getAttribute('data-cid');
-              if (cid) runCode(cid);
+              if (cid) void runCode(cid);
             });
           });
 
@@ -207,7 +207,7 @@ export function render(): void {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const cid = btn.getAttribute('data-cid');
-          if (cid) runCode(cid);
+          if (cid) void runCode(cid);
         });
       });
 

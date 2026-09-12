@@ -18,10 +18,7 @@ export interface ResolvedSession {
 }
 
 export interface SessionQuery {
-  query<T>(
-    text: string,
-    values?: unknown[],
-  ): Promise<{ rows: T[]; rowCount?: number | null }>;
+  query<T>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount?: number | null }>;
 }
 
 interface SessionRow {

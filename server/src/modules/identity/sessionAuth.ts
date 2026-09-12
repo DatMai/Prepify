@@ -29,3 +29,27 @@ export function createSessionAuth(repository: SessionRepository, cookieName: str
     }
   };
 }
+
+export function createOptionalSessionAuth(repository: SessionRepository, cookieName: string) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    const token = readCookie(req, cookieName);
+    if (!token) {
+      next();
+      return;
+    }
+    try {
+      const session = await repository.findActive(token);
+      if (session) {
+        req.user = {
+          userId: session.user.id,
+          email: session.user.email,
+          role: session.user.role,
+        };
+        req.authSession = { id: session.sessionId, token };
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}

@@ -25,19 +25,6 @@
   cursor: not-allowed;
 }
 
-/* Security question display */
-.sq-display {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--txt);
-  background: var(--bg2);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
 /* Success message inline */
 .forgot-success {
   font-size: 13.5px;

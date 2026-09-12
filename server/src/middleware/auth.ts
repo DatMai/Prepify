@@ -3,12 +3,6 @@ import type { UserRole } from '../modules/identity/sessionRepository';
 
 type AuthMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 
-/** @deprecated Legacy JWT shape; removed with the leaderboard/OAuth migration. */
-export interface AuthPayload {
-  userId: string;
-  email: string;
-}
-
 let configuredMiddleware: AuthMiddleware | undefined;
 
 declare global {

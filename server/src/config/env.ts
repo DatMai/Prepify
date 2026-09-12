@@ -8,12 +8,30 @@ const environmentSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  PUBLIC_API_URL: z.string().url().default('http://localhost:3001'),
+  APP_TIME_ZONE: z
+    .string()
+    .trim()
+    .min(1)
+    .default('Asia/Ho_Chi_Minh')
+    .refine((value) => {
+      try {
+        new Intl.DateTimeFormat('en-US', { timeZone: value });
+        return true;
+      } catch {
+        return false;
+      }
+    }, 'APP_TIME_ZONE must be a valid IANA time zone'),
   CORS_ORIGINS: z.string().optional(),
   ADMIN_EMAILS: z.string().default(''),
   OBSIDIAN_SYNC_ENABLED: z.enum(['true', 'false']).default('false'),
   OBSIDIAN_VAULT_PATH: z.string().trim().min(1).optional(),
   OBSIDIAN_TIME_ZONE: z.string().trim().min(1).default('Asia/Ho_Chi_Minh'),
   OBSIDIAN_OWNER_EMAIL: z.string().email().optional(),
+  GOOGLE_CLIENT_ID: z.string().trim().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().trim().min(1).optional(),
+  FACEBOOK_APP_ID: z.string().trim().min(1).optional(),
+  FACEBOOK_APP_SECRET: z.string().trim().min(1).optional(),
 });
 
 export interface AppConfig {
@@ -28,6 +46,8 @@ export interface AppConfig {
     ttlHours: number;
   };
   frontendUrl: string;
+  publicApiUrl: string;
+  timeZone: string;
   corsOrigins: string[];
   adminEmails: string[];
   obsidian: {
@@ -35,6 +55,10 @@ export interface AppConfig {
     vaultPath?: string;
     timeZone: string;
     ownerEmail?: string;
+  };
+  oauth: {
+    google?: { clientId: string; clientSecret: string };
+    facebook?: { clientId: string; clientSecret: string };
   };
 }
 
@@ -59,6 +83,13 @@ export function loadConfig(
     throw new Error('OBSIDIAN_VAULT_PATH is required when Obsidian sync is enabled');
   }
 
+  if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
+    throw new Error('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together');
+  }
+  if (Boolean(env.FACEBOOK_APP_ID) !== Boolean(env.FACEBOOK_APP_SECRET)) {
+    throw new Error('FACEBOOK_APP_ID and FACEBOOK_APP_SECRET must be configured together');
+  }
+
   return {
     nodeEnv: env.NODE_ENV,
     port: env.PORT,
@@ -71,6 +102,8 @@ export function loadConfig(
       ttlHours: env.SESSION_TTL_HOURS,
     },
     frontendUrl: env.FRONTEND_URL,
+    publicApiUrl: env.PUBLIC_API_URL,
+    timeZone: env.APP_TIME_ZONE,
     corsOrigins: splitList(env.CORS_ORIGINS ?? env.FRONTEND_URL),
     adminEmails: splitList(env.ADMIN_EMAILS).map((email) => email.toLowerCase()),
     obsidian: {
@@ -78,6 +111,14 @@ export function loadConfig(
       vaultPath: env.OBSIDIAN_VAULT_PATH,
       timeZone: env.OBSIDIAN_TIME_ZONE,
       ownerEmail: env.OBSIDIAN_OWNER_EMAIL?.toLowerCase(),
+    },
+    oauth: {
+      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+        ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } }
+        : {}),
+      ...(env.FACEBOOK_APP_ID && env.FACEBOOK_APP_SECRET
+        ? { facebook: { clientId: env.FACEBOOK_APP_ID, clientSecret: env.FACEBOOK_APP_SECRET } }
+        : {}),
     },
   };
 }

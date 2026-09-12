@@ -20,6 +20,7 @@ describe('loadConfig', () => {
       secure: false,
       ttlHours: 168,
     });
+    expect(config.timeZone).toBe('Asia/Ho_Chi_Minh');
   });
 
   it('uses a host-only secure cookie in production', () => {

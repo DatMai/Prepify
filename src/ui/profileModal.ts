@@ -179,5 +179,5 @@ async function saveProfile(): Promise<void> {
 
 function handleLogout(): void {
   closeProfile();
-  doLogout(onLogoutCb ?? undefined);
+  void doLogout(onLogoutCb ?? undefined);
 }
