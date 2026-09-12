@@ -64,6 +64,9 @@ function publicAuthError(error: unknown): {
   if (code === 'weak_password') {
     return { status: 400, body: { error: 'Password does not meet requirements', code } };
   }
+  if (code === 'account_disabled') {
+    return { status: 403, body: { error: 'This account has been disabled', code } };
+  }
   throw error;
 }
 

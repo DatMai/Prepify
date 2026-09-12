@@ -10,10 +10,11 @@ interface UserRow {
   location: string | null;
   email_verified_at: Date | string | null;
   role: 'user' | 'admin';
+  disabled: boolean;
 }
 
 const SELECT_USER = `
-  SELECT id, email, password_hash, display_name, avatar_id, location, email_verified_at, role
+  SELECT id, email, password_hash, display_name, avatar_id, location, email_verified_at, role, disabled
   FROM users`;
 
 function mapUser(row: UserRow): UserRecord {
@@ -29,6 +30,7 @@ function mapUser(row: UserRow): UserRecord {
         ? row.email_verified_at.toISOString()
         : row.email_verified_at,
     role: row.role,
+    disabled: row.disabled,
   };
 }
 
@@ -51,7 +53,7 @@ export function createUserRepository(database: SessionQuery): UserRepository {
         `INSERT INTO users (email, password_hash, display_name, avatar_id, email_verified_at)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id, email, password_hash, display_name, avatar_id, location,
-                   email_verified_at, role`,
+                   email_verified_at, role, disabled`,
         [input.email, input.passwordHash, input.displayName, input.avatarId, input.emailVerifiedAt],
       );
       return mapUser(result.rows[0]);
@@ -65,7 +67,7 @@ export function createUserRepository(database: SessionQuery): UserRepository {
              avatar_id = COALESCE($3, avatar_id)
          WHERE id = $4
          RETURNING id, email, password_hash, display_name, avatar_id, location,
-                   email_verified_at, role`,
+                   email_verified_at, role, disabled`,
         [input.displayName ?? null, input.location ?? null, input.avatarId ?? null, id],
       );
       if (!result.rows[0])
