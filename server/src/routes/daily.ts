@@ -7,6 +7,7 @@ import {
   type DailyAnswerKey,
   type DailySubmission,
 } from '../modules/daily/dailyChallenge';
+import { computeStreak, dateInTimeZone } from '../modules/learning/streak';
 
 interface McqRef {
   topicKey: string;
@@ -71,18 +72,6 @@ const completionSchema = z.object({
     )
     .max(20),
 });
-
-function dateInTimeZone(now: Date, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(now);
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? '';
-  return `${get('year')}-${get('month')}-${get('day')}`;
-}
 
 function dailySeed(date: string): number {
   let hash = 0;
@@ -155,27 +144,11 @@ function generateMcqOptions(correctText: string, topicKey: string, root: string)
 }
 
 function streakSummary(rows: Array<{ activity_date: string }>, today: string) {
-  const dayMs = 86_400_000;
-  const toUtc = (value: string) =>
-    Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)));
-  const dates = rows.map((row) => toUtc(row.activity_date));
-  const todayTs = toUtc(today);
-  let current = 0;
-  if (dates.length > 0 && (dates[0] === todayTs || dates[0] === todayTs - dayMs)) {
-    let expected = dates[0];
-    for (const value of dates) {
-      if (value !== expected) break;
-      current++;
-      expected -= dayMs;
-    }
-  }
-  let longest = 0;
-  let run = 0;
-  for (let index = 0; index < dates.length; index++) {
-    run = index > 0 && dates[index - 1] - dates[index] === dayMs ? run + 1 : 1;
-    longest = Math.max(longest, run);
-  }
-  return { current, longest };
+  const streak = computeStreak(
+    rows.map((row) => row.activity_date),
+    today,
+  );
+  return { current: streak.current, longest: streak.longest };
 }
 
 export function createDailyRouter(deps: DailyRouterDependencies): Router {

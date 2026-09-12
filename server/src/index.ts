@@ -28,8 +28,7 @@ import leaderboardRouter from './routes/leaderboard';
 import libraryRouter from './routes/library';
 import progressRouter from './routes/progress';
 import quizSessionsRouter from './routes/quizSessions';
-import streakRouter from './routes/streak';
-import { recordStudyDay } from './routes/streak';
+import { createStreakRouter, recordStudyDay } from './routes/streak';
 import { syncConfiguredAdmins } from './services/adminBootstrap';
 import { createObsidianVault } from './services/obsidianVault';
 import { createMailer } from './utils/email';
@@ -46,13 +45,14 @@ function registerRoutes(
     optionalAuth: RequestHandler;
     dailyRoutes: ReturnType<typeof createDailyRouter>;
     journeyRoutes: ReturnType<typeof createJourneyRouter>;
+    streakRoutes: ReturnType<typeof createStreakRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
   app.use('/api/v1/auth', identity.recoveryRoutes);
   app.use('/api/v1/auth', identity.oauthRoutes);
   app.use('/api/v1/progress', progressRouter);
-  app.use('/api/v1/streak', streakRouter);
+  app.use('/api/v1/streak', identity.streakRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
@@ -113,8 +113,9 @@ async function main(): Promise<void> {
     secret: config.sessionSecret,
     timeZone: config.timeZone,
     contentDir: path.resolve(__dirname, '../..', 'content'),
-    recordStudyDay: async (userId) => recordStudyDay(userId, pool),
+    recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
+  const streakRoutes = createStreakRouter({ pool, timeZone: config.timeZone });
   const journeyRoutes = createJourneyRouter({
     requireAuth,
     requireAdmin,
@@ -149,6 +150,7 @@ async function main(): Promise<void> {
           optionalAuth: createOptionalSessionAuth(sessionRepository, config.session.cookieName),
           dailyRoutes,
           journeyRoutes,
+          streakRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');
