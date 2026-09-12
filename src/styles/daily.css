@@ -188,6 +188,16 @@
   cursor: default;
 }
 
+.daily-opt.selected {
+  border-color: #f5a623;
+  background: rgba(245, 166, 35, 0.12);
+}
+
+.daily-opt.selected .daily-opt-letter {
+  background: #f5a623;
+  color: #111;
+}
+
 .daily-opt.correct {
   border-color: var(--ok);
   background: rgba(80, 200, 120, 0.1);

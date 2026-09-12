@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import type { Request } from 'express';
-import jwt from 'jsonwebtoken';
 import { db } from '../db/client';
-import type { AuthPayload } from '../middleware/auth';
 
 const router = Router();
 
@@ -108,20 +106,14 @@ router.get('/', async (req: Request, res) => {
     streakDays: r.streak_days,
   }));
 
-  const myRank = resolveMyRank(req, rows);
+  const myRank = resolveMyRank(req.user?.userId, rows);
   res.json({ entries, myRank });
 });
 
-function resolveMyRank(req: Request, rows: RawRow[]): number | null {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) return null;
-  try {
-    const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET!) as AuthPayload;
-    const idx = rows.findIndex((r) => r.user_id === payload.userId);
-    return idx === -1 ? null : idx + 1;
-  } catch {
-    return null;
-  }
+export function resolveMyRank(userId: string | undefined, rows: RawRow[]): number | null {
+  if (!userId) return null;
+  const idx = rows.findIndex((row) => row.user_id === userId);
+  return idx === -1 ? null : idx + 1;
 }
 
 export function invalidateLeaderboardCache(): void {

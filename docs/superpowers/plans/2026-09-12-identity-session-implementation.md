@@ -21,7 +21,7 @@
 - Modify: `server/src/config/env.test.ts`
 - Modify: `server/.env.example`
 
-- [ ] **Step 1: Write failing repository and config tests**
+- [x] **Step 1: Write failing repository and config tests**
 
 Cover:
 
@@ -32,11 +32,11 @@ Cover:
 - cookie configuration is secure in production and usable on localhost;
 - session TTL is bounded and validated.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
 Run the new tests and confirm failure is caused by missing session storage/config, not test setup.
 
-- [ ] **Step 3: Add migration 008**
+- [x] **Step 3: Add migration 008**
 
 Create append-only schema changes:
 
@@ -46,11 +46,11 @@ Create append-only schema changes:
 - drop the obsolete `security_question` and `security_answer_hash` columns only in this new migration;
 - delete no historical migration.
 
-- [ ] **Step 4: Implement the repository**
+- [x] **Step 4: Implement the repository**
 
 Use SHA-256 for opaque token/state lookup, cryptographically random raw values, parameterized SQL, constant external error semantics, explicit clock/random dependencies in tests, and one-time OAuth flow consumption in a transaction-safe statement.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run server tests, typecheck, migration compilation, and commit:
 
@@ -74,7 +74,7 @@ feat: thêm kho session phía server
 - Modify: `server/src/app.ts`
 - Modify: `server/src/app.test.ts`
 
-- [ ] **Step 1: Write failing middleware tests**
+- [x] **Step 1: Write failing middleware tests**
 
 Prove:
 
@@ -85,17 +85,17 @@ Prove:
 - trusted configured origins pass; safe methods remain usable;
 - cookie parse/clear options match in development and production.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
-- [ ] **Step 3: Implement session-cookie middleware**
+- [x] **Step 3: Implement session-cookie middleware**
 
 Use `HttpOnly`, `SameSite=Lax`, `Path=/`; add `Secure` and the `__Host-` prefix in production. Do not accept bearer JWT as a fallback.
 
-- [ ] **Step 4: Add origin enforcement**
+- [x] **Step 4: Add origin enforcement**
 
 Run the trusted-origin middleware before state-changing routes. Reject missing or non-allowlisted browser origins while permitting health checks and safe methods. CORS remains an independent browser policy.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```text
 refactor: xác thực request bằng session cookie

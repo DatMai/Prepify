@@ -3,7 +3,7 @@ import { bindEvents } from './events';
 import { render } from './render/content';
 import { renderTopics } from './render/sidebar';
 import { loadProgress } from './state/progress';
-import { auth, adoptToken, restoreSession, isLoggedIn } from './state/auth';
+import { auth, restoreSession, isLoggedIn } from './state/auth';
 import {
   initAuthModal,
   bindAuthBtn,
@@ -129,12 +129,6 @@ async function toggleLanguage(): Promise<void> {
 
 async function init(): Promise<void> {
   const params = new URLSearchParams(window.location.search);
-
-  const oauthToken = params.get('auth_token');
-  if (oauthToken) {
-    adoptToken(oauthToken);
-    window.history.replaceState({}, '', window.location.pathname);
-  }
 
   const oauthError = params.get('oauth_error');
   if (oauthError) {

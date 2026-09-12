@@ -1,8 +1,6 @@
 import type { McqDailyQuestion } from './types';
-import { gradeMcq } from './grader';
 
 export interface McqResult {
-  correct: boolean;
   selectedIdx: number;
 }
 
@@ -35,16 +33,13 @@ export function renderMcqCard(
       card.dataset.answered = '1';
 
       const idx = parseInt(btn.dataset.idx ?? '0', 10);
-      const correct = gradeMcq(idx, q.correctIdx);
 
       card.querySelectorAll<HTMLButtonElement>('.daily-opt').forEach((b) => {
         b.disabled = true;
-        const i = parseInt(b.dataset.idx ?? '0', 10);
-        if (i === q.correctIdx) b.classList.add('correct');
-        if (i === idx && !correct) b.classList.add('wrong');
+        if (parseInt(b.dataset.idx ?? '0', 10) === idx) b.classList.add('selected');
       });
 
-      onAnswer({ correct, selectedIdx: idx });
+      onAnswer({ selectedIdx: idx });
     });
   });
 

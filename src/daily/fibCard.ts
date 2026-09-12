@@ -1,11 +1,8 @@
 import type { FibDailyQuestion } from './types';
-import { gradeFib } from './grader';
 import { t } from '../i18n';
 
 export interface FibResult {
-  correct: boolean;
-  allCorrect: boolean;
-  perBlank: boolean[];
+  blanks: string[];
 }
 
 export function renderFibCard(
@@ -16,12 +13,12 @@ export function renderFibCard(
   card.className = 'daily-card daily-fib';
 
   const parts = q.prompt.split('___');
-  const inputIds = q.blanks.map((_, i) => `fib-blank-${q.id}-${i}`);
+  const inputIds = Array.from({ length: q.blankCount }, (_, i) => `fib-blank-${q.id}-${i}`);
 
   let promptHtml = '';
   parts.forEach((part, i) => {
     promptHtml += escHtml(part);
-    if (i < q.blanks.length) {
+    if (i < q.blankCount) {
       promptHtml += `<input
         class="fib-input"
         id="${inputIds[i]}"
@@ -59,38 +56,20 @@ export function renderFibCard(
     if (card.dataset.answered) return;
     card.dataset.answered = '1';
 
-    const perBlank = q.blanks.map((blank, i) => {
+    const blanks = inputIds.map((_, i) => {
       const input = card.querySelector<HTMLInputElement>(`#${inputIds[i]}`);
-      return input ? gradeFib(input.value, blank) : false;
-    });
-    const allCorrect = perBlank.every(Boolean);
-
-    // Highlight inputs
-    perBlank.forEach((ok, i) => {
-      const input = card.querySelector<HTMLInputElement>(`#${inputIds[i]}`);
-      if (input) {
-        input.disabled = true;
-        input.classList.add(ok ? 'fib-correct' : 'fib-wrong');
-      }
+      return input?.value ?? '';
     });
 
-    // Feedback
-    const feedback = card.querySelector<HTMLElement>(`#fib-feedback-${q.id}`);
-    if (feedback) {
-      feedback.hidden = false;
-      if (allCorrect) {
-        feedback.className = 'fib-feedback fib-feedback-ok';
-        feedback.textContent = t('fib.correct');
-      } else {
-        feedback.className = 'fib-feedback fib-feedback-err';
-        feedback.textContent = t('fib.wrong', { answer: q.blanks.join(', ') });
-      }
-    }
+    blanks.forEach((_, i) => {
+      const input = card.querySelector<HTMLInputElement>(`#${inputIds[i]}`);
+      if (input) input.disabled = true;
+    });
 
     const submitBtn = card.querySelector<HTMLButtonElement>(`#fib-submit-${q.id}`);
     if (submitBtn) submitBtn.disabled = true;
 
-    onAnswer({ correct: allCorrect, allCorrect, perBlank });
+    onAnswer({ blanks });
   });
 
   // Enter key on last input submits

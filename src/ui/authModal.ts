@@ -4,7 +4,7 @@ import { loadProgress, state } from '../state/progress';
 import { render } from '../render/content';
 import { showToast } from './toast';
 import { checkStrength } from './passwordStrength';
-import { t, securityQuestions } from '../i18n';
+import { t } from '../i18n';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
@@ -13,13 +13,11 @@ export function setProfileOpener(fn: () => void): void {
   _openProfile = fn;
 }
 
-type Mode = 'login' | 'register' | 'forgot' | 'forgot-question' | 'reset';
+type Mode = 'login' | 'register' | 'forgot' | 'reset';
 
 let overlay: HTMLElement | null = null;
 let onAuthChange: (() => void) | null = null;
 
-let forgotEmail = '';
-let forgotQuestion = '';
 let _pendingResetToken = '';
 
 export function setPendingResetToken(token: string): void {
@@ -45,15 +43,6 @@ export function initAuthModal(onChange: () => void): void {
     }
     if (el.id === 'newPassword' && mode === 'reset') {
       updateStrengthMeter(el.value);
-    }
-  });
-
-  overlay.addEventListener('change', (e) => {
-    const el = e.target as HTMLElement;
-    if (el.id === 'secQuestion') {
-      const val = (el as HTMLSelectElement).value;
-      const answerField = overlay!.querySelector('#secAnswerField') as HTMLElement | null;
-      if (answerField) answerField.style.display = val ? 'block' : 'none';
     }
   });
 
@@ -87,20 +76,8 @@ export function buildModal(mode: Mode): string {
       <div class="modal-error" id="authError"></div>
       <div class="forgot-methods">
         <button id="forgotByEmailBtn">${t('auth.sendResetLink')}</button>
-        <button id="forgotByQuestionBtn">${t('auth.useSecQuestion')}</button>
       </div>
       <div class="modal-switch"><a id="goLogin">${t('auth.backToLogin')}</a></div>
-    `);
-  }
-
-  if (mode === 'forgot-question') {
-    return wrap(`
-      <h2>${t('auth.secQuestionTitle')}</h2>
-      <div class="sq-display">${forgotQuestion}</div>
-      <div class="field"><label>${t('auth.answerLabel')}</label><input id="sqAnswer" type="text" placeholder="${t('auth.answerPlaceholder')}" autocomplete="off" /></div>
-      <div class="modal-error" id="authError"></div>
-      <button class="modal-submit" id="authSubmit">${t('auth.confirmBtn')}</button>
-      <div class="modal-switch"><a id="goForgot">${t('auth.back')}</a></div>
     `);
   }
 
@@ -116,7 +93,6 @@ export function buildModal(mode: Mode): string {
   }
 
   const isLogin = mode === 'login';
-  const questions = securityQuestions();
   return wrap(`
     <h2>${isLogin ? t('auth.loginTitle') : t('auth.registerTitle')}</h2>
     <p>${isLogin ? t('auth.loginTagline') : t('auth.registerTagline')}</p>
@@ -138,24 +114,7 @@ export function buildModal(mode: Mode): string {
     ${!isLogin ? `<div class="field"><label>${t('auth.displayNameLabel')}</label><input id="authName" placeholder="${t('auth.displayNamePlaceholder')}" autocomplete="name" /></div>` : ''}
     <div class="field"><label>${t('auth.emailLabel')}</label><input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div>
     <div class="field"><label>${t('auth.passwordLabel')}</label><input id="authPass" type="password" placeholder="${isLogin ? '••••••' : t('auth.passwordPlaceholder')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" /></div>
-    ${
-      !isLogin
-        ? `
-    ${strengthMeterHtml()}
-    <div class="security-q-section">
-      <div class="sq-label">${t('auth.secQuestionLabel')} <span>${t('auth.secQuestionOptional')}</span></div>
-      <select id="secQuestion">
-        <option value="">${t('auth.selectQuestion')}</option>
-        ${questions.map((q) => `<option value="${q}">${q}</option>`).join('')}
-      </select>
-      <div id="secAnswerField" style="display:none" class="field">
-        <label>${t('auth.answerLabel')}</label>
-        <input id="secAnswer" type="text" placeholder="${t('auth.answerPlaceholder')}" autocomplete="off" />
-      </div>
-    </div>
-    `
-        : ''
-    }
+    ${!isLogin ? strengthMeterHtml() : ''}
     ${isLogin ? `<div class="forgot-link"><a id="goForgot">${t('auth.forgotLink')}</a></div>` : ''}
     <div class="modal-error" id="authError"></div>
     <button class="modal-submit" id="authSubmit" ${!isLogin ? 'disabled' : ''}>${isLogin ? t('auth.loginBtn') : t('auth.registerBtn')}</button>
@@ -211,11 +170,6 @@ function bindModal(): void {
       void handleForgotByEmail();
       return;
     }
-
-    if (el.id === 'forgotByQuestionBtn') {
-      void handleForgotByQuestion();
-      return;
-    }
   });
 
   overlay.addEventListener('keydown', (e) => {
@@ -253,28 +207,6 @@ async function handleForgotByEmail(): Promise<void> {
   }
 }
 
-async function handleForgotByQuestion(): Promise<void> {
-  if (!overlay) return;
-  const email = (overlay.querySelector('#forgotEmail') as HTMLInputElement)?.value.trim();
-  const errEl = overlay.querySelector('#authError') as HTMLElement;
-  const btn = overlay.querySelector('#forgotByQuestionBtn') as HTMLButtonElement;
-  errEl.textContent = '';
-  if (!email) {
-    errEl.textContent = t('err.enterEmail');
-    return;
-  }
-  btn.disabled = true;
-  try {
-    const res = await api.auth.forgotGetQuestion(email);
-    forgotEmail = email;
-    forgotQuestion = res.question;
-    overlay!.innerHTML = buildModal('forgot-question');
-  } catch (err) {
-    errEl.textContent = err instanceof ApiError ? err.message : t('err.generic');
-    btn.disabled = false;
-  }
-}
-
 async function submitAuth(): Promise<void> {
   if (!overlay) return;
   const mode = overlay.querySelector('.modal')?.getAttribute('data-mode') as Mode;
@@ -283,24 +215,6 @@ async function submitAuth(): Promise<void> {
   if (!errEl || !btn) return;
   errEl.textContent = '';
   btn.disabled = true;
-
-  if (mode === 'forgot-question') {
-    const answer = (overlay.querySelector('#sqAnswer') as HTMLInputElement)?.value.trim();
-    if (!answer) {
-      errEl.textContent = t('err.enterAnswer');
-      btn.disabled = false;
-      return;
-    }
-    try {
-      const res = await api.auth.forgotVerifyQuestion(forgotEmail, answer);
-      _pendingResetToken = res.resetToken;
-      overlay!.innerHTML = buildModal('reset');
-    } catch (err) {
-      errEl.textContent = err instanceof ApiError ? err.message : t('err.generic');
-      btn.disabled = false;
-    }
-    return;
-  }
 
   if (mode === 'reset') {
     const newPass = (overlay.querySelector('#newPassword') as HTMLInputElement)?.value;
@@ -332,7 +246,7 @@ async function submitAuth(): Promise<void> {
         ? await api.auth.login(email, pass)
         : await api.auth.register(email, pass, name || undefined);
 
-    setSession(res.token, res.user);
+    setSession(res.user);
     hideModal();
     updateAuthBtn();
     onAuthChange?.();
@@ -349,11 +263,6 @@ async function submitAuth(): Promise<void> {
     localStorage.removeItem('quiz:progress');
 
     if (mode === 'register') {
-      const secQ = (overlay.querySelector('#secQuestion') as HTMLSelectElement)?.value;
-      const secA = (overlay.querySelector('#secAnswer') as HTMLInputElement)?.value.trim();
-      if (secQ && secA) {
-        await api.auth.setSecurityQuestion(secQ, secA).catch(() => {});
-      }
       showToast(t('ok.registered'), 'ok');
     }
   } catch (err) {
@@ -379,10 +288,17 @@ export function updateAuthBtn(): void {
   if (!btn) return;
   if (auth.user) {
     const name = auth.user.displayName ?? auth.user.email.split('@')[0];
-    const avatarId = auth.user.avatarId ?? 1;
+    const avatarId = Math.min(20, Math.max(1, auth.user.avatarId ?? 1));
     const pad = String(avatarId).padStart(2, '0');
     const streakEl = btn.querySelector('.auth-streak')?.cloneNode(true) ?? null;
-    btn.innerHTML = `<img class="auth-avatar" src="/avatars/av${pad}.svg" alt="" /><span class="auth-name">${name}</span>`;
+    const avatar = document.createElement('img');
+    avatar.className = 'auth-avatar';
+    avatar.src = `/avatars/av${pad}.svg`;
+    avatar.alt = '';
+    const nameElement = document.createElement('span');
+    nameElement.className = 'auth-name';
+    nameElement.textContent = name;
+    btn.replaceChildren(avatar, nameElement);
     if (streakEl) btn.appendChild(streakEl);
     btn.classList.add('logged-in');
     btn.title = t('topbar.viewProfile');
@@ -395,11 +311,21 @@ export function updateAuthBtn(): void {
         banner.className = 'verify-banner';
         document.querySelector('.main')?.prepend(banner);
       }
-      banner.innerHTML = `
-        ${t('verify.message')} <strong>${auth.user.email}</strong>.
-        <button id="resendVerifyBtn">${t('verify.resend')}</button>
-        <button id="dismissVerifyBtn">✕</button>
-      `;
+      const email = document.createElement('strong');
+      email.textContent = auth.user.email;
+      const resend = document.createElement('button');
+      resend.id = 'resendVerifyBtn';
+      resend.textContent = t('verify.resend');
+      const dismiss = document.createElement('button');
+      dismiss.id = 'dismissVerifyBtn';
+      dismiss.textContent = '✕';
+      banner.replaceChildren(
+        document.createTextNode(`${t('verify.message')} `),
+        email,
+        document.createTextNode('. '),
+        resend,
+        dismiss,
+      );
       document.getElementById('resendVerifyBtn')?.addEventListener('click', () => {
         void api.auth
           .resendVerification()
@@ -433,12 +359,16 @@ export function bindAuthBtn(): void {
   });
 }
 
-export function doLogout(onLogout?: () => void): void {
-  clearSession();
-  state.progress = {};
-  const localRaw = localStorage.getItem('quiz:progress');
-  if (localRaw) state.progress = JSON.parse(localRaw) as Record<string, boolean>;
-  onLogout?.();
-  updateAuthBtn();
-  render();
+export async function doLogout(onLogout?: () => void): Promise<void> {
+  try {
+    await api.auth.logout();
+  } finally {
+    clearSession();
+    state.progress = {};
+    const localRaw = localStorage.getItem('quiz:progress');
+    if (localRaw) state.progress = JSON.parse(localRaw) as Record<string, boolean>;
+    onLogout?.();
+    updateAuthBtn();
+    render();
+  }
 }

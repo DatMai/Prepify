@@ -26,7 +26,3 @@ export function t(key: string, vars?: Record<string, string | number>): string {
   }
   return str;
 }
-
-export function securityQuestions(): string[] {
-  return [0, 1, 2, 3, 4, 5].map((i) => t(`sq.${i}`));
-}

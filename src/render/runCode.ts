@@ -1,35 +1,20 @@
-function fmt(v: unknown): string {
-  try {
-    if (typeof v === 'object') return JSON.stringify(v);
-    return String(v);
-  } catch {
-    return String(v);
-  }
-}
+import { t } from '../i18n';
+import { executeCode } from './codeRunner';
 
-export function runCode(cid: string): void {
+export async function runCode(cid: string): Promise<void> {
   const codeEl = document.getElementById('code_' + cid);
   const outEl = document.getElementById('out_' + cid);
   if (!codeEl || !outEl) return;
 
   const src = codeEl.textContent || '';
-  const logs: string[] = [];
-  const fakeConsole = {
-    log: (...a: unknown[]) => logs.push(a.map(fmt).join(' ')),
-    error: (...a: unknown[]) => logs.push(a.map(fmt).join(' ')),
-    warn: (...a: unknown[]) => logs.push(a.map(fmt).join(' ')),
-    info: (...a: unknown[]) => logs.push(a.map(fmt).join(' ')),
-  };
-
   outEl.classList.remove('err');
-  try {
-    const fn = new Function('console', src);
-    fn(fakeConsole);
-    outEl.textContent = logs.length ? logs.join('\n') : t('runtime.noLogs');
-    outEl.classList.add('show');
-  } catch (err) {
-    outEl.textContent = '✗ ' + (err instanceof Error ? err.message : String(err));
-    outEl.classList.add('show', 'err');
-  }
+  outEl.textContent = '…';
+  outEl.classList.add('show');
+  const result = await executeCode(src);
+  outEl.textContent = result.error
+    ? `✗ ${result.error}`
+    : result.logs.length
+      ? result.logs.join('\n')
+      : t('runtime.noLogs');
+  outEl.classList.toggle('err', Boolean(result.error));
 }
-import { t } from '../i18n';

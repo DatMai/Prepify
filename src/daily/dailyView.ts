@@ -45,6 +45,7 @@ export async function openDaily(): Promise<void> {
 
     session = {
       date: data.date,
+      challenge: data.challenge,
       questions: data.questions,
       answers: [],
       currentIdx: 0,
@@ -52,7 +53,8 @@ export async function openDaily(): Promise<void> {
 
     renderQuestion();
   } catch {
-    overlay!.innerHTML = `<div class="daily-error">${t('daily.loadError')}<br><button class="daily-close-btn" onclick="document.getElementById('dailyOverlay').hidden=true">${t('daily.close')}</button></div>`;
+    overlay!.innerHTML = `<div class="daily-error">${t('daily.loadError')}<br><button class="daily-close-btn" id="dailyLoadClose">${t('daily.close')}</button></div>`;
+    overlay!.querySelector('#dailyLoadClose')?.addEventListener('click', closeDaily);
   }
 }
 
@@ -92,8 +94,8 @@ function renderQuestion(): void {
   const cardArea = overlay.querySelector<HTMLElement>('#dailyCardArea');
   const nextBtn = overlay.querySelector<HTMLButtonElement>('#dailyNext');
 
-  function onAnswered(correct: boolean): void {
-    session!.answers.push({ questionId: q.id, correct });
+  function onAnswered(answer: DailySession['answers'][number]): void {
+    session!.answers.push(answer);
     if (nextBtn) {
       nextBtn.disabled = false;
       nextBtn.textContent = currentIdx + 1 >= total ? t('daily.seeResults') : t('daily.next');
@@ -101,10 +103,10 @@ function renderQuestion(): void {
   }
 
   if (q.type === 'mcq') {
-    const card = renderMcqCard(q, (r) => onAnswered(r.correct));
+    const card = renderMcqCard(q, (result) => onAnswered({ questionId: q.id, ...result }));
     cardArea?.appendChild(card);
   } else if (q.type === 'fib') {
-    const card = renderFibCard(q, (r) => onAnswered(r.allCorrect));
+    const card = renderFibCard(q, (result) => onAnswered({ questionId: q.id, ...result }));
     cardArea?.appendChild(card);
     setTimeout(() => {
       (card.querySelector('.fib-input') as HTMLElement | null)?.focus();
@@ -125,15 +127,21 @@ function renderQuestion(): void {
 async function showSummary(): Promise<void> {
   if (!overlay || !session) return;
 
-  const correct = session.answers.filter((a) => a.correct).length;
-  const total = session.questions.length;
+  let correct = 0;
+  let total = session.questions.length;
   const loggedIn = isLoggedIn();
 
   let streakHtml: string;
 
   if (loggedIn) {
     try {
-      const result = await completeDailyChallenge({ date: session.date, score: correct, total });
+      const result = await completeDailyChallenge({
+        date: session.date,
+        challenge: session.challenge,
+        answers: session.answers,
+      });
+      correct = result.score;
+      total = result.total;
       const streakAfter = result.streak.current;
       streakState.current = streakAfter;
       streakState.longest = Math.max(streakState.longest, result.streak.longest);

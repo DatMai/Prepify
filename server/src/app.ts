@@ -7,6 +7,7 @@ import pinoHttp from 'pino-http';
 import type { AppConfig } from './config/env';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { requestId } from './middleware/requestId';
+import { trustedOrigin } from './middleware/trustedOrigin';
 
 export interface AppDependencies {
   config: AppConfig;
@@ -42,7 +43,15 @@ export function createApp({ config, logger, registerRoutes, readiness }: AppDepe
       customProps: (_req, res) => ({ requestId: res.locals.requestId }),
     }),
   );
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          workerSrc: ["'self'", 'blob:'],
+        },
+      },
+    }),
+  );
   app.use(
     cors({
       credentials: true,
@@ -57,6 +66,7 @@ export function createApp({ config, logger, registerRoutes, readiness }: AppDepe
   );
   app.use(express.json({ limit: '256kb' }));
   app.use(passport.initialize());
+  app.use(trustedOrigin(config.corsOrigins));
 
   registerRoutes(app);
 

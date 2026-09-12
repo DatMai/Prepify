@@ -1,5 +1,6 @@
 import type { Block } from '../types/quiz';
 import { esc } from './escape';
+import { highlightCode } from './highlight';
 
 export function blockHTML(b: Block, qid: string, bIdx: number): string {
   if (b.type === 'text') {
@@ -22,7 +23,7 @@ export function blockHTML(b: Block, qid: string, bIdx: number): string {
     const runBtn = runnable
       ? `<button class="run-btn" data-cid="${cid}">▶ Run</button>`
       : `<span>${esc(b.lang)}</span>`;
-    return `<div class="blk"><pre class="code"><span class="clabel"><span>${esc(b.lang)}</span>${runBtn}</span><code id="code_${cid}">${esc(b.text)}</code></pre><div class="run-out" id="out_${cid}"></div></div>`;
+    return `<div class="blk"><pre class="code"><span class="clabel"><span>${esc(b.lang)}</span>${runBtn}</span><code id="code_${cid}">${highlightCode(b.text, b.lang)}</code></pre><div class="run-out" id="out_${cid}"></div></div>`;
   }
   return '';
 }

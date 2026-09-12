@@ -38,6 +38,30 @@ pre.code code {
   white-space: pre;
 }
 
+/* VS Code Dark+ inspired syntax tokens */
+pre.code .tok-com {
+  color: #6a9955;
+  font-style: italic;
+}
+pre.code .tok-kw {
+  color: #569cd6;
+}
+pre.code .tok-str {
+  color: #ce9178;
+}
+pre.code .tok-num {
+  color: #b5cea8;
+}
+pre.code .tok-built {
+  color: #4ec9b0;
+}
+pre.code .tok-fn {
+  color: #dcdcaa;
+}
+pre.code .tok-id {
+  color: #9cdcfe;
+}
+
 .run-btn {
   background: var(--accent2);
   color: #04121f;

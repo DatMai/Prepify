@@ -15,6 +15,24 @@ describe('loadConfig', () => {
     expect(config.port).toBe(3001);
     expect(config.host).toBe('127.0.0.1');
     expect(config.corsOrigins).toEqual(['http://localhost:5173']);
+    expect(config.session).toEqual({
+      cookieName: 'prepify_session',
+      secure: false,
+      ttlHours: 168,
+    });
+    expect(config.timeZone).toBe('Asia/Ho_Chi_Minh');
+  });
+
+  it('uses a host-only secure cookie in production', () => {
+    const config = loadConfig({ ...valid, NODE_ENV: 'production' });
+
+    expect(config.session.cookieName).toBe('__Host-prepify_session');
+    expect(config.session.secure).toBe(true);
+  });
+
+  it('rejects session lifetimes outside one hour to thirty days', () => {
+    expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '0' })).toThrow(/SESSION_TTL_HOURS/);
+    expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '721' })).toThrow(/SESSION_TTL_HOURS/);
   });
 
   it('fails before startup when required secrets are missing', () => {

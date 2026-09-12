@@ -13,7 +13,7 @@ Prepify is a private-first technical interview study app with a public reading h
 - Frontend: Vite + vanilla TypeScript.
 - Backend: Express + TypeScript.
 - Database: PostgreSQL.
-- Authentication: JWT and bcrypt.
+- Authentication: opaque PostgreSQL sessions in HttpOnly cookies and bcrypt.
 - Human setup and current commands: `README.md`.
 
 ## Source of truth

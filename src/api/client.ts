@@ -4,15 +4,8 @@ import { t, type Lang } from '../i18n';
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
-function token(): string | null {
-  return localStorage.getItem('quiz:token');
-}
-
 function authHeaders(): HeadersInit {
-  const t = token();
-  return t
-    ? { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
+  return { 'Content-Type': 'application/json' };
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -23,9 +16,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const res = await fetch(BASE + path, {
       ...options,
       headers: { ...authHeaders(), ...options?.headers },
+      credentials: 'include',
       signal: options?.signal ?? controller.signal,
     });
-    const json = (await res.json()) as T;
+    const json = (res.status === 204 ? undefined : await res.json()) as T;
     if (!res.ok) {
       const body = json as { error?: string; code?: string };
       const key = body.code ? `api.${body.code}` : '';
@@ -66,7 +60,6 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
-  token: string;
   user: AuthUser;
 }
 
@@ -84,7 +77,11 @@ export const api = {
         body: JSON.stringify({ email, password }),
       }),
 
+    session: () => request<{ user: AuthUser }>('/auth/session'),
+
     me: () => request<AuthUser>('/auth/me'),
+
+    logout: () => request<void>('/auth/session', { method: 'DELETE' }),
 
     updateProfile: (data: { displayName?: string; location?: string; avatarId?: number }) =>
       request<{ displayName: string | null; location: string | null; avatarId: number }>(
@@ -98,28 +95,10 @@ export const api = {
     resendVerification: () =>
       request<{ ok: boolean }>('/auth/resend-verification', { method: 'POST' }),
 
-    setSecurityQuestion: (question: string, answer: string) =>
-      request<{ ok: boolean }>('/auth/security-question/set', {
-        method: 'POST',
-        body: JSON.stringify({ question, answer }),
-      }),
-
     forgotByEmail: (email: string) =>
       request<{ ok: boolean; message: string }>('/auth/forgot/email', {
         method: 'POST',
         body: JSON.stringify({ email }),
-      }),
-
-    forgotGetQuestion: (email: string) =>
-      request<{ question: string }>('/auth/forgot/question', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      }),
-
-    forgotVerifyQuestion: (email: string, answer: string) =>
-      request<{ resetToken: string }>('/auth/forgot/question/verify', {
-        method: 'POST',
-        body: JSON.stringify({ email, answer }),
       }),
 
     resetPassword: (token: string, newPassword: string) =>
