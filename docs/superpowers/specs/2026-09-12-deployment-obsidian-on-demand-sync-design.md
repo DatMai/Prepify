@@ -75,6 +75,8 @@ The Journey and Daily entry points show:
 Entering Journey or Daily does not silently scan the vault. The user explicitly
 starts synchronization. When the bridge is offline, existing projected content
 remains readable, but mutations that could conflict with Obsidian are disabled.
+The database-owned Daily quiz remains usable; completing it creates a pending
+summary for the next vault synchronization rather than blocking study.
 
 ### Deployed API
 
