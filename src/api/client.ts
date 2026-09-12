@@ -180,12 +180,7 @@ export const api = {
   review: {
     due: () => apiRequest<{ count: number; items: ReviewSchedule[] }>('/review/due'),
 
-    grade: (
-      topic: string,
-      sectionIdx: number,
-      questionIdx: number,
-      quality: ReviewQuality,
-    ) =>
+    grade: (topic: string, sectionIdx: number, questionIdx: number, quality: ReviewQuality) =>
       apiRequest<{ schedule: ReviewSchedule }>('/review/grade', {
         method: 'POST',
         body: JSON.stringify({ topic, sectionIdx, questionIdx, quality }),

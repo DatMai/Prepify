@@ -27,10 +27,7 @@ describe('createReviewRepository', () => {
       dueAt: '2026-09-15T00:00:00.000Z',
     });
 
-    expect(query).toHaveBeenCalledWith(
-      expect.stringContaining('ON CONFLICT'),
-      expect.any(Array),
-    );
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('ON CONFLICT'), expect.any(Array));
     expect(result).toMatchObject({ topic: 'javascript', sectionIdx: 0, intervalDays: 3 });
   });
 

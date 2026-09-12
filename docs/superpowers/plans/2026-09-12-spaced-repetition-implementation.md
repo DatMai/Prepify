@@ -1,6 +1,6 @@
 # Spaced Repetition Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a review schedule to every quiz interaction and an Ôn tập queue that feeds the existing streak.
 
@@ -34,7 +34,7 @@
 
 - Produces: `type ReviewQuality = 'again' | 'hard' | 'good'`, `interface ReviewSchedule { topic, sectionIdx, questionIdx, intervalDays, ease, reviewCount, dueAt }` and `applyGrade(current: ReviewSchedule | null, quality: ReviewQuality, dueAtIso: string): ReviewSchedule`. `dueAtIso` is passed in so the unit stays pure (the route computes it with `dateInTimeZone`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `server/src/modules/review/scheduler.test.ts`:
 
@@ -93,12 +93,12 @@ describe('applyGrade', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm --prefix server test -- src/modules/review/scheduler.test.ts`
 Expected: FAIL with `Cannot find module './scheduler'`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `server/src/modules/review/scheduler.ts`:
 
@@ -160,12 +160,12 @@ export function applyGrade(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm --prefix server test -- src/modules/review/scheduler.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/modules/review/scheduler.ts server/src/modules/review/scheduler.test.ts
@@ -183,11 +183,11 @@ git commit -m "feat: thuật toán lịch ôn tập SM-2 phía server"
 
 - Produces: `type ReviewQuality`, `interface ReviewSchedule`, `applyGrade(current, quality, dueAtIso)` — same names and math as Task 1 so both sides stay compatible.
 
-- [ ] **Step 1: Copy Task 1's failing test into `src/review/scheduler.test.ts`** (same assertions; frontend suite runs jsdom but this unit is pure).
-- [ ] **Step 2: Run to verify RED** — `npm test -- src/review/scheduler.test.ts` → FAIL missing module.
-- [ ] **Step 3: Copy Task 1's `scheduler.ts` implementation into `src/review/scheduler.ts`** (identical math, duplicated deliberately for the guest path).
-- [ ] **Step 4: Run to verify GREEN** — `npm test -- src/review/scheduler.test.ts` → PASS.
-- [ ] **Step 5: Commit** — `git add src/review && git commit -m "feat: bản sao scheduler cho guest"`.
+- [x] **Step 1: Copy Task 1's failing test into `src/review/scheduler.test.ts`** (same assertions; frontend suite runs jsdom but this unit is pure).
+- [x] **Step 2: Run to verify RED** — `npm test -- src/review/scheduler.test.ts` → FAIL missing module.
+- [x] **Step 3: Copy Task 1's `scheduler.ts` implementation into `src/review/scheduler.ts`** (identical math, duplicated deliberately for the guest path).
+- [x] **Step 4: Run to verify GREEN** — `npm test -- src/review/scheduler.test.ts` → PASS.
+- [x] **Step 5: Commit** — `git add src/review && git commit -m "feat: bản sao scheduler cho guest"`.
 
 ### Task 3: Migration and review repository
 
@@ -205,7 +205,7 @@ git commit -m "feat: thuật toán lịch ôn tập SM-2 phía server"
   - `listDue(userId: string, nowIso: string): Promise<ReviewScheduleRow[]>`
   - `ReviewScheduleRow = { topic, sectionIdx, questionIdx, intervalDays, ease, reviewCount, dueAt }` (camelCase from SQL aliases).
 
-- [ ] **Step 1: Write migration SQL**
+- [x] **Step 1: Write migration SQL**
 
 `server/migrations/009_add_review_schedules.sql`:
 
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS review_schedules (
 CREATE INDEX IF NOT EXISTS idx_review_due ON review_schedules (user_id, due_at);
 ```
 
-- [ ] **Step 2: Write the failing repository test**
+- [x] **Step 2: Write the failing repository test**
 
 `server/src/modules/review/reviewRepository.test.ts`:
 
@@ -282,10 +282,10 @@ describe('createReviewRepository', () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify RED** — `npm --prefix server test -- src/modules/review/reviewRepository.test.ts` → FAIL missing module.
-- [ ] **Step 4: Implement `reviewRepository.ts`** with parameterized SQL matching the assertions (aliases `section_idx AS "sectionIdx"`, etc.).
-- [ ] **Step 5: Run to verify GREEN** and also run `npm --prefix server run migrate` against the local database.
-- [ ] **Step 6: Commit** — `git add server/migrations/009_add_review_schedules.sql server/src/modules/review && git commit -m "feat: migration và repository lịch ôn tập"`.
+- [x] **Step 3: Run to verify RED** — `npm --prefix server test -- src/modules/review/reviewRepository.test.ts` → FAIL missing module.
+- [x] **Step 4: Implement `reviewRepository.ts`** with parameterized SQL matching the assertions (aliases `section_idx AS "sectionIdx"`, etc.).
+- [x] **Step 5: Run to verify GREEN** and also run `npm --prefix server run migrate` against the local database.
+- [x] **Step 6: Commit** — `git add server/migrations/009_add_review_schedules.sql server/src/modules/review && git commit -m "feat: migration và repository lịch ôn tập"`.
 
 ### Task 4: Review routes and composition wiring
 
@@ -300,7 +300,7 @@ describe('createReviewRepository', () => {
 - Consumes: `ReviewRepository` from Task 3, `applyGrade` from Task 1, `dateInTimeZone` from `../modules/learning/streak`, `requireAuth`, a `recordStudyDay(userId)` callback.
 - Produces: `createReviewRouter({ repo, requireAuth, timeZone, recordStudyDay })` mounted at `/api/v1/review`.
 
-- [ ] **Step 1: Write the failing route test**
+- [x] **Step 1: Write the failing route test**
 
 `server/src/routes/review.test.ts`:
 
@@ -379,8 +379,8 @@ describe('review routes', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify RED** — `npm --prefix server test -- src/routes/review.test.ts` → FAIL missing module.
-- [ ] **Step 3: Implement `server/src/routes/review.ts`**
+- [x] **Step 2: Run to verify RED** — `npm --prefix server test -- src/routes/review.test.ts` → FAIL missing module.
+- [x] **Step 3: Implement `server/src/routes/review.ts`**
 
 Key logic: `GET /due` → `repo.listDue(userId, nowIso)` → `{ count: items.length, items }`.
 `POST /grade` → validate `topic` string, integer indices ≥ 0, `quality` in the enum (else 400); `now = new Date()`; `today = dateInTimeZone(now, deps.timeZone)`; compute `dueIso = addDaysIso(today, interval)` (helper: parse `today`, add `intervalDays` calendar days, return ISO); load `repo.find`; `applyGrade(found, quality, dueIso)`; `repo.upsert({ userId, ...schedule })`; `await deps.recordStudyDay(userId)`; respond `{ schedule }`.
@@ -394,9 +394,9 @@ function addDaysIso(todayIso: string, days: number): string {
 }
 ```
 
-- [ ] **Step 4: Run to verify GREEN**, then run the full server suite.
-- [ ] **Step 5: Wire `index.ts`** — build `createReviewRouter({ repo: createReviewRepository({ query: pool.query.bind(pool) }), requireAuth, timeZone: config.timeZone, recordStudyDay: (userId) => recordStudyDay(userId, pool, config.timeZone) })` and mount `app.use('/api/v1/review', identity.reviewRoutes)` inside `registerRoutes`.
-- [ ] **Step 6: Typecheck + full server suite**, then commit — `git commit -m "feat: endpoint ôn tập và ghi nhận study day"`.
+- [x] **Step 4: Run to verify GREEN**, then run the full server suite.
+- [x] **Step 5: Wire `index.ts`** — build `createReviewRouter({ repo: createReviewRepository({ query: pool.query.bind(pool) }), requireAuth, timeZone: config.timeZone, recordStudyDay: (userId) => recordStudyDay(userId, pool, config.timeZone) })` and mount `app.use('/api/v1/review', identity.reviewRoutes)` inside `registerRoutes`.
+- [x] **Step 6: Typecheck + full server suite**, then commit — `git commit -m "feat: endpoint ôn tập và ghi nhận study day"`.
 
 ### Task 5: Frontend review state and API client
 
@@ -415,12 +415,12 @@ function addDaysIso(todayIso: string, days: number): string {
   - `api.review.grade(topic, sectionIdx, questionIdx, quality): Promise<{ schedule: ReviewSchedule }>` → `POST /review/grade`
   - `src/state/review.ts`: `loadReviewState()`, `dueCount()`, `gradeQuestion(topic, sectionIdx, questionIdx, quality): Promise<ReviewSchedule | null>` (server when logged in; local `applyGrade` + `localStorage` key `quiz:review` when guest), and `reviewState` mirroring `progress.ts`.
 
-- [ ] **Step 1: Add failing client tests** — `api.review.due()` hits `http://localhost:3001/api/v1/review/due`; `api.review.grade(...)` POSTs with body `{ topic, sectionIdx, questionIdx, quality }`.
-- [ ] **Step 2: Run to verify RED**.
-- [ ] **Step 3: Implement `api.review.*` in `client.ts`**.
-- [ ] **Step 4: Write failing state tests** (jsdom + localStorage stub + fetch mock): guest grade updates localStorage schedule with interval 7 for `good`; logged-in grade calls `api.review.grade` and replaces local state with the response.
-- [ ] **Step 5: Implement `src/state/review.ts`** following `src/state/progress.ts` patterns (`isLoggedIn()` branch).
-- [ ] **Step 6: Run to verify GREEN; commit** — `git commit -m "feat: state ôn tập và API client"`.
+- [x] **Step 1: Add failing client tests** — `api.review.due()` hits `http://localhost:3001/api/v1/review/due`; `api.review.grade(...)` POSTs with body `{ topic, sectionIdx, questionIdx, quality }`.
+- [x] **Step 2: Run to verify RED**.
+- [x] **Step 3: Implement `api.review.*` in `client.ts`**.
+- [x] **Step 4: Write failing state tests** (jsdom + localStorage stub + fetch mock): guest grade updates localStorage schedule with interval 7 for `good`; logged-in grade calls `api.review.grade` and replaces local state with the response.
+- [x] **Step 5: Implement `src/state/review.ts`** following `src/state/progress.ts` patterns (`isLoggedIn()` branch).
+- [x] **Step 6: Run to verify GREEN; commit** — `git commit -m "feat: state ôn tập và API client"`.
 
 ### Task 6: Hook grading into the existing quiz flow
 
@@ -434,9 +434,9 @@ function addDaysIso(todayIso: string, days: number): string {
 - Consumes: `gradeQuestion` from Task 5.
 - Produces: no new public API.
 
-- [ ] **Step 1:** In `quizView.ts` MCQ answer branch (where `isCorrect` is computed): call `void gradeQuestion(topicKey, sectionIdx, questionIdx, isCorrect ? 'good' : 'again')`.
-- [ ] **Step 2:** In `handleFlashcardGrade(grade)`: call `void gradeQuestion(topicKey, sectionIdx, questionIdx, grade === 3 ? 'good' : grade === 2 ? 'hard' : 'again')`.
-- [ ] **Step 3:** Run frontend suite + typecheck; commit — `git commit -m "feat: móc chấm điểm quiz vào lịch ôn tập"`.
+- [x] **Step 1:** In `quizView.ts` MCQ answer branch (where `isCorrect` is computed): call `void gradeQuestion(topicKey, sectionIdx, questionIdx, isCorrect ? 'good' : 'again')`.
+- [x] **Step 2:** In `handleFlashcardGrade(grade)`: call `void gradeQuestion(topicKey, sectionIdx, questionIdx, grade === 3 ? 'good' : grade === 2 ? 'hard' : 'again')`.
+- [x] **Step 3:** Run frontend suite + typecheck; commit — `git commit -m "feat: móc chấm điểm quiz vào lịch ôn tập"`.
 
 ### Task 7: Review UI — topbar button, overlay, copy, styles
 
@@ -465,11 +465,11 @@ function addDaysIso(todayIso: string, days: number): string {
 - `review.summary`: `Đã ôn {done} câu, còn {left} câu.` / `Reviewed {done}, {left} left.`
 - `review.close`: `Đóng` / `Close`
 
-- [ ] **Step 1: Write the failing view test** (dynamic import + localStorage stub like `feedView.test.ts`): renders due cards with escaped titles; clicking `review.again` calls `gradeQuestion` and advances; empty state renders `review.empty`; summary renders `review.summary` with counts.
-- [ ] **Step 2: Run to verify RED.**
-- [ ] **Step 3: Implement `reviewView.ts`** — overlay markup: `.review-overlay`, `.review-card`, `.review-question`, `.review-answer`, `.review-grade-btn[data-grade]`; keyboard 1/2/3 mirrors buttons.
-- [ ] **Step 4: Add `#reviewBtn` to `index.html` topbar next to `#dailyBtn`; import `review.css` in `main.css`; wire button and overlay in `src/main.ts` (refresh badge after login and after grading).
-- [ ] **Step 5: Run frontend suite + typecheck + build; commit** — `git commit -m "feat: giao diện ôn tập với badge và overlay"`.
+- [x] **Step 1: Write the failing view test** (dynamic import + localStorage stub like `feedView.test.ts`): renders due cards with escaped titles; clicking `review.again` calls `gradeQuestion` and advances; empty state renders `review.empty`; summary renders `review.summary` with counts.
+- [x] **Step 2: Run to verify RED.**
+- [x] **Step 3: Implement `reviewView.ts`** — overlay markup: `.review-overlay`, `.review-card`, `.review-question`, `.review-answer`, `.review-grade-btn[data-grade]`; keyboard 1/2/3 mirrors buttons.
+- [x] **Step 4: Add `#reviewBtn` to `index.html` topbar next to `#dailyBtn`; import `review.css` in `main.css`; wire button and overlay in `src/main.ts` (refresh badge after login and after grading).
+- [x] **Step 5: Run frontend suite + typecheck + build; commit** — `git commit -m "feat: giao diện ôn tập với badge và overlay"`.
 
 ### Task 8: Integration verification and documentation
 
@@ -478,16 +478,16 @@ function addDaysIso(todayIso: string, days: number): string {
 - Modify: `README.md` (commands/architecture note about `/api/v1/review`), `docs/superpowers/specs/2026-09-12-spaced-repetition-design.md` if verification differs.
 - Test: none new.
 
-- [ ] **Step 1: Run the full gate** — `npm run check` (format, lint, typechecks, tests, builds, bundle scan, audit).
-- [ ] **Step 2: Manual smoke** on `localhost:5173`: answer an MCQ in quiz mode, open Ôn tập, grade Good, verify the badge clears and `/health/ready` stays 200; verify streak date advances for today.
-- [ ] **Step 3: Update README** with the two new endpoints and the guest-storage note.
-- [ ] **Step 4: Commit** — `git commit -m "docs: cập nhật README cho ôn tập"`.
+- [x] **Step 1: Run the full gate** — `npm run check` (format, lint, typechecks, tests, builds, bundle scan, audit).
+- [x] **Step 2: Manual smoke** on `localhost:5173`: answer an MCQ in quiz mode, open Ôn tập, grade Good, verify the badge clears and `/health/ready` stays 200; verify streak date advances for today.
+- [x] **Step 3: Update README** with the two new endpoints and the guest-storage note.
+- [x] **Step 4: Commit** — `git commit -m "docs: cập nhật README cho ôn tập"`.
 
 ---
 
 ## Verification
 
-- [ ] Server: scheduler + repository + route tests green (26 → 29 files).
-- [ ] Frontend: scheduler + state + view tests green (8 → 12 files).
-- [ ] `npm run check` passes end-to-end.
-- [ ] Manual smoke: MCQ answer → due badge → grade → badge clears → streak recorded.
+- [x] Server: scheduler + repository + route tests green (26 → 29 files).
+- [x] Frontend: scheduler + state + view tests green (8 → 12 files).
+- [x] `npm run check` passes end-to-end.
+- [x] Manual smoke: MCQ answer → due badge → grade → badge clears → streak recorded.
