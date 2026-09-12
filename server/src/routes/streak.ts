@@ -55,11 +55,7 @@ export function createStreakRouter(deps: StreakDependencies): Router {
  * Records a study day using the configured time zone boundary, so the
  * stored date agrees with the `today` used everywhere else in the app.
  */
-export async function recordStudyDay(
-  userId: string,
-  pool: Pool,
-  timeZone: string,
-): Promise<void> {
+export async function recordStudyDay(userId: string, pool: Pool, timeZone: string): Promise<void> {
   const today = dateInTimeZone(new Date(), timeZone);
   await pool.query(
     `INSERT INTO study_days (user_id, activity_date)

@@ -24,6 +24,8 @@ import { showQuizLauncher } from './quiz/launcher';
 import { repaintQuiz } from './quiz/quizView';
 import { getLang, setLang, t, type Lang } from './i18n';
 import { clearLibrary, loadLibrary } from './data/loader';
+import { api } from './api/client';
+import { initFeed, repaintFeed } from './feed/feedView';
 
 function isAdmin(): boolean {
   return auth.user?.role === 'admin';
@@ -98,6 +100,7 @@ function applyLang(): void {
   // Re-render quiz overlay current card if visible
   repaintQuiz();
   repaintJourney();
+  repaintFeed();
 }
 
 let languageSwitchInFlight = false;
@@ -195,6 +198,13 @@ async function init(): Promise<void> {
   });
 
   applyLang();
+  const feedRoot = document.getElementById('feedRoot');
+  if (feedRoot) {
+    initFeed({
+      container: feedRoot,
+      load: async () => (await api.feed.list()).items,
+    });
+  }
   await restoreSession();
   updateAuthBtn();
   updateAccessUI();
