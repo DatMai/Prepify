@@ -38,7 +38,9 @@ Module `server/src/modules/admin/adminRepository.ts` (dependency-injected
 `query`, following `reviewRepository`):
 
 - `stats(): Promise<AdminStats>` where
-  `AdminStats = { totalUsers, totalAdmins, activeSessions, dailyCompletionsToday, reviewDue }`.
+  `AdminStats = { totalUsers, totalAdmins, activeSessions, dailyCompletionsToday }`.
+  (`reviewDue` is added in a follow-up once the spaced-repetition table is
+  merged into `main`.)
 - `listUsers(input: { search: string; limit: number; offset: number })` →
   rows with `id, email, displayName, role, disabled, emailVerifiedAt, lastSeenAt, providers`
   (`providers` is an array of linked OAuth provider names; `lastSeenAt` is the
@@ -65,7 +67,7 @@ Login enforcement in `authService.login`: if `user.disabled`, throw
   `updateAccessUI` mechanism) → opens the `#adminView` section.
 - `src/admin/adminView.ts` renders two tabs:
   - **Dashboard** — stat cards (total users, admins, active sessions, today's
-    completions, review due) and a health dot.
+    completions) and a health dot.
   - **Users** — search box, table rows with email, display name, role select,
     enable/disable toggle (confirm dialog), OAuth provider badges, and last
     active time.
@@ -104,3 +106,4 @@ Login enforcement in `authService.login`: if `user.disabled`, throw
 - Feed source management in PostgreSQL (ADR-003 follow-up).
 - Sessions list UI and one-click revoke.
 - `audit_events` for admin actions (reuse the overhaul plan Task 5 schema).
+- `reviewDue` dashboard stat once `review_schedules` exists in `main`.

@@ -33,7 +33,7 @@
 **Interfaces:**
 
 - Produces `createAdminRepository({ query })` with:
-  - `stats(): Promise<AdminStats>` — `AdminStats = { totalUsers, totalAdmins, activeSessions, dailyCompletionsToday, reviewDue }`
+  - `stats(): Promise<AdminStats>` — `AdminStats = { totalUsers, totalAdmins, activeSessions, dailyCompletionsToday }`
   - `listUsers({ search, limit, offset }): Promise<{ total: number; items: AdminUserRow[] }>`
   - `findById(userId): Promise<AdminUserRow | null>`
   - `setRole(userId, role: 'user' | 'admin'): Promise<void>`
@@ -66,7 +66,6 @@ describe('createAdminRepository', () => {
           total_admins: '2',
           active_sessions: '5',
           daily_completions: '3',
-          review_due: '4',
         },
       ],
     });
@@ -80,7 +79,6 @@ describe('createAdminRepository', () => {
       totalAdmins: 2,
       activeSessions: 5,
       dailyCompletionsToday: 3,
-      reviewDue: 4,
     });
   });
 
@@ -262,7 +260,6 @@ function app(repo, role: 'admin' | 'user' = 'admin') {
 - `admin.totalAdmins`: `Admin` / `Admins`
 - `admin.activeSessions`: `Session hoạt động` / `Active sessions`
 - `admin.dailyToday`: `Hoàn thành hôm nay` / `Completed today`
-- `admin.reviewDue`: `Ôn tập đến hạn` / `Review due`
 - `admin.searchUsers`: `Tìm theo email hoặc tên…` / `Search by email or name…`
 - `admin.role`: `Vai trò` / `Role`
 - `admin.status`: `Trạng thái` / `Status`
