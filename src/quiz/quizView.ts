@@ -2,6 +2,7 @@ import { buildSession } from './session';
 import { renderFlashcard } from './flashcard';
 import { generateMcqData, renderMcq } from './mcq';
 import { toggleProgress, state } from '../state/progress';
+import { gradeQuestion } from '../state/review';
 import { updateGlobalProgress } from '../render/sidebar';
 import { runCode } from '../render/runCode';
 import { DATA } from '../data/loader';
@@ -195,14 +196,28 @@ function handleFlashcardGrade(grade: FlashcardGrade): void {
   if (grade === 3) void toggleProgress(qInfo.progressKey, true);
   else if (grade === 1) void toggleProgress(qInfo.progressKey, false);
 
+  void gradeQuestion(
+    qInfo.topicKey,
+    qInfo.sectionIdx,
+    qInfo.questionIdx,
+    grade === 3 ? 'good' : grade === 2 ? 'hard' : 'again',
+  );
+
   updateNav();
 }
 
 function handleMcqSelect(selectedIdx: number, mcqData: McqData, progressKey: string): void {
   if (!session) return;
+  const qInfo = session.questions[session.currentIdx];
   const isCorrect = selectedIdx === mcqData.correctIdx;
   session.answers[progressKey] = { selectedIdx, correctIdx: mcqData.correctIdx, isCorrect };
   if (isCorrect) void toggleProgress(progressKey, true);
+  void gradeQuestion(
+    qInfo.topicKey,
+    qInfo.sectionIdx,
+    qInfo.questionIdx,
+    isCorrect ? 'good' : 'again',
+  );
   renderCurrentCard();
 }
 

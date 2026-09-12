@@ -93,6 +93,20 @@ Design and implementation records:
 `docs/superpowers/specs/2026-09-12-home-rss-feed-design.md` and
 `docs/superpowers/plans/2026-09-12-home-rss-feed-implementation.md`.
 
+## Spaced repetition
+
+Quiz interactions schedule the question for review with a simplified SM-2
+algorithm (Again / Hard / Good). The Ôn tập button on the topbar shows the
+due count and opens the review overlay.
+
+- `GET /api/v1/review/due` — due schedules for the signed-in user.
+- `POST /api/v1/review/grade` — `{ topic, sectionIdx, questionIdx, quality }`;
+  upserts the schedule and records a study day for the streak.
+- Schedules live in `review_schedules` (migration `009_add_review_schedules.sql`).
+- Guests keep their schedules in `localStorage` and have no streak.
+- Design: `docs/superpowers/specs/2026-09-12-spaced-repetition-design.md`;
+  plan: `docs/superpowers/plans/2026-09-12-spaced-repetition-implementation.md`.
+
 ## Privacy and authorization
 
 - Library and Journey authorization is checked by the server.
