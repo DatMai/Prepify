@@ -10,6 +10,6 @@ dist
 .worktrees/
 coverage/
 server/coverage/
-/content/en/
+/content/
 .continue/
 deepseek-config.yaml
