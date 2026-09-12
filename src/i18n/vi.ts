@@ -343,6 +343,9 @@ export const vi: Record<string, string> = {
   'libAdmin.restore': 'Bỏ lưu trữ',
   'libAdmin.archived': 'Đã lưu trữ',
   'libAdmin.questionCount': '{n} câu',
+  'libAdmin.topicsEmpty': 'Chưa có môn học nào.',
+  'libAdmin.formInvalid':
+    'Key phải gồm a-z, 0-9, dấu - (2-40 ký tự); nhãn và tiêu đề không được để trống.',
   'libAdmin.sectionsTitle': 'Các phần',
   'libAdmin.newSection': '+ Phần mới',
   'libAdmin.sectionName': 'Tên phần',

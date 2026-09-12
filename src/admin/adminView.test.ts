@@ -8,6 +8,9 @@ vi.mock('../api/client', () => ({
       listUsers: vi.fn(),
       patchUser: vi.fn(),
     },
+    libraryAdmin: {
+      listTopics: vi.fn(),
+    },
   },
 }));
 
@@ -137,18 +140,31 @@ describe('adminView tabs', () => {
   });
 
   it('asks the registered renderer for the content tab', async () => {
-    const { api } = await import('../api/client');
-    vi.mocked(api.admin.stats).mockResolvedValue(stats);
-
     const { openAdmin, setAdminTab, setContentTabRenderer } = await import('./adminView');
+    await openAdmin(false);
+
+    // Registered after init, because initAdminView wires the real content tab.
     const renderer = vi.fn();
     setContentTabRenderer(renderer);
-
-    await openAdmin(false);
     setAdminTab('content');
 
     expect(renderer).toHaveBeenCalledTimes(1);
     expect(renderer.mock.calls[0]?.[0]).toBe(document.getElementById('adminTabBody'));
+  });
+
+  it('delegates the content tab to the subject list', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.admin.stats).mockResolvedValue(stats);
+    vi.mocked(api.libraryAdmin.listTopics).mockResolvedValue({ items: [] });
+
+    const { openAdmin, setAdminTab } = await import('./adminView');
+    await openAdmin(false);
+    setAdminTab('content');
+    await settled();
+    await settled();
+
+    expect(api.libraryAdmin.listTopics).toHaveBeenCalledWith('vi', true);
+    expect(document.querySelector('.la-topics')).not.toBeNull();
   });
 
   it('marks the clicked tab as active', async () => {

@@ -1,6 +1,7 @@
 import { api, type AdminStats, type AdminUserItem } from '../api/client';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
+import { renderContentTab } from './libraryAdminView';
 
 export type AdminTab = 'dashboard' | 'users' | 'content';
 
@@ -44,6 +45,8 @@ export function initAdminView(): void {
   overlay.id = 'adminOverlay';
   overlay.hidden = true;
   document.body.appendChild(overlay);
+
+  setContentTabRenderer(renderContentTab);
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && overlay && !overlay.hidden) closeAdmin();

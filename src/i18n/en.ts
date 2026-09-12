@@ -342,6 +342,9 @@ export const en: Record<string, string> = {
   'libAdmin.restore': 'Restore',
   'libAdmin.archived': 'Archived',
   'libAdmin.questionCount': '{n} questions',
+  'libAdmin.topicsEmpty': 'No subjects yet.',
+  'libAdmin.formInvalid':
+    'Key must be a-z, 0-9 and dashes (2-40 chars); label and title are required.',
   'libAdmin.sectionsTitle': 'Sections',
   'libAdmin.newSection': '+ New section',
   'libAdmin.sectionName': 'Section name',
