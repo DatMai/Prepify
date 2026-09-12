@@ -62,10 +62,7 @@ it('updates one checkbox and preserves every unrelated byte', () => {
   const updated = setTaskCompleted(SAMPLE, task.id, true);
 
   expect(updated).toBe(
-    SAMPLE.replace(
-      '- [ ] #az104 21:00 — recall Unit 2',
-      '- [x] #az104 21:00 — recall Unit 2',
-    ),
+    SAMPLE.replace('- [ ] #az104 21:00 — recall Unit 2', '- [x] #az104 21:00 — recall Unit 2'),
   );
 });
 
@@ -76,7 +73,7 @@ it('replaces journal fields but preserves the correction and later sections', ()
     next: 'I will review the mistakes.',
   });
 
-  expect(updated).toMatch(/- \*\*Done:\*\* I finished the recall\.\n  I recorded the score\./);
+  expect(updated).toMatch(/- \*\*Done:\*\* I finished the recall\.\n {2}I recorded the score\./);
   expect(updated).toMatch(/> keep this untouched/);
   expect(updated).toMatch(/- private content/);
 });

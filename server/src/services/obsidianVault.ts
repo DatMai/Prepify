@@ -79,7 +79,11 @@ async function resolveTodayFile(date: string): Promise<string> {
   }
 
   if (path.dirname(dailyDir) !== root || path.basename(dailyDir) !== 'Daily') {
-    throw new VaultError(403, 'vault_scope_invalid', 'Daily directory is outside the configured vault');
+    throw new VaultError(
+      403,
+      'vault_scope_invalid',
+      'Daily directory is outside the configured vault',
+    );
   }
 
   const candidate = path.join(dailyDir, `${date}.md`);
@@ -106,10 +110,7 @@ async function resolveTodayFile(date: string): Promise<string> {
 
 async function readRawDaily(date: string): Promise<RawDaily> {
   const filePath = await resolveTodayFile(date);
-  const [content, stats] = await Promise.all([
-    fs.readFile(filePath, 'utf8'),
-    fs.stat(filePath),
-  ]);
+  const [content, stats] = await Promise.all([fs.readFile(filePath, 'utf8'), fs.stat(filePath)]);
   return { filePath, content, mode: stats.mode, mtimeMs: stats.mtimeMs };
 }
 
@@ -185,7 +186,11 @@ async function mutateToday(
       if (eventId && raw.content.includes(`<!-- prepify:event id="${eventId}" -->`)) {
         return snapshot(date, raw);
       }
-      throw new VaultError(412, 'vault_conflict', 'Daily note changed in Obsidian; reload before saving');
+      throw new VaultError(
+        412,
+        'vault_conflict',
+        'Daily note changed in Obsidian; reload before saving',
+      );
     }
 
     let next: string;
@@ -220,13 +225,17 @@ export async function updateTodayTask(input: {
     throw new VaultError(400, 'evidence_required', 'Evidence is required before completing a task');
   }
 
-  return mutateToday(input.expectedRevision, (content, date) => {
-    let next = setTaskCompleted(content, input.taskId, input.completed);
-    if (input.evidence && input.eventId) {
-      next = appendEvidence(next, input.evidence, input.eventId);
-    }
-    return touchUpdated(next, date);
-  }, input.eventId);
+  return mutateToday(
+    input.expectedRevision,
+    (content, date) => {
+      let next = setTaskCompleted(content, input.taskId, input.completed);
+      if (input.evidence && input.eventId) {
+        next = appendEvidence(next, input.evidence, input.eventId);
+      }
+      return touchUpdated(next, date);
+    },
+    input.eventId,
+  );
 }
 
 export async function saveTodayJournal(
@@ -234,7 +243,8 @@ export async function saveTodayJournal(
   expectedRevision: string,
 ): Promise<JourneySnapshot> {
   return mutateToday(expectedRevision, (content, date) =>
-    touchUpdated(replaceJournal(content, journal), date));
+    touchUpdated(replaceJournal(content, journal), date),
+  );
 }
 
 export async function addTodayEvidence(input: {
@@ -242,6 +252,9 @@ export async function addTodayEvidence(input: {
   expectedRevision: string;
   eventId: string;
 }): Promise<JourneySnapshot> {
-  return mutateToday(input.expectedRevision, (content, date) =>
-    touchUpdated(appendEvidence(content, input.evidence, input.eventId), date), input.eventId);
+  return mutateToday(
+    input.expectedRevision,
+    (content, date) => touchUpdated(appendEvidence(content, input.evidence, input.eventId), date),
+    input.eventId,
+  );
 }

@@ -34,8 +34,7 @@ interface SplitDocument {
   eol: '\n' | '\r\n';
 }
 
-const JOURNAL_FIELDS = ['Done', 'Blocked', 'Next'] as const;
-type JournalField = typeof JOURNAL_FIELDS[number];
+type JournalField = 'Done' | 'Blocked' | 'Next';
 
 export class DailyFormatError extends Error {}
 
@@ -52,7 +51,7 @@ function joinDocument(document: SplitDocument): string {
 
 function sectionRange(lines: string[], heading: string): SectionRange {
   const starts = lines
-    .map((line, index) => line === heading ? index : -1)
+    .map((line, index) => (line === heading ? index : -1))
     .filter((index) => index >= 0);
 
   if (starts.length !== 1) {
@@ -73,7 +72,7 @@ function sectionRange(lines: string[], heading: string): SectionRange {
 
 function optionalSectionRange(lines: string[], heading: string): SectionRange | null {
   const starts = lines
-    .map((line, index) => line === heading ? index : -1)
+    .map((line, index) => (line === heading ? index : -1))
     .filter((index) => index >= 0);
 
   if (starts.length > 1) {
@@ -93,10 +92,7 @@ function optionalSectionRange(lines: string[], heading: string): SectionRange | 
 }
 
 function taskId(position: number, text: string): string {
-  return createHash('sha256')
-    .update(`${position}\0${text}`)
-    .digest('hex')
-    .slice(0, 16);
+  return createHash('sha256').update(`${position}\0${text}`).digest('hex').slice(0, 16);
 }
 
 function taskRecords(lines: string[]): TaskRecord[] {
@@ -161,7 +157,7 @@ function readJournalField(lines: string[], section: SectionRange, field: Journal
   const range = journalFieldRange(lines, section, field);
   const continuation = lines
     .slice(range.start + 1, range.end)
-    .map((line) => line.startsWith('  ') ? line.slice(2) : line)
+    .map((line) => (line.startsWith('  ') ? line.slice(2) : line))
     .join('\n')
     .trim();
 
@@ -288,14 +284,7 @@ export function appendEvidence(content: string, value: string, eventId: string):
     document.lines.splice(insertAt, 0, line);
   } else {
     const study = sectionRange(document.lines, '## Study');
-    document.lines.splice(
-      study.start,
-      0,
-      '## Bằng chứng từ Prepify',
-      '',
-      line,
-      '',
-    );
+    document.lines.splice(study.start, 0, '## Bằng chứng từ Prepify', '', line, '');
   }
 
   return joinDocument(document);
@@ -309,7 +298,7 @@ export function touchUpdated(content: string, date: string): string {
 
   const indexes = document.lines
     .slice(1, end)
-    .map((line, offset) => line.startsWith('updated:') ? offset + 1 : -1)
+    .map((line, offset) => (line.startsWith('updated:') ? offset + 1 : -1))
     .filter((index) => index >= 0);
 
   if (indexes.length !== 1) {

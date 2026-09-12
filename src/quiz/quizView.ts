@@ -19,7 +19,7 @@ export function startQuiz(config: QuizConfig): void {
     alert(t('qv.allLearned'));
     return;
   }
-  Object.keys(mcqCache).forEach(k => delete mcqCache[k]);
+  Object.keys(mcqCache).forEach((k) => delete mcqCache[k]);
   ensureOverlay();
   isFlipped = false;
   renderCurrentCard();
@@ -44,7 +44,8 @@ export function repaintQuiz(): void {
 function ensureOverlay(): void {
   if (overlayEl) {
     const nav = overlayEl.querySelector('.quiz-nav');
-    if (nav) nav.innerHTML = `
+    if (nav)
+      nav.innerHTML = `
       <button class="quiz-btn quiz-prev">${t('qv.prev')}</button>
       <button class="quiz-btn quiz-next" disabled>${t('qv.next')}</button>`;
     return;
@@ -107,8 +108,7 @@ function renderCurrentCard(): void {
 
   overlayEl.querySelector('.quiz-meta')!.textContent =
     `${topic.label} · ${config.mode === 'flashcard' ? t('qv.modeLabelFc') : t('qv.modeLabelMcq')}`;
-  overlayEl.querySelector('.quiz-counter')!.textContent =
-    `${currentIdx + 1} / ${questions.length}`;
+  overlayEl.querySelector('.quiz-counter')!.textContent = `${currentIdx + 1} / ${questions.length}`;
   const pct = ((currentIdx + 1) / questions.length) * 100;
   (overlayEl.querySelector('.quiz-hprogress-fill') as HTMLElement).style.width = `${pct}%`;
 
@@ -132,7 +132,7 @@ function renderCurrentCard(): void {
       }
     });
 
-    contentEl.querySelectorAll('.grade-btn').forEach(btn => {
+    contentEl.querySelectorAll('.grade-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (answered) return;
@@ -141,14 +141,13 @@ function renderCurrentCard(): void {
       });
     });
 
-    contentEl.querySelectorAll<HTMLButtonElement>('.run-btn[data-cid]').forEach(btn => {
+    contentEl.querySelectorAll<HTMLButtonElement>('.run-btn[data-cid]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const cid = btn.getAttribute('data-cid');
         if (cid) runCode(cid);
       });
     });
-
   } else {
     if (!mcqCache[qInfo.progressKey]) {
       mcqCache[qInfo.progressKey] = generateMcqData(q, qInfo.topicKey);
@@ -158,7 +157,7 @@ function renderCurrentCard(): void {
     contentEl.innerHTML = renderMcq(q, mcqData, answered, selectedIdx);
 
     if (!answered) {
-      contentEl.querySelectorAll('.mcq-option').forEach(btn => {
+      contentEl.querySelectorAll('.mcq-option').forEach((btn) => {
         btn.addEventListener('click', () => {
           const idx = Number((btn as HTMLElement).dataset.idx);
           handleMcqSelect(idx, mcqData, qInfo.progressKey);
@@ -211,14 +210,14 @@ function showSummary(): void {
   if (!session || !overlayEl) return;
   const { config, answers, questions, startedAt } = session;
   const elapsed = Math.round((Date.now() - startedAt) / 1000);
-  const timeStr = elapsed >= 60
-    ? `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`
-    : `${elapsed}s`;
+  const timeStr = elapsed >= 60 ? `${Math.floor(elapsed / 60)}m ${elapsed % 60}s` : `${elapsed}s`;
 
-  let statsHTML = '';
+  let statsHTML: string;
   if (config.mode === 'flashcard') {
     const grades = { 1: 0, 2: 0, 3: 0 };
-    Object.values(answers).forEach(a => { if (a.grade) grades[a.grade as 1 | 2 | 3]++; });
+    Object.values(answers).forEach((a) => {
+      if (a.grade) grades[a.grade as 1 | 2 | 3]++;
+    });
     const unanswered = questions.length - Object.keys(answers).length;
     statsHTML = `
       <div class="summary-stats">
@@ -241,7 +240,7 @@ function showSummary(): void {
       </div>`;
   } else {
     const total = questions.length;
-    const correct = Object.values(answers).filter(a => a.isCorrect).length;
+    const correct = Object.values(answers).filter((a) => a.isCorrect).length;
     const pct = Math.round((correct / total) * 100);
     statsHTML = `
       <div class="summary-stats">

@@ -68,11 +68,12 @@ async function getStreakInfo(userId: string, pool: Pool): Promise<StreakInfo> {
 
   // Parse YYYY-MM-DD strings to midnight UTC timestamps for comparison
   const msPerDay = 86400000;
-  const toUtcTs = (s: string) => Date.UTC(
-    parseInt(s.slice(0, 4), 10),
-    parseInt(s.slice(5, 7), 10) - 1,
-    parseInt(s.slice(8, 10), 10),
-  );
+  const toUtcTs = (s: string) =>
+    Date.UTC(
+      parseInt(s.slice(0, 4), 10),
+      parseInt(s.slice(5, 7), 10) - 1,
+      parseInt(s.slice(8, 10), 10),
+    );
 
   const dateTs = rows.map((r) => toUtcTs(r.activity_date));
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -101,7 +102,10 @@ async function getStreakInfo(userId: string, pool: Pool): Promise<StreakInfo> {
   let longest = 0;
   let run = 0;
   for (let i = 0; i < dateTs.length; i++) {
-    if (i === 0) { run = 1; continue; }
+    if (i === 0) {
+      run = 1;
+      continue;
+    }
     const diff = (dateTs[i - 1] - dateTs[i]) / msPerDay;
     run = diff === 1 ? run + 1 : 1;
     longest = Math.max(longest, run);

@@ -16,12 +16,16 @@ export function renderMcqCard(
   card.innerHTML = `
     <div class="daily-q">${escHtml(q.q)}</div>
     <div class="daily-options">
-      ${q.options.map((opt) => `
+      ${q.options
+        .map(
+          (opt) => `
         <button class="daily-opt" data-idx="${opt.idx}">
           <span class="daily-opt-letter">${String.fromCharCode(65 + opt.idx)}</span>
           <span class="daily-opt-text">${escHtml(opt.text)}</span>
         </button>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
   `;
 
@@ -48,5 +52,9 @@ export function renderMcqCard(
 }
 
 function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

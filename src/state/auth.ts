@@ -20,6 +20,12 @@ export function setSession(token: string, user: AuthUser): void {
   localStorage.setItem('quiz:token', token);
 }
 
+export function adoptToken(token: string): void {
+  auth.token = token;
+  auth.user = null;
+  localStorage.setItem('quiz:token', token);
+}
+
 export function clearSession(): void {
   auth.token = null;
   auth.user = null;

@@ -24,7 +24,13 @@ export async function loadStreak(): Promise<void> {
 }
 
 export function resetStreak(): void {
-  Object.assign(streakState, { current: 0, longest: 0, studiedToday: false, lastActivityDate: null, loaded: false });
+  Object.assign(streakState, {
+    current: 0,
+    longest: 0,
+    studiedToday: false,
+    lastActivityDate: null,
+    loaded: false,
+  });
   renderStreakBadge(0);
 }
 

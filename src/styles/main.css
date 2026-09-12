@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './home.css';
 @import './sidebar.css';
 @import './topbar.css';
 @import './card.css';
@@ -12,4 +13,5 @@
 @import './quiz.css';
 @import './leaderboard.css';
 @import './daily.css';
+@import './journey.css';
 @import './favorites.css';

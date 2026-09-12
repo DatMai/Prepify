@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -12,42 +12,56 @@
     />
   </head>
   <body>
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <h1>Prep<em>ify</em></h1>
-        <p>// study &amp; understand · interactive</p>
-      </div>
-      <div class="progress-global">
-        <div class="pg-bar"><div class="pg-fill" id="pgFill"></div></div>
-        <div class="pg-label">
-          <span id="pgText">0 / 0</span><span id="pgPct">0%</span>
-        </div>
-      </div>
-      <nav class="topics" id="topics"></nav>
-      <div class="sidebar-foot">tap câu hỏi để mở · ✓ đánh dấu đã học</div>
-    </aside>
-
-    <main class="main">
-      <div class="topbar">
-        <button class="menu-btn" id="menuBtn">☰</button>
-        <div class="title">
-          <h2 id="tTitle">—</h2>
-          <span id="tSub"></span>
-        </div>
-        <input class="search" id="search" placeholder="Tìm câu hỏi…" />
-        <button class="filter-fav-btn" id="favFilterBtn" title="Câu hỏi yêu thích">♥</button>
-        <div class="toggle" id="quizToggle">Quiz mode</div>
-        <button class="daily-btn" id="dailyBtn">
-          Daily <span class="daily-count" id="dailyCount">—</span>
-        </button>
-        <button class="lb-btn" id="lbBtn">Leaderboard</button>
+    <header class="site-header">
+      <button class="site-brand" id="homeNav" type="button" aria-label="Prepify home">
+        Prep<em>ify</em>
+      </button>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <button id="libraryNav" class="admin-only" type="button" hidden>Library</button>
+        <button id="journeyNav" class="admin-only" type="button" hidden>Journey</button>
+      </nav>
+      <div class="site-actions">
         <button class="lang-btn" id="langBtn">EN</button>
         <button class="auth-btn" id="authBtn">Đăng nhập</button>
       </div>
-      <div class="content" id="content">
-        <div class="content-inner" id="inner"></div>
+    </header>
+
+    <section class="home-view" id="homeView">
+      <div class="home-copy">
+        <p class="home-kicker" id="homeKicker">PREPIFY · READING DESK</p>
+        <h1 id="homeTitle">Một nơi yên tĩnh để đọc, học và suy nghĩ rõ ràng.</h1>
       </div>
-    </main>
+    </section>
+
+    <div class="app-shell" id="libraryView" hidden>
+      <aside class="sidebar" id="sidebar">
+        <div class="progress-global">
+          <div class="pg-bar"><div class="pg-fill" id="pgFill"></div></div>
+          <div class="pg-label"><span id="pgText">0 / 0</span><span id="pgPct">0%</span></div>
+        </div>
+        <nav class="topics" id="topics"></nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <button class="menu-btn" id="menuBtn">☰</button>
+          <div class="title">
+            <h2 id="tTitle">—</h2>
+            <span id="tSub"></span>
+          </div>
+          <input class="search" id="search" placeholder="Tìm câu hỏi…" />
+          <button class="filter-fav-btn" id="favFilterBtn" title="Câu hỏi yêu thích">♥</button>
+          <div class="toggle" id="quizToggle">Quiz mode</div>
+          <button class="daily-btn" id="dailyBtn">
+            Daily <span class="daily-count" id="dailyCount">—</span>
+          </button>
+          <button class="lb-btn" id="lbBtn">Leaderboard</button>
+        </div>
+        <div class="content" id="content">
+          <div class="content-inner" id="inner"></div>
+        </div>
+      </main>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

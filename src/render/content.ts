@@ -5,6 +5,7 @@ import { blockHTML } from './block';
 import { esc, hl } from './escape';
 import { runCode } from './runCode';
 import { renderTopics, updateGlobalProgress } from './sidebar';
+import { t } from '../i18n';
 
 function onTopicChange(key: string): void {
   state.topic = key;
@@ -25,7 +26,7 @@ export function render(): void {
 
   // Favorites filter mode
   if (favoritesState.filterActive) {
-    if (titleEl) titleEl.textContent = 'Yêu thích';
+    if (titleEl) titleEl.textContent = t('library.favorites');
     inner.innerHTML = '';
     let shownFav = 0;
 
@@ -60,10 +61,10 @@ export function render(): void {
             <div class="q-head">
               <span class="q-id">${shownFav}</span>
               <span class="q-text">${esc(q.q)}</span>
-              <button class="q-fav faved" title="Yêu thích">♥</button>
-              <span class="q-check" title="Đánh dấu đã học">✓</span>
+              <button class="q-fav faved" title="${t('topbar.favoriteTitle')}">♥</button>
+              <span class="q-check" title="${t('library.markLearned')}">✓</span>
             </div>
-            <button class="quiz-reveal-btn">Hiện đáp án</button>
+            <button class="quiz-reveal-btn">${t('library.reveal')}</button>
             <div class="q-body">${blocks}</div>`;
 
           const favBtn = card.querySelector<HTMLButtonElement>('.q-fav');
@@ -105,49 +106,52 @@ export function render(): void {
       });
     });
 
-    if (subEl) subEl.textContent = `// ${shownFav} câu yêu thích`;
+    if (subEl) subEl.textContent = t('library.favoriteCount', { count: shownFav });
     if (!shownFav) {
-      inner.innerHTML = '<div class="empty">Chưa có câu hỏi yêu thích nào.</div>';
+      inner.innerHTML = `<div class="empty">${t('library.noFavorites')}</div>`;
     }
     return;
   }
 
   // Normal topic view
-  const t = DATA[state.topic];
-  if (!t) return;
+  const topic = DATA[state.topic];
+  if (!topic) return;
 
-  if (titleEl) titleEl.textContent = t.label;
-  const total = t.sections.reduce((a, s) => a + s.questions.length, 0);
-  if (subEl) subEl.textContent = `// ${t.subtitle || ''}  ·  ${total} câu`;
+  if (titleEl) titleEl.textContent = topic.label;
+  const total = topic.sections.reduce((a, s) => a + s.questions.length, 0);
+  if (subEl)
+    subEl.textContent = t('library.questionCount', {
+      subtitle: topic.subtitle || '',
+      count: total,
+    });
 
   const searchEl = document.getElementById('search') as HTMLInputElement | null;
   const search = (searchEl?.value || '').trim().toLowerCase();
   inner.innerHTML = '';
 
   let shown = 0;
-  t.sections.forEach((sec, si) => {
+  topic.sections.forEach((sec, si) => {
     const matched = sec.questions
       .map((q, qi) => ({ q, qi }))
       .filter(({ q }) => {
         if (!search) return true;
-        const hay =
-          (
-            q.q +
-            ' ' +
-            q.blocks
-              .map((b) => {
-                if (b.type === 'table') return b.rows.flat().join(' ');
-                return 'text' in b ? b.text : '';
-              })
-              .join(' ')
-          ).toLowerCase();
+        const hay = (
+          q.q +
+          ' ' +
+          q.blocks
+            .map((b) => {
+              if (b.type === 'table') return b.rows.flat().join(' ');
+              return 'text' in b ? b.text : '';
+            })
+            .join(' ')
+        ).toLowerCase();
         return hay.includes(search);
       });
     if (!matched.length) return;
 
     const sh = document.createElement('div');
     sh.className = 'sec-head';
-    sh.innerHTML = `<span class="dot" style="color:${t.color}"></span>${esc(sec.name)}`;
+    sh.innerHTML = `<span class="dot" style="color:${topic.color}"></span>${esc(sec.name)}`;
     inner.appendChild(sh);
 
     matched.forEach(({ q, qi }) => {
@@ -167,10 +171,10 @@ export function render(): void {
         <div class="q-head">
           <span class="q-id">${shown}</span>
           <span class="q-text">${hl(q.q, search)}</span>
-          <button class="q-fav${isFav ? ' faved' : ''}" title="Yêu thích">♥</button>
-          <span class="q-check" title="Đánh dấu đã học">✓</span>
+          <button class="q-fav${isFav ? ' faved' : ''}" title="${t('topbar.favoriteTitle')}">♥</button>
+          <span class="q-check" title="${t('library.markLearned')}">✓</span>
         </div>
-        <button class="quiz-reveal-btn">Hiện đáp án</button>
+        <button class="quiz-reveal-btn">${t('library.reveal')}</button>
         <div class="q-body">${blocks}</div>`;
 
       const favBtn = card.querySelector<HTMLButtonElement>('.q-fav');
@@ -212,6 +216,6 @@ export function render(): void {
   });
 
   if (!shown) {
-    inner.innerHTML = '<div class="empty">Không tìm thấy câu hỏi nào khớp.</div>';
+    inner.innerHTML = `<div class="empty">${t('library.noResults')}</div>`;
   }
 }

@@ -4,6 +4,7 @@ import { Router } from 'express';
 import type { Pool } from 'pg';
 import { db } from '../db/client';
 import { requireAuth } from '../middleware/auth';
+import { requireAdmin } from '../middleware/admin';
 import { recordStudyDay } from './streak';
 
 const router = Router();
@@ -55,7 +56,7 @@ interface QuizTopic {
 function dailySeed(dateStr: string): number {
   let h = 0;
   for (let i = 0; i < dateStr.length; i++) {
-    h = Math.imul(31, h) + dateStr.charCodeAt(i) | 0;
+    h = (Math.imul(31, h) + dateStr.charCodeAt(i)) | 0;
   }
   return Math.abs(h);
 }
@@ -74,9 +75,15 @@ function pickDaily(pool: PoolEntry[], dateStr: string, count = 5): PoolEntry[] {
 
 const contentDir = path.resolve(__dirname, '../../..', 'content');
 
-function loadTopic(topicKey: string): QuizTopic | null {
+function localizedContentDir(lang: unknown): string | null {
+  if (lang === undefined || lang === 'vi') return contentDir;
+  if (lang === 'en') return path.join(contentDir, 'en');
+  return null;
+}
+
+function loadTopic(topicKey: string, root: string): QuizTopic | null {
   try {
-    const filePath = path.join(contentDir, `${topicKey}.json`);
+    const filePath = path.join(root, `${topicKey}.json`);
     const raw = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(raw) as QuizTopic;
   } catch {
@@ -84,8 +91,8 @@ function loadTopic(topicKey: string): QuizTopic | null {
   }
 }
 
-function resolveQuestion(ref: McqRef): QuizQuestion | null {
-  const topic = loadTopic(ref.topicKey);
+function resolveQuestion(ref: McqRef, root: string): QuizQuestion | null {
+  const topic = loadTopic(ref.topicKey, root);
   if (!topic) return null;
   const section = topic.sections[ref.sectionIdx];
   if (!section) return null;
@@ -103,8 +110,9 @@ function extractTextFromBlocks(blocks: QuestionBlock[]): string {
 function generateMcqOptions(
   correctText: string,
   topicKey: string,
+  root: string,
 ): Array<{ text: string; idx: number }> {
-  const topic = loadTopic(topicKey);
+  const topic = loadTopic(topicKey, root);
   const distractors: string[] = [];
 
   if (topic) {
@@ -127,7 +135,10 @@ function generateMcqOptions(
   ].sort(() => 0.5 - Math.random());
 
   const correctIdx = options.findIndex((o) => o.isCorrect);
-  return options.map((o, i) => ({ text: o.text, idx: i, _correct: i === correctIdx })) as Array<{ text: string; idx: number }>;
+  return options.map((o, i) => ({ text: o.text, idx: i, _correct: i === correctIdx })) as Array<{
+    text: string;
+    idx: number;
+  }>;
 }
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
@@ -142,9 +153,14 @@ function generateMcqOptions(
  *       200:
  *         description: Daily questions
  */
-router.get('/', (_req, res) => {
+router.get('/', requireAuth, requireAdmin, (req, res) => {
   const dateStr = new Date().toISOString().slice(0, 10);
-  const poolPath = path.join(contentDir, 'daily.json');
+  const localizedDir = localizedContentDir(req.query.lang);
+  if (!localizedDir) {
+    res.status(400).json({ error: 'Unsupported language', code: 'unsupported_language' });
+    return;
+  }
+  const poolPath = path.join(localizedDir, 'daily.json');
 
   let dailyPool: DailyPool;
   try {
@@ -159,41 +175,61 @@ router.get('/', (_req, res) => {
   const picked = pickDaily(eligible, dateStr, 5);
 
   type DailyQ =
-    | { id: string; type: 'fib'; prompt: string; blankCount: number; blanks: string[]; hint: string | undefined; topic: string | undefined }
-    | { id: string; type: 'mcq'; q: string; options: { text: string; idx: number }[]; correctIdx: number };
+    | {
+        id: string;
+        type: 'fib';
+        prompt: string;
+        blankCount: number;
+        blanks: string[];
+        hint: string | undefined;
+        topic: string | undefined;
+      }
+    | {
+        id: string;
+        type: 'mcq';
+        q: string;
+        options: { text: string; idx: number }[];
+        correctIdx: number;
+      };
 
   const questions: DailyQ[] = picked.flatMap((entry): DailyQ[] => {
     if (entry.type === 'fib') {
-      return [{
-        id: entry.id,
-        type: 'fib' as const,
-        prompt: entry.prompt!,
-        blankCount: entry.blanks!.length,
-        blanks: entry.blanks!,
-        hint: entry.hint,
-        topic: entry.topic,
-      }];
+      return [
+        {
+          id: entry.id,
+          type: 'fib' as const,
+          prompt: entry.prompt!,
+          blankCount: entry.blanks!.length,
+          blanks: entry.blanks!,
+          hint: entry.hint,
+          topic: entry.topic,
+        },
+      ];
     }
 
     // MCQ: resolve ref
     if (!entry.ref) return [];
-    const question = resolveQuestion(entry.ref);
+    const question = resolveQuestion(entry.ref, localizedDir);
     if (!question) return [];
 
     const correctText = extractTextFromBlocks(question.blocks);
     if (!correctText) return [];
 
-    const options = generateMcqOptions(correctText, entry.ref.topicKey);
-    const correctIdx = options.findIndex((o) => (o as { text: string; idx: number; _correct?: boolean })._correct);
+    const options = generateMcqOptions(correctText, entry.ref.topicKey, localizedDir);
+    const correctIdx = options.findIndex(
+      (o) => (o as { text: string; idx: number; _correct?: boolean })._correct,
+    );
     const cleanOptions = options.map(({ text, idx }) => ({ text, idx }));
 
-    return [{
-      id: entry.id,
-      type: 'mcq' as const,
-      q: question.q,
-      options: cleanOptions,
-      correctIdx: correctIdx >= 0 ? correctIdx : 0,
-    }];
+    return [
+      {
+        id: entry.id,
+        type: 'mcq' as const,
+        q: question.q,
+        options: cleanOptions,
+        correctIdx: correctIdx >= 0 ? correctIdx : 0,
+      },
+    ];
   });
 
   res.json({ date: dateStr, questions });
@@ -237,11 +273,12 @@ router.get('/status', requireAuth, async (req, res) => {
   );
 
   const msPerDay = 86400000;
-  const toUtcTs = (s: string) => Date.UTC(
-    parseInt(s.slice(0, 4), 10),
-    parseInt(s.slice(5, 7), 10) - 1,
-    parseInt(s.slice(8, 10), 10),
-  );
+  const toUtcTs = (s: string) =>
+    Date.UTC(
+      parseInt(s.slice(0, 4), 10),
+      parseInt(s.slice(5, 7), 10) - 1,
+      parseInt(s.slice(8, 10), 10),
+    );
   const todayTs = toUtcTs(dateStr);
   const dateTs = streakRows.map((r) => toUtcTs(r.activity_date));
 
@@ -249,7 +286,10 @@ router.get('/status', requireAuth, async (req, res) => {
   if (dateTs.length > 0 && (dateTs[0] === todayTs || dateTs[0] === todayTs - msPerDay)) {
     let expected = dateTs[0];
     for (const ts of dateTs) {
-      if (ts === expected) { current++; expected -= msPerDay; } else break;
+      if (ts === expected) {
+        current++;
+        expected -= msPerDay;
+      } else break;
     }
   }
 
@@ -299,7 +339,14 @@ router.post('/complete', requireAuth, async (req, res) => {
     res.status(400).json({ error: 'date phải là ngày hôm nay (UTC)' });
     return;
   }
-  if (typeof score !== 'number' || typeof total !== 'number' || score < 0 || total <= 0 || score > total || total > 5) {
+  if (
+    typeof score !== 'number' ||
+    typeof total !== 'number' ||
+    score < 0 ||
+    total <= 0 ||
+    score > total ||
+    total > 5
+  ) {
     res.status(400).json({ error: 'score/total không hợp lệ' });
     return;
   }
@@ -328,9 +375,12 @@ router.post('/complete', requireAuth, async (req, res) => {
   );
 
   const msPerDay = 86400000;
-  const toUtcTs = (s: string) => Date.UTC(
-    parseInt(s.slice(0, 4), 10), parseInt(s.slice(5, 7), 10) - 1, parseInt(s.slice(8, 10), 10),
-  );
+  const toUtcTs = (s: string) =>
+    Date.UTC(
+      parseInt(s.slice(0, 4), 10),
+      parseInt(s.slice(5, 7), 10) - 1,
+      parseInt(s.slice(8, 10), 10),
+    );
   const dateTs = rows.map((r) => toUtcTs(r.activity_date));
   const todayTs = toUtcTs(todayStr);
 
@@ -339,12 +389,18 @@ router.post('/complete', requireAuth, async (req, res) => {
   if (dateTs.length > 0 && (dateTs[0] === todayTs || dateTs[0] === todayTs - msPerDay)) {
     let expected = dateTs[0];
     for (const ts of dateTs) {
-      if (ts === expected) { current++; expected -= msPerDay; } else break;
+      if (ts === expected) {
+        current++;
+        expected -= msPerDay;
+      } else break;
     }
   }
   let run = 0;
   for (let i = 0; i < dateTs.length; i++) {
-    if (i === 0) { run = 1; continue; }
+    if (i === 0) {
+      run = 1;
+      continue;
+    }
     const diff = (dateTs[i - 1] - dateTs[i]) / msPerDay;
     run = diff === 1 ? run + 1 : 1;
     longest = Math.max(longest, run);

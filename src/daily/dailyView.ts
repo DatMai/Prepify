@@ -1,11 +1,11 @@
-import type { DailyQuestion, DailySession } from './types';
+import type { DailySession } from './types';
 import { renderMcqCard } from './mcqCard';
 import { renderFibCard } from './fibCard';
-import { completeDailyChallenge, fetchDailyStatus } from '../api/streak';
+import { completeDailyChallenge, fetchDailyQuestions, fetchDailyStatus } from '../api/streak';
 import { isLoggedIn } from '../state/auth';
 import { streakState } from '../state/streak';
 import { renderStreakBadge } from '../ui/streakBadge';
-import { t } from '../i18n';
+import { getLang, t } from '../i18n';
 
 let overlay: HTMLElement | null = null;
 let session: DailySession | null = null;
@@ -41,10 +41,7 @@ export async function openDaily(): Promise<void> {
   overlay!.innerHTML = `<div class="daily-loading">${t('daily.loading')}</div>`;
 
   try {
-    const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
-    const res = await fetch(`${BASE}/daily`);
-    if (!res.ok) throw new Error('fetch failed');
-    const data = await res.json() as { date: string; questions: DailyQuestion[] };
+    const data = await fetchDailyQuestions(getLang());
 
     session = {
       date: data.date,
@@ -132,13 +129,12 @@ async function showSummary(): Promise<void> {
   const total = session.questions.length;
   const loggedIn = isLoggedIn();
 
-  let streakHtml = '';
-  let streakAfter = streakState.current;
+  let streakHtml: string;
 
   if (loggedIn) {
     try {
       const result = await completeDailyChallenge({ date: session.date, score: correct, total });
-      streakAfter = result.streak.current;
+      const streakAfter = result.streak.current;
       streakState.current = streakAfter;
       streakState.longest = Math.max(streakState.longest, result.streak.longest);
       renderStreakBadge(streakAfter);

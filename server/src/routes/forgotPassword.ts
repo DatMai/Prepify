@@ -43,7 +43,7 @@ async function createResetToken(userId: string): Promise<string> {
 router.post('/forgot/email', async (req, res) => {
   const { email } = req.body as { email?: string };
   if (!email) {
-    res.status(400).json({ error: 'email là bắt buộc' });
+    res.status(400).json({ error: 'email là bắt buộc', code: 'email_required' });
     return;
   }
 
@@ -61,7 +61,9 @@ router.post('/forgot/email', async (req, res) => {
     if (existing.rows[0]) {
       const ageMs = Date.now() - existing.rows[0].created_at.getTime();
       if (ageMs < 5 * 60 * 1000) {
-        res.status(429).json({ error: 'Vui lòng đợi 5 phút trước khi gửi lại.' });
+        res
+          .status(429)
+          .json({ error: 'Vui lòng đợi 5 phút trước khi gửi lại.', code: 'resend_too_soon' });
         return;
       }
     }
@@ -96,7 +98,7 @@ router.post('/forgot/email', async (req, res) => {
 router.post('/forgot/question', async (req, res) => {
   const { email } = req.body as { email?: string };
   if (!email) {
-    res.status(400).json({ error: 'email là bắt buộc' });
+    res.status(400).json({ error: 'email là bắt buộc', code: 'email_required' });
     return;
   }
 
@@ -106,7 +108,9 @@ router.post('/forgot/question', async (req, res) => {
   );
   const user = result.rows[0];
   if (!user || !user.security_question) {
-    res.status(404).json({ error: 'Tài khoản không có câu hỏi bí mật.' });
+    res
+      .status(404)
+      .json({ error: 'Tài khoản không có câu hỏi bí mật.', code: 'no_security_question' });
     return;
   }
 
@@ -137,7 +141,7 @@ router.post('/forgot/question', async (req, res) => {
 router.post('/forgot/question/verify', async (req, res) => {
   const { email, answer } = req.body as { email?: string; answer?: string };
   if (!email || !answer) {
-    res.status(400).json({ error: 'email và answer là bắt buộc' });
+    res.status(400).json({ error: 'email và answer là bắt buộc', code: 'missing_security_answer' });
     return;
   }
 
@@ -147,13 +151,16 @@ router.post('/forgot/question/verify', async (req, res) => {
   );
   const user = result.rows[0];
   if (!user || !user.security_answer_hash) {
-    res.status(404).json({ error: 'Tài khoản không tồn tại hoặc không có câu hỏi bí mật.' });
+    res.status(404).json({
+      error: 'Tài khoản không tồn tại hoặc không có câu hỏi bí mật.',
+      code: 'no_security_question',
+    });
     return;
   }
 
   const match = await bcrypt.compare(answer.trim().toLowerCase(), user.security_answer_hash);
   if (!match) {
-    res.status(401).json({ error: 'Câu trả lời không đúng.' });
+    res.status(401).json({ error: 'Câu trả lời không đúng.', code: 'invalid_security_answer' });
     return;
   }
 
@@ -184,13 +191,15 @@ router.post('/forgot/question/verify', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body as { token?: string; newPassword?: string };
   if (!token || !newPassword) {
-    res.status(400).json({ error: 'token và newPassword là bắt buộc' });
+    res
+      .status(400)
+      .json({ error: 'token và newPassword là bắt buộc', code: 'missing_reset_fields' });
     return;
   }
 
   const strength = checkPasswordStrength(newPassword);
   if (!strength.valid) {
-    res.status(400).json({ error: strength.errors.join(' · ') });
+    res.status(400).json({ error: strength.errors.join(' · '), code: 'weak_password' });
     return;
   }
 
@@ -202,7 +211,10 @@ router.post('/reset-password', async (req, res) => {
   );
   const row = result.rows[0];
   if (!row) {
-    res.status(400).json({ error: 'Link đã hết hạn hoặc đã được sử dụng. Vui lòng thực hiện lại.' });
+    res.status(400).json({
+      error: 'Link đã hết hạn hoặc đã được sử dụng. Vui lòng thực hiện lại.',
+      code: 'invalid_reset_token',
+    });
     return;
   }
 

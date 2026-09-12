@@ -15,8 +15,8 @@ export function showQuizLauncher(): void {
   }
 
   const currentTopic = state.topic;
-  const topicOptions = ORDER.map(key => {
-    const entry = TOPIC_INDEX.find(t => t.key === key)!;
+  const topicOptions = ORDER.map((key) => {
+    const entry = TOPIC_INDEX.find((t) => t.key === key)!;
     return `<option value="${key}" ${key === currentTopic ? 'selected' : ''}>${entry.label}</option>`;
   }).join('');
 
@@ -57,7 +57,9 @@ export function showQuizLauncher(): void {
   el.classList.add('show');
 
   document.getElementById('qlClose')?.addEventListener('click', () => el!.classList.remove('show'));
-  el.addEventListener('click', (e) => { if (e.target === el) el!.classList.remove('show'); });
+  el.addEventListener('click', (e) => {
+    if (e.target === el) el!.classList.remove('show');
+  });
 
   document.getElementById('qlTopic')?.addEventListener('change', (e) => {
     const key = (e.target as HTMLSelectElement).value;
@@ -82,7 +84,7 @@ export function showQuizLauncher(): void {
 
 function updateSetOptions(el: HTMLElement, topicKey: string): void {
   const topic = DATA[topicKey];
-  const entry = TOPIC_INDEX.find(e => e.key === topicKey)!;
+  const entry = TOPIC_INDEX.find((e) => e.key === topicKey)!;
   const total = entry.questionCount;
 
   let unlearned = 0;
@@ -118,7 +120,9 @@ function updateMcqState(el: HTMLElement, topicKey: string): void {
     label.title = t('ql.mcqDisabled');
     radio.disabled = true;
     hint.textContent = t('ql.mcqNeedMore', { n: eligible });
-    const flashcard = el.querySelector('input[name="qlMode"][value="flashcard"]') as HTMLInputElement;
+    const flashcard = el.querySelector(
+      'input[name="qlMode"][value="flashcard"]',
+    ) as HTMLInputElement;
     if (flashcard) flashcard.checked = true;
   } else {
     label.classList.remove('disabled');
@@ -131,6 +135,10 @@ function updateMcqState(el: HTMLElement, topicKey: string): void {
 function countMcqEligible(topicKey: string): number {
   const topic = DATA[topicKey];
   let count = 0;
-  topic.sections.forEach(s => s.questions.forEach(q => { if (isMcqEligible(q)) count++; }));
+  topic.sections.forEach((s) =>
+    s.questions.forEach((q) => {
+      if (isMcqEligible(q)) count++;
+    }),
+  );
   return count;
 }

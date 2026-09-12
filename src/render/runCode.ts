@@ -25,12 +25,11 @@ export function runCode(cid: string): void {
   try {
     const fn = new Function('console', src);
     fn(fakeConsole);
-    outEl.textContent = logs.length
-      ? logs.join('\n')
-      : '✓ chạy xong (không có console.log nào in ra)';
+    outEl.textContent = logs.length ? logs.join('\n') : t('runtime.noLogs');
     outEl.classList.add('show');
   } catch (err) {
     outEl.textContent = '✗ ' + (err instanceof Error ? err.message : String(err));
     outEl.classList.add('show', 'err');
   }
 }
+import { t } from '../i18n';

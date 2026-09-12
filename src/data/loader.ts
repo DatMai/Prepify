@@ -1,19 +1,32 @@
+import { api } from '../api/client';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
+import { getLang, type Lang } from '../i18n';
 
-const topicModules = import.meta.glob<Topic>('../../content/*.json', {
-  eager: true,
-  import: 'default',
-});
-
-import indexJson from '../../content/index.json';
-
-export const TOPIC_INDEX: TopicIndexEntry[] = indexJson as TopicIndexEntry[];
-
-export const ORDER: string[] = TOPIC_INDEX.map((t) => t.key);
-
+export const TOPIC_INDEX: TopicIndexEntry[] = [];
+export const ORDER: string[] = [];
 export const DATA: Record<string, Topic> = {};
-for (const [filePath, mod] of Object.entries(topicModules)) {
-  const key = filePath.replace(/^.*\/([^/]+)\.json$/, '$1');
-  if (key === 'index') continue;
-  DATA[key] = mod;
+
+let loadedLang: Lang | null = null;
+
+export async function loadLibrary(lang: Lang = getLang()): Promise<void> {
+  if (loadedLang === lang) return;
+  const index = await api.library.index(lang);
+  const topics = await Promise.all(
+    index.map(async (entry) => [entry.key, await api.library.topic(entry.key, lang)] as const),
+  );
+
+  TOPIC_INDEX.splice(0, TOPIC_INDEX.length, ...index);
+  ORDER.splice(0, ORDER.length, ...index.map((entry) => entry.key));
+  Object.keys(DATA).forEach((key) => delete DATA[key]);
+  topics.forEach(([key, topic]) => {
+    DATA[key] = topic;
+  });
+  loadedLang = lang;
+}
+
+export function clearLibrary(): void {
+  TOPIC_INDEX.splice(0);
+  ORDER.splice(0);
+  Object.keys(DATA).forEach((key) => delete DATA[key]);
+  loadedLang = null;
 }

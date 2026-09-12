@@ -1,3 +1,7 @@
+import type { JourneyJournal, JourneySnapshot } from '../journey/types';
+import type { Topic, TopicIndexEntry } from '../types/quiz';
+import { t, type Lang } from '../i18n';
+
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
 function token(): string | null {
@@ -6,18 +10,47 @@ function token(): string | null {
 
 function authHeaders(): HeadersInit {
   const t = token();
-  return t ? { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+  return t
+    ? { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(BASE + path, { ...options, headers: { ...authHeaders(), ...options?.headers } });
-  const json = await res.json() as T;
-  if (!res.ok) throw new ApiError((json as { error?: string }).error ?? 'Request failed', res.status);
-  return json;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    const res = await fetch(BASE + path, {
+      ...options,
+      headers: { ...authHeaders(), ...options?.headers },
+      signal: options?.signal ?? controller.signal,
+    });
+    const json = (await res.json()) as T;
+    if (!res.ok) {
+      const body = json as { error?: string; code?: string };
+      const key = body.code ? `api.${body.code}` : '';
+      const translated = key ? t(key) : '';
+      const message =
+        translated && translated !== key ? translated : (body.error ?? t('err.generic'));
+      throw new ApiError(message, res.status, body.code);
+    }
+    return json;
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError(t('api.request_timeout'), 0, 'request_timeout');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number) {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string,
+  ) {
     super(message);
   }
 }
@@ -29,6 +62,7 @@ export interface AuthUser {
   avatarId?: number;
   location?: string | null;
   emailVerifiedAt?: string | null;
+  role: 'user' | 'admin';
 }
 
 export interface AuthResponse {
@@ -53,10 +87,13 @@ export const api = {
     me: () => request<AuthUser>('/auth/me'),
 
     updateProfile: (data: { displayName?: string; location?: string; avatarId?: number }) =>
-      request<{ displayName: string | null; location: string | null; avatarId: number }>('/auth/profile', {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      request<{ displayName: string | null; location: string | null; avatarId: number }>(
+        '/auth/profile',
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        },
+      ),
 
     resendVerification: () =>
       request<{ ok: boolean }>('/auth/resend-verification', { method: 'POST' }),
@@ -69,22 +106,26 @@ export const api = {
 
     forgotByEmail: (email: string) =>
       request<{ ok: boolean; message: string }>('/auth/forgot/email', {
-        method: 'POST', body: JSON.stringify({ email }),
+        method: 'POST',
+        body: JSON.stringify({ email }),
       }),
 
     forgotGetQuestion: (email: string) =>
       request<{ question: string }>('/auth/forgot/question', {
-        method: 'POST', body: JSON.stringify({ email }),
+        method: 'POST',
+        body: JSON.stringify({ email }),
       }),
 
     forgotVerifyQuestion: (email: string, answer: string) =>
       request<{ resetToken: string }>('/auth/forgot/question/verify', {
-        method: 'POST', body: JSON.stringify({ email, answer }),
+        method: 'POST',
+        body: JSON.stringify({ email, answer }),
       }),
 
     resetPassword: (token: string, newPassword: string) =>
       request<{ ok: boolean }>('/auth/reset-password', {
-        method: 'POST', body: JSON.stringify({ token, newPassword }),
+        method: 'POST',
+        body: JSON.stringify({ token, newPassword }),
       }),
   },
 
@@ -100,5 +141,48 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify({ key, value }),
       }),
+  },
+
+  journey: {
+    today: () => request<JourneySnapshot>('/journey/today'),
+
+    updateTask: (
+      taskId: string,
+      completed: boolean,
+      evidence: string | undefined,
+      revision: string,
+      eventId: string,
+    ) =>
+      request<JourneySnapshot>(`/journey/today/tasks/${encodeURIComponent(taskId)}`, {
+        method: 'PATCH',
+        headers: {
+          'If-Match': revision,
+          'Idempotency-Key': eventId,
+        },
+        body: JSON.stringify({ completed, evidence }),
+      }),
+
+    saveJournal: (journal: JourneyJournal, revision: string) =>
+      request<JourneySnapshot>('/journey/today/journal', {
+        method: 'PUT',
+        headers: { 'If-Match': revision },
+        body: JSON.stringify(journal),
+      }),
+
+    addEvidence: (evidence: string, revision: string, eventId: string) =>
+      request<JourneySnapshot>('/journey/today/evidence', {
+        method: 'POST',
+        headers: {
+          'If-Match': revision,
+          'Idempotency-Key': eventId,
+        },
+        body: JSON.stringify({ evidence }),
+      }),
+  },
+
+  library: {
+    index: (lang: Lang) => request<TopicIndexEntry[]>(`/library/index?lang=${lang}`),
+    topic: (key: string, lang: Lang) =>
+      request<Topic>(`/library/topics/${encodeURIComponent(key)}?lang=${lang}`),
   },
 };

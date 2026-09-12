@@ -12,7 +12,7 @@
   font-size: 13px;
   color: var(--dim);
   user-select: none;
-  transition: .18s;
+  transition: 0.18s;
   font-family: 'Outfit', sans-serif;
   position: relative;
 }
@@ -24,7 +24,7 @@
 
 .daily-btn.done {
   color: var(--accent);
-  border-color: rgba(245, 166, 35, .4);
+  border-color: rgba(245, 166, 35, 0.4);
 }
 
 .daily-count {
@@ -35,14 +35,14 @@
   color: var(--dim);
   padding: 2px 7px;
   border-radius: 6px;
-  transition: .2s;
-  letter-spacing: .02em;
+  transition: 0.2s;
+  letter-spacing: 0.02em;
 }
 
 .daily-btn.done .daily-count {
-  background: rgba(245, 166, 35, .18);
+  background: rgba(245, 166, 35, 0.18);
   color: var(--accent);
-  box-shadow: 0 0 7px rgba(245, 166, 35, .4);
+  box-shadow: 0 0 7px rgba(245, 166, 35, 0.4);
 }
 
 /* ── Daily overlay ───────────────────────────────────────────────────────── */
@@ -50,7 +50,7 @@
 .daily-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 14, 20, .88);
+  background: rgba(10, 14, 20, 0.88);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -110,7 +110,7 @@
   font-family: 'Outfit', sans-serif;
   padding: 4px 8px;
   border-radius: 6px;
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .daily-back-btn:hover {
@@ -128,7 +128,7 @@
 .daily-progress-fill {
   height: 100%;
   background: #f5a623;
-  transition: width .3s ease;
+  transition: width 0.3s ease;
 }
 
 /* ── Card area ───────────────────────────────────────────────────────────── */
@@ -172,7 +172,7 @@
   padding: 12px 16px;
   cursor: pointer;
   text-align: left;
-  transition: .15s;
+  transition: 0.15s;
   font-family: 'Outfit', sans-serif;
   font-size: 14px;
   color: var(--txt);
@@ -181,7 +181,7 @@
 
 .daily-opt:hover:not(:disabled) {
   border-color: #f5a623;
-  background: rgba(245, 166, 35, .07);
+  background: rgba(245, 166, 35, 0.07);
 }
 
 .daily-opt:disabled {
@@ -190,13 +190,13 @@
 
 .daily-opt.correct {
   border-color: var(--ok);
-  background: rgba(80, 200, 120, .1);
+  background: rgba(80, 200, 120, 0.1);
   color: var(--ok);
 }
 
 .daily-opt.wrong {
   border-color: #e05252;
-  background: rgba(224, 82, 82, .08);
+  background: rgba(224, 82, 82, 0.08);
   color: #e05252;
 }
 
@@ -247,7 +247,7 @@
   font-family: 'Space Mono', monospace;
   font-size: 14px;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color 0.15s;
   vertical-align: baseline;
   margin: 0 4px;
 }
@@ -258,13 +258,13 @@
 
 .fib-input.fib-correct {
   border-color: var(--ok);
-  background: rgba(80, 200, 120, .1);
+  background: rgba(80, 200, 120, 0.1);
   color: var(--ok);
 }
 
 .fib-input.fib-wrong {
   border-color: #e05252;
-  background: rgba(224, 82, 82, .08);
+  background: rgba(224, 82, 82, 0.08);
   color: #e05252;
 }
 
@@ -278,7 +278,7 @@
   padding: 5px 12px;
   margin-bottom: 8px;
   font-family: 'Outfit', sans-serif;
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .fib-hint-btn:hover {
@@ -312,7 +312,7 @@
   font-size: 14px;
   font-weight: 600;
   color: #000;
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .daily-submit-btn:hover:not(:disabled) {
@@ -320,7 +320,7 @@
 }
 
 .daily-submit-btn:disabled {
-  opacity: .5;
+  opacity: 0.5;
   cursor: default;
 }
 
@@ -333,15 +333,15 @@
 }
 
 .fib-feedback-ok {
-  background: rgba(80, 200, 120, .1);
+  background: rgba(80, 200, 120, 0.1);
   color: var(--ok);
-  border: 1px solid rgba(80, 200, 120, .3);
+  border: 1px solid rgba(80, 200, 120, 0.3);
 }
 
 .fib-feedback-err {
-  background: rgba(224, 82, 82, .08);
+  background: rgba(224, 82, 82, 0.08);
   color: #e05252;
-  border: 1px solid rgba(224, 82, 82, .25);
+  border: 1px solid rgba(224, 82, 82, 0.25);
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
@@ -362,7 +362,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #000;
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .daily-next-btn:hover:not(:disabled) {
@@ -370,7 +370,7 @@
 }
 
 .daily-next-btn:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: default;
 }
 
@@ -432,7 +432,7 @@
   font-weight: 600;
   color: #000;
   margin-top: 8px;
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .daily-cta-login:hover {
@@ -452,7 +452,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 14px;
   color: var(--txt);
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .daily-close-btn:hover {

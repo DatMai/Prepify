@@ -10,7 +10,10 @@ function getEl(): HTMLElement {
   return toastEl;
 }
 
-export function showToast(message: string, type: 'success' | 'ok' | 'error' | 'info' = 'info'): void {
+export function showToast(
+  message: string,
+  type: 'success' | 'ok' | 'error' | 'info' = 'info',
+): void {
   const el = getEl();
   el.textContent = message;
   el.className = `toast toast-${type} show`;
