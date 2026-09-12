@@ -62,11 +62,11 @@
 - Consumes: validated `AppConfig`.
 - Produces: `createObsidianVault(config)`, `createJourneyRouter(deps)`, `createMailer(config)`, and `syncConfiguredAdmins(query, emails)` with no runtime `process.env` reads outside composition/bootstrap entrypoints.
 
-- [ ] Add failing tests for injected time zone/vault path and configured admin emails.
-- [ ] Confirm RED.
-- [ ] Convert environment-reading modules into factories and inject them from `index.ts`.
-- [ ] Search `server/src` and prove only `index.ts` and `db/migrate.ts` read `process.env`.
-- [ ] Run server tests/typecheck and commit with `refactor: cô lập cấu hình runtime`.
+- [x] Add failing tests for injected time zone/vault path and configured admin emails.
+- [x] Confirm RED.
+- [x] Convert environment-reading modules into factories and inject them from `index.ts`.
+- [x] Search `server/src` and prove only `index.ts` and `db/migrate.ts` read `process.env`.
+- [x] Run server tests/typecheck and commit with `refactor: cô lập cấu hình runtime`.
 
 ### Task 3: Server-owned learning results
 

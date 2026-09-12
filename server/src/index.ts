@@ -23,7 +23,7 @@ import { createOAuthAccountService } from './modules/identity/oauthAccountServic
 import { createOAuthFlowStore } from './modules/identity/oauthFlowStore';
 import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
-import journeyRouter from './routes/journey';
+import { createJourneyRouter } from './routes/journey';
 import leaderboardRouter from './routes/leaderboard';
 import libraryRouter from './routes/library';
 import progressRouter from './routes/progress';
@@ -31,7 +31,8 @@ import quizSessionsRouter from './routes/quizSessions';
 import streakRouter from './routes/streak';
 import { recordStudyDay } from './routes/streak';
 import { syncConfiguredAdmins } from './services/adminBootstrap';
-import { sendPasswordResetEmail, sendVerificationEmail } from './utils/email';
+import { createObsidianVault } from './services/obsidianVault';
+import { createMailer } from './utils/email';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local'), override: true, quiet: true });
@@ -44,6 +45,7 @@ function registerRoutes(
     oauthRoutes: ReturnType<typeof createOAuthRoutes>;
     optionalAuth: RequestHandler;
     dailyRoutes: ReturnType<typeof createDailyRouter>;
+    journeyRoutes: ReturnType<typeof createJourneyRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -54,7 +56,7 @@ function registerRoutes(
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
-  app.use('/api/v1/journey', journeyRouter);
+  app.use('/api/v1/journey', identity.journeyRoutes);
   app.use('/api/v1/library', libraryRouter);
 }
 
@@ -71,6 +73,7 @@ async function main(): Promise<void> {
     ...defaultAuthServiceDependencies(),
     sessionTtlMs: config.session.ttlHours * 60 * 60 * 1000,
   });
+  const mailer = createMailer(config.email);
   const recoveryService = createRecoveryService({
     store: createRecoveryStore(pool as unknown as SessionQuery),
     passwords: defaultAuthServiceDependencies().passwords,
@@ -78,8 +81,8 @@ async function main(): Promise<void> {
     now: () => new Date(),
     frontendUrl: config.frontendUrl,
     callbackBaseUrl: `${config.publicApiUrl}/api/v1`,
-    sendPasswordReset: sendPasswordResetEmail,
-    sendVerification: sendVerificationEmail,
+    sendPasswordReset: mailer.sendPasswordReset,
+    sendVerification: mailer.sendVerification,
   });
   const oauthAccountService = createOAuthAccountService(
     createOAuthAccountStore(pool as unknown as SessionQuery),
@@ -112,10 +115,16 @@ async function main(): Promise<void> {
     contentDir: path.resolve(__dirname, '../..', 'content'),
     recordStudyDay: async (userId) => recordStudyDay(userId, pool),
   });
+  const journeyRoutes = createJourneyRouter({
+    requireAuth,
+    requireAdmin,
+    ownerEmail: config.obsidian.ownerEmail,
+    vault: createObsidianVault(config.obsidian),
+  });
   initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
 
   try {
-    await syncConfiguredAdmins();
+    await syncConfiguredAdmins(pool.query.bind(pool), config.adminEmails);
     const app = createApp({
       config,
       logger,
@@ -139,6 +148,7 @@ async function main(): Promise<void> {
           oauthRoutes,
           optionalAuth: createOptionalSessionAuth(sessionRepository, config.session.cookieName),
           dailyRoutes,
+          journeyRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');

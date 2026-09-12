@@ -39,6 +39,10 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/DATABASE_URL/);
   });
 
+  it('requires a complete SMTP configuration when email delivery is enabled', () => {
+    expect(() => loadConfig({ ...valid, EMAIL_DELIVERY_ENABLED: 'true' })).toThrow(/EMAIL_HOST/);
+  });
+
   it('rejects a remotely bound Obsidian bridge', () => {
     expect(() =>
       loadConfig({

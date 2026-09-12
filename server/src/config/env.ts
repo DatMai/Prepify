@@ -1,38 +1,53 @@
 import { z } from 'zod';
 
-const environmentSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
-  HOST: z.string().trim().min(1).default('127.0.0.1'),
-  DATABASE_URL: z.string().trim().min(1),
-  SESSION_SECRET: z.string().min(32),
-  SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
-  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
-  PUBLIC_API_URL: z.string().url().default('http://localhost:3001'),
-  APP_TIME_ZONE: z
-    .string()
-    .trim()
-    .min(1)
-    .default('Asia/Ho_Chi_Minh')
-    .refine((value) => {
-      try {
-        new Intl.DateTimeFormat('en-US', { timeZone: value });
-        return true;
-      } catch {
-        return false;
-      }
-    }, 'APP_TIME_ZONE must be a valid IANA time zone'),
-  CORS_ORIGINS: z.string().optional(),
-  ADMIN_EMAILS: z.string().default(''),
-  OBSIDIAN_SYNC_ENABLED: z.enum(['true', 'false']).default('false'),
-  OBSIDIAN_VAULT_PATH: z.string().trim().min(1).optional(),
-  OBSIDIAN_TIME_ZONE: z.string().trim().min(1).default('Asia/Ho_Chi_Minh'),
-  OBSIDIAN_OWNER_EMAIL: z.string().email().optional(),
-  GOOGLE_CLIENT_ID: z.string().trim().min(1).optional(),
-  GOOGLE_CLIENT_SECRET: z.string().trim().min(1).optional(),
-  FACEBOOK_APP_ID: z.string().trim().min(1).optional(),
-  FACEBOOK_APP_SECRET: z.string().trim().min(1).optional(),
-});
+const environmentSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
+    HOST: z.string().trim().min(1).default('127.0.0.1'),
+    DATABASE_URL: z.string().trim().min(1),
+    SESSION_SECRET: z.string().min(32),
+    SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
+    FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+    PUBLIC_API_URL: z.string().url().default('http://localhost:3001'),
+    APP_TIME_ZONE: z
+      .string()
+      .trim()
+      .min(1)
+      .default('Asia/Ho_Chi_Minh')
+      .refine((value) => {
+        try {
+          new Intl.DateTimeFormat('en-US', { timeZone: value });
+          return true;
+        } catch {
+          return false;
+        }
+      }, 'APP_TIME_ZONE must be a valid IANA time zone'),
+    CORS_ORIGINS: z.string().optional(),
+    ADMIN_EMAILS: z.string().default(''),
+    OBSIDIAN_SYNC_ENABLED: z.enum(['true', 'false']).default('false'),
+    OBSIDIAN_VAULT_PATH: z.string().trim().min(1).optional(),
+    OBSIDIAN_TIME_ZONE: z.string().trim().min(1).default('Asia/Ho_Chi_Minh'),
+    OBSIDIAN_OWNER_EMAIL: z.string().email().optional(),
+    GOOGLE_CLIENT_ID: z.string().trim().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().trim().min(1).optional(),
+    FACEBOOK_APP_ID: z.string().trim().min(1).optional(),
+    FACEBOOK_APP_SECRET: z.string().trim().min(1).optional(),
+    EMAIL_DELIVERY_ENABLED: z.enum(['true', 'false']).default('false'),
+    EMAIL_HOST: z.string().trim().min(1).optional(),
+    EMAIL_PORT: z.coerce.number().int().min(1).max(65_535).default(587),
+    EMAIL_SECURE: z.enum(['true', 'false']).default('false'),
+    EMAIL_USER: z.string().trim().min(1).optional(),
+    EMAIL_PASS: z.string().min(1).optional(),
+    EMAIL_FROM: z.string().trim().min(1).default('Prepify <noreply@prepify.dev>'),
+  })
+  .superRefine((env, context) => {
+    if (env.EMAIL_DELIVERY_ENABLED !== 'true') return;
+    for (const key of ['EMAIL_HOST', 'EMAIL_USER', 'EMAIL_PASS'] as const) {
+      if (!env[key])
+        context.addIssue({ code: 'custom', path: [key], message: `${key} is required` });
+    }
+  });
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -59,6 +74,15 @@ export interface AppConfig {
   oauth: {
     google?: { clientId: string; clientSecret: string };
     facebook?: { clientId: string; clientSecret: string };
+  };
+  email: {
+    enabled: boolean;
+    host?: string;
+    port: number;
+    secure: boolean;
+    user?: string;
+    password?: string;
+    from: string;
   };
 }
 
@@ -119,6 +143,15 @@ export function loadConfig(
       ...(env.FACEBOOK_APP_ID && env.FACEBOOK_APP_SECRET
         ? { facebook: { clientId: env.FACEBOOK_APP_ID, clientSecret: env.FACEBOOK_APP_SECRET } }
         : {}),
+    },
+    email: {
+      enabled: env.EMAIL_DELIVERY_ENABLED === 'true',
+      host: env.EMAIL_HOST,
+      port: env.EMAIL_PORT,
+      secure: env.EMAIL_SECURE === 'true',
+      user: env.EMAIL_USER,
+      password: env.EMAIL_PASS,
+      from: env.EMAIL_FROM,
     },
   };
 }

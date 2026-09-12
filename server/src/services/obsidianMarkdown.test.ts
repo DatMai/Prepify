@@ -9,12 +9,7 @@ import {
   setTaskCompleted,
   touchUpdated,
 } from './obsidianMarkdown';
-import {
-  addTodayEvidence,
-  dateInTimeZone,
-  getTodayJourney,
-  updateTodayTask,
-} from './obsidianVault';
+import { createObsidianVault, dateInTimeZone } from './obsidianVault';
 
 const SAMPLE = `---
 type: daily
@@ -103,18 +98,15 @@ it('updates a temporary vault atomically and rejects a stale revision', async ()
   const dailyDir = path.join(root, 'Daily');
   const date = dateInTimeZone();
   const dailyPath = path.join(dailyDir, `${date}.md`);
-  const previousEnabled = process.env.OBSIDIAN_SYNC_ENABLED;
-  const previousPath = process.env.OBSIDIAN_VAULT_PATH;
 
   try {
     await fs.mkdir(dailyDir);
     await fs.writeFile(dailyPath, SAMPLE.replaceAll('2026-09-10', date), 'utf8');
-    process.env.OBSIDIAN_SYNC_ENABLED = 'true';
-    process.env.OBSIDIAN_VAULT_PATH = root;
+    const vault = createObsidianVault({ enabled: true, vaultPath: root, timeZone: 'UTC' });
 
-    const before = await getTodayJourney();
+    const before = await vault.getTodayJourney();
     expect(before.obsidianUri).toContain('Daily%2F');
-    const after = await updateTodayTask({
+    const after = await vault.updateTodayTask({
       taskId: before.tasks[0].id,
       completed: true,
       evidence: '#az104 #recall — Unit 2 — 3/3 độc lập',
@@ -129,7 +121,7 @@ it('updates a temporary vault atomically and rejects a stale revision', async ()
     expect(stored).toMatch(/> keep this untouched/);
     expect(stored).toMatch(/- private content/);
 
-    const retried = await updateTodayTask({
+    const retried = await vault.updateTodayTask({
       taskId: before.tasks[0].id,
       completed: true,
       evidence: '#az104 #recall — Unit 2 — 3/3 độc lập',
@@ -140,17 +132,13 @@ it('updates a temporary vault atomically and rejects a stale revision', async ()
     expect(stored.match(/prepify:event/g) ?? []).toHaveLength(1);
 
     await expect(
-      addTodayEvidence({
+      vault.addTodayEvidence({
         evidence: '#partial — stale write',
         expectedRevision: before.revision,
         eventId: 'event_stale_12345',
       }),
     ).rejects.toMatchObject({ status: 412 });
   } finally {
-    if (previousEnabled === undefined) delete process.env.OBSIDIAN_SYNC_ENABLED;
-    else process.env.OBSIDIAN_SYNC_ENABLED = previousEnabled;
-    if (previousPath === undefined) delete process.env.OBSIDIAN_VAULT_PATH;
-    else process.env.OBSIDIAN_VAULT_PATH = previousPath;
     await fs.rm(root, { recursive: true, force: true });
   }
 });

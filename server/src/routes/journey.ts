@@ -1,15 +1,12 @@
 import { Router, type NextFunction, type Request, type Response } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { requireAdmin } from '../middleware/admin';
-import {
-  VaultError,
-  addTodayEvidence,
-  getTodayJourney,
-  saveTodayJournal,
-  updateTodayTask,
-} from '../services/obsidianVault';
+import { VaultError, type ObsidianVault } from '../services/obsidianVault';
 
-const router = Router();
+interface JourneyRouterDependencies {
+  requireAuth: (req: Request, res: Response, next: NextFunction) => void;
+  requireAdmin: (req: Request, res: Response, next: NextFunction) => void;
+  ownerEmail?: string;
+  vault: ObsidianVault;
+}
 
 function isLoopback(address: string | undefined): boolean {
   return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
@@ -23,22 +20,23 @@ function requireLocalRequest(req: Request, res: Response, next: NextFunction): v
   next();
 }
 
-function requireVaultOwner(req: Request, res: Response, next: NextFunction): void {
-  const ownerEmail = process.env.OBSIDIAN_OWNER_EMAIL?.trim().toLowerCase();
-  if (!ownerEmail) {
-    res.status(503).json({
-      error: 'OBSIDIAN_OWNER_EMAIL is not configured',
-      code: 'vault_owner_not_configured',
-    });
-    return;
-  }
-  if (req.user?.email.toLowerCase() !== ownerEmail) {
-    res
-      .status(403)
-      .json({ error: 'This account does not own the configured vault', code: 'not_vault_owner' });
-    return;
-  }
-  next();
+function requireVaultOwner(ownerEmail: string | undefined) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!ownerEmail) {
+      res.status(503).json({
+        error: 'OBSIDIAN_OWNER_EMAIL is not configured',
+        code: 'vault_owner_not_configured',
+      });
+      return;
+    }
+    if (req.user?.email.toLowerCase() !== ownerEmail) {
+      res
+        .status(403)
+        .json({ error: 'This account does not own the configured vault', code: 'not_vault_owner' });
+      return;
+    }
+    next();
+  };
 }
 
 function asyncRoute(
@@ -68,83 +66,94 @@ function eventId(req: Request): string {
   return value;
 }
 
-router.use(requireLocalRequest, requireAuth, requireAdmin, requireVaultOwner);
+export function createJourneyRouter(deps: JourneyRouterDependencies): Router {
+  const router = Router();
+  router.use(
+    requireLocalRequest,
+    deps.requireAuth,
+    deps.requireAdmin,
+    requireVaultOwner(deps.ownerEmail),
+  );
 
-router.get(
-  '/today',
-  asyncRoute(async (_req, res) => {
-    res.json(await getTodayJourney());
-  }),
-);
+  router.get(
+    '/today',
+    asyncRoute(async (_req, res) => {
+      res.json(await deps.vault.getTodayJourney());
+    }),
+  );
 
-router.patch(
-  '/today/tasks/:taskId',
-  asyncRoute(async (req, res) => {
-    const { completed, evidence } = (req.body ?? {}) as { completed?: unknown; evidence?: unknown };
-    if (
-      typeof completed !== 'boolean' ||
-      (evidence !== undefined && typeof evidence !== 'string')
-    ) {
-      throw new VaultError(
-        400,
-        'invalid_request',
-        'completed must be boolean and evidence must be text',
+  router.patch(
+    '/today/tasks/:taskId',
+    asyncRoute(async (req, res) => {
+      const { completed, evidence } = (req.body ?? {}) as {
+        completed?: unknown;
+        evidence?: unknown;
+      };
+      if (
+        typeof completed !== 'boolean' ||
+        (evidence !== undefined && typeof evidence !== 'string')
+      ) {
+        throw new VaultError(
+          400,
+          'invalid_request',
+          'completed must be boolean and evidence must be text',
+        );
+      }
+      const taskId = req.params.taskId;
+      if (typeof taskId !== 'string') {
+        throw new VaultError(400, 'invalid_request', 'taskId must be text');
+      }
+
+      const id = eventId(req);
+      res.json(
+        await deps.vault.updateTodayTask({
+          taskId,
+          completed,
+          evidence,
+          expectedRevision: expectedRevision(req),
+          eventId: id,
+        }),
       );
+    }),
+  );
+
+  router.put(
+    '/today/journal',
+    asyncRoute(async (req, res) => {
+      const { done, blocked, next } = (req.body ?? {}) as Record<string, unknown>;
+      if (typeof done !== 'string' || typeof blocked !== 'string' || typeof next !== 'string') {
+        throw new VaultError(400, 'invalid_request', 'done, blocked and next must be text');
+      }
+
+      res.json(await deps.vault.saveTodayJournal({ done, blocked, next }, expectedRevision(req)));
+    }),
+  );
+
+  router.post(
+    '/today/evidence',
+    asyncRoute(async (req, res) => {
+      const { evidence } = (req.body ?? {}) as { evidence?: unknown };
+      if (typeof evidence !== 'string') {
+        throw new VaultError(400, 'invalid_request', 'evidence must be text');
+      }
+
+      res.json(
+        await deps.vault.addTodayEvidence({
+          evidence,
+          expectedRevision: expectedRevision(req),
+          eventId: eventId(req),
+        }),
+      );
+    }),
+  );
+
+  router.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (error instanceof VaultError) {
+      res.status(error.status).json({ error: error.message, code: error.code });
+      return;
     }
-    const taskId = req.params.taskId;
-    if (typeof taskId !== 'string') {
-      throw new VaultError(400, 'invalid_request', 'taskId must be text');
-    }
+    next(error);
+  });
 
-    const id = eventId(req);
-    res.json(
-      await updateTodayTask({
-        taskId,
-        completed,
-        evidence,
-        expectedRevision: expectedRevision(req),
-        eventId: id,
-      }),
-    );
-  }),
-);
-
-router.put(
-  '/today/journal',
-  asyncRoute(async (req, res) => {
-    const { done, blocked, next } = (req.body ?? {}) as Record<string, unknown>;
-    if (typeof done !== 'string' || typeof blocked !== 'string' || typeof next !== 'string') {
-      throw new VaultError(400, 'invalid_request', 'done, blocked and next must be text');
-    }
-
-    res.json(await saveTodayJournal({ done, blocked, next }, expectedRevision(req)));
-  }),
-);
-
-router.post(
-  '/today/evidence',
-  asyncRoute(async (req, res) => {
-    const { evidence } = (req.body ?? {}) as { evidence?: unknown };
-    if (typeof evidence !== 'string') {
-      throw new VaultError(400, 'invalid_request', 'evidence must be text');
-    }
-
-    res.json(
-      await addTodayEvidence({
-        evidence,
-        expectedRevision: expectedRevision(req),
-        eventId: eventId(req),
-      }),
-    );
-  }),
-);
-
-router.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
-  if (error instanceof VaultError) {
-    res.status(error.status).json({ error: error.message, code: error.code });
-    return;
-  }
-  next(error);
-});
-
-export default router;
+  return router;
+}
