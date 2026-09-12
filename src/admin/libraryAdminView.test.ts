@@ -1,25 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AdminTopicDetail, AdminTopicListItem } from '../api/client';
 
-vi.mock('../api/client', () => ({
-  api: {
-    libraryAdmin: {
-      listTopics: vi.fn(),
-      getTopic: vi.fn(),
-      createTopic: vi.fn(),
-      archiveTopic: vi.fn(),
-      restoreTopic: vi.fn(),
-      exportTopic: vi.fn(),
-      importTopic: vi.fn(),
-      createSection: vi.fn(),
-      updateSection: vi.fn(),
-      deleteSection: vi.fn(),
-      createQuestion: vi.fn(),
-      updateQuestion: vi.fn(),
-      deleteQuestion: vi.fn(),
+// `ApiError` stays real so the dialog's `instanceof` check sees the same class.
+vi.mock('../api/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/client')>();
+  return {
+    ...actual,
+    api: {
+      admin: {
+        stats: vi.fn(),
+        listUsers: vi.fn(),
+        patchUser: vi.fn(),
+      },
+      libraryAdmin: {
+        listTopics: vi.fn(),
+        getTopic: vi.fn(),
+        createTopic: vi.fn(),
+        archiveTopic: vi.fn(),
+        restoreTopic: vi.fn(),
+        exportTopic: vi.fn(),
+        importTopic: vi.fn(),
+        createSection: vi.fn(),
+        updateSection: vi.fn(),
+        deleteSection: vi.fn(),
+        createQuestion: vi.fn(),
+        updateQuestion: vi.fn(),
+        deleteQuestion: vi.fn(),
+      },
     },
-  },
-}));
+  };
+});
 
 const topic: AdminTopicListItem = {
   id: 't-1',
@@ -340,5 +350,153 @@ describe('topic editor', () => {
 
     expect(api.libraryAdmin.createSection).toHaveBeenCalledWith('t-1', 'Phần II');
     expect(api.libraryAdmin.getTopic).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('parseImportDocument', () => {
+  const valid = {
+    title: 'T',
+    subtitle: null,
+    label: 'L',
+    color: '#000000',
+    sections: [
+      {
+        name: 'S',
+        questions: [
+          { code: 'Q1', level: 'basic', q: 'one', blocks: [{ type: 'text', text: 'a' }] },
+        ],
+      },
+    ],
+  };
+
+  it('accepts a document and counts its content', async () => {
+    const { parseImportDocument } = await import('./libraryAdminView');
+    const result = parseImportDocument(JSON.stringify(valid));
+
+    expect(result).toMatchObject({ ok: true, sections: 1, questions: 1 });
+  });
+
+  it('reports invalid JSON with the parser message', async () => {
+    const { parseImportDocument } = await import('./libraryAdminView');
+    const result = parseImportDocument('{ not json');
+
+    expect(result.ok).toBe(false);
+    expect(result).toHaveProperty('message');
+  });
+
+  it('rejects a document that is missing required fields', async () => {
+    const { parseImportDocument } = await import('./libraryAdminView');
+
+    expect(parseImportDocument(JSON.stringify({ title: 'T' })).ok).toBe(false);
+    expect(parseImportDocument(JSON.stringify({ ...valid, color: 'red' })).ok).toBe(false);
+    expect(parseImportDocument(JSON.stringify({ ...valid, sections: [] })).ok).toBe(false);
+  });
+
+  it('rejects a question with an unknown block type', async () => {
+    const { parseImportDocument } = await import('./libraryAdminView');
+    const broken = {
+      ...valid,
+      sections: [{ name: 'S', questions: [{ q: 'x', blocks: [{ type: 'image' }] }] }],
+    };
+
+    expect(parseImportDocument(JSON.stringify(broken)).ok).toBe(false);
+  });
+
+  it('ships a sample template that parses', async () => {
+    const { parseImportDocument, SAMPLE_DOCUMENT } = await import('./libraryAdminView');
+    const result = parseImportDocument(JSON.stringify(SAMPLE_DOCUMENT));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('returns the document it validated, so a round trip is lossless', async () => {
+    const { parseImportDocument } = await import('./libraryAdminView');
+    const result = parseImportDocument(JSON.stringify(valid));
+
+    expect(result.ok && result.document).toEqual(valid);
+  });
+});
+
+describe('import dialog', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubGlobal('localStorage', memoryStorage());
+    document.body.innerHTML = '';
+  });
+
+  async function openDialog(api: typeof import('../api/client').api): Promise<void> {
+    vi.mocked(api.libraryAdmin.listTopics).mockResolvedValue({ items: [topic] });
+    vi.mocked(api.libraryAdmin.getTopic).mockResolvedValue(detail);
+    const { renderContentTab } = await import('./libraryAdminView');
+
+    renderContentTab(mount());
+    await settled();
+    await settled();
+    (document.querySelector('.la-edit') as HTMLButtonElement).click();
+    await settled();
+    await settled();
+    (document.querySelector('.la-import') as HTMLButtonElement).click();
+    await settled();
+  }
+
+  it('imports a pasted document with the chosen mode and reloads', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.importTopic).mockResolvedValue({ sections: 1, questions: 1 });
+    const { SAMPLE_DOCUMENT: sample } = await import('./libraryAdminView');
+    await openDialog(api);
+
+    const textarea = document.querySelector('.la-import-text') as HTMLTextAreaElement;
+    textarea.value = JSON.stringify(sample);
+    textarea.dispatchEvent(new Event('input'));
+    await settled();
+    expect(document.querySelector('.la-import-preview')?.textContent).toContain('1');
+    expect((document.querySelector('.la-import-submit') as HTMLButtonElement).disabled).toBe(false);
+
+    (document.querySelector('.la-import-mode') as HTMLSelectElement).value = 'append';
+    (document.querySelector('.la-import-submit') as HTMLButtonElement).click();
+    await settled();
+    await settled();
+
+    expect(api.libraryAdmin.importTopic).toHaveBeenCalledWith('t-1', 'append', sample);
+  });
+
+  it('keeps the import button disabled while the document is invalid', async () => {
+    const { api } = await import('../api/client');
+    await openDialog(api);
+
+    const textarea = document.querySelector('.la-import-text') as HTMLTextAreaElement;
+    textarea.value = '{ broken';
+    textarea.dispatchEvent(new Event('input'));
+    await settled();
+
+    expect(document.querySelector('.la-import-error')?.textContent).toBeTruthy();
+    expect((document.querySelector('.la-import-submit') as HTMLButtonElement).disabled).toBe(true);
+    expect(api.libraryAdmin.importTopic).not.toHaveBeenCalled();
+  });
+
+  it('shows the server path when the server rejects the document', async () => {
+    const { api, ApiError } = await import('../api/client');
+    const failure = new ApiError(
+      'Invalid input',
+      400,
+      'library_invalid_document',
+      'sections[0].name',
+    );
+    vi.mocked(api.libraryAdmin.importTopic).mockRejectedValue(failure);
+    const { SAMPLE_DOCUMENT: sample } = await import('./libraryAdminView');
+    await openDialog(api);
+
+    const textarea = document.querySelector('.la-import-text') as HTMLTextAreaElement;
+    textarea.value = JSON.stringify(sample);
+    textarea.dispatchEvent(new Event('input'));
+    await settled();
+    (document.querySelector('.la-import-submit') as HTMLButtonElement).click();
+    await settled();
+    await settled();
+
+    const error = document.querySelector('.la-import-error')?.textContent ?? '';
+    expect(error).toContain('Invalid input');
+    expect(error).toContain('sections[0].name');
+    expect(document.querySelector('.la-import-text')).not.toBeNull();
   });
 });

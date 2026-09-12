@@ -9,7 +9,10 @@ import {
 } from '../api/client';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
+import { openImportDialog } from './importDocument';
 import { openQuestionEditor } from './questionEditor';
+
+export { SAMPLE_DOCUMENT, parseImportDocument } from './importDocument';
 
 let locale: AdminLocale = 'vi';
 let topics: AdminTopicListItem[] = [];
@@ -362,6 +365,12 @@ function renderMetaForm(topic: AdminTopicDetail): HTMLElement {
 function renderEditorActions(): HTMLElement {
   const actions = element('div', 'la-editor-actions');
   actions.appendChild(button('la-export', t('libAdmin.export'), () => void exportCurrentTopic()));
+  actions.appendChild(
+    button('la-import', t('libAdmin.import'), () => {
+      const topicId = editorTopicId;
+      if (topicId) openImportDialog(topicId, reloadTopicDetail);
+    }),
+  );
   actions.appendChild(
     button('la-archive', t('libAdmin.archive'), () => void archiveCurrentTopic()),
   );

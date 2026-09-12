@@ -174,4 +174,34 @@ describe('library admin client', () => {
       }),
     ).rejects.toBeInstanceOf(ApiError);
   });
+
+  it('keeps the server message and path for a rejected document', async () => {
+    const { api, ApiError } = await import('./client');
+    respondingJson(
+      {
+        error: 'Invalid document',
+        code: 'library_invalid_document',
+        path: 'document.sections[0].questions[0].blocks[0].type',
+        message: 'Invalid input',
+      },
+      400,
+    );
+
+    const failure = await api.libraryAdmin
+      .importTopic('t-1', 'replace', {
+        title: 'T',
+        subtitle: null,
+        label: 'L',
+        color: '#000000',
+        sections: [],
+      })
+      .catch((error: unknown) => error);
+
+    expect(failure).toBeInstanceOf(ApiError);
+    expect(failure).toMatchObject({
+      code: 'library_invalid_document',
+      message: 'Invalid input',
+      path: 'document.sections[0].questions[0].blocks[0].type',
+    });
+  });
 });

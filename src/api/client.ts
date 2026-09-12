@@ -27,14 +27,20 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
       const body = json as {
         error?: string | { code?: string; message?: string };
         code?: string;
+        message?: string;
+        path?: string;
       };
       const code = typeof body.error === 'object' ? body.error.code : body.code;
-      const serverMessage = typeof body.error === 'object' ? body.error.message : body.error;
+      const nestedMessage = typeof body.error === 'object' ? body.error.message : undefined;
+      // Flat `{ error, code, message, path }` responses (a Zod rejection reports
+      // where it failed) take precedence over the generic summary line.
+      const serverMessage =
+        body.message ?? nestedMessage ?? (typeof body.error === 'string' ? body.error : undefined);
       const key = code ? `api.${code}` : '';
       const translated = key ? t(key) : '';
       const message =
         translated && translated !== key ? translated : (serverMessage ?? t('err.generic'));
-      throw new ApiError(message, res.status, code);
+      throw new ApiError(message, res.status, code, body.path);
     }
     return json;
   } catch (error: unknown) {
@@ -52,6 +58,8 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public code?: string,
+    /** Where a rejected document failed, as reported by the server. */
+    public path?: string,
   ) {
     super(message);
   }
