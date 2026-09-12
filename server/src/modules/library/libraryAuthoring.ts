@@ -1,6 +1,7 @@
 import type { Block } from './libraryBlocks';
 import type { LibraryQuery, Locale } from './libraryRepository';
-import type { ImportDocument, Level } from './libraryValidation';
+import type { ImportDocument, ImportDocumentJson, Level } from './libraryValidation';
+import { toDocumentJson } from './libraryValidation';
 
 export class LibraryNotFoundError extends Error {
   readonly code = 'library_not_found';
@@ -684,10 +685,11 @@ export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransact
       if (rows.length === 0) throw new LibraryNotFoundError('library_not_found');
     },
 
-    async exportTopicDocument(topicId: string): Promise<ImportDocument | null> {
+    /** Emits the import format, so the result can be imported back verbatim. */
+    async exportTopicDocument(topicId: string): Promise<ImportDocumentJson | null> {
       const detail = await getTopicDetail({ topicId });
       if (!detail) return null;
-      return {
+      return toDocumentJson({
         title: detail.title,
         subtitle: detail.subtitle,
         label: detail.label,
@@ -701,7 +703,7 @@ export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransact
             blocks: question.blocks,
           })),
         })),
-      };
+      });
     },
   };
 }

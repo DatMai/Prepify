@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createLibraryAuthoring, LibraryConflictError } from './libraryAuthoring';
 import type { LibraryQuery } from './libraryRepository';
+import { importRequestSchema, normalizeImportDocument } from './libraryValidation';
 
 type Responder = (text: string, values: unknown[]) => { rows: unknown[] } | undefined;
 
@@ -196,6 +197,7 @@ describe('authoring repository — topics', () => {
 
     const document = await authoring.exportTopicDocument('t-1');
 
+    // the wire format uses `q`, matching what `import` accepts
     expect(document).toEqual({
       title: 'Data Structures',
       subtitle: '*sub*',
@@ -207,13 +209,77 @@ describe('authoring repository — topics', () => {
           questions: [
             {
               code: 'Q1',
-              prompt: 'Array là gì?',
+              q: 'Array là gì?',
               level: 'basic',
               blocks: [{ type: 'text', text: 'a' }],
             },
           ],
         },
         { name: 'Phần II', questions: [] },
+      ],
+    });
+  });
+
+  it('emits a document that the import contract accepts unchanged', async () => {
+    const { authoring } = harness((text) => {
+      if (text.startsWith('SELECT id, key, locale, label, title, subtitle, color, position')) {
+        return {
+          rows: [
+            {
+              id: 't-1',
+              key: 'dsa',
+              locale: 'vi',
+              label: 'DSA',
+              title: 'Data Structures',
+              subtitle: null,
+              color: '#B71C1C',
+              position: 0,
+              archived: false,
+            },
+          ],
+        };
+      }
+      if (text.includes('AS section_id')) {
+        return {
+          rows: [
+            {
+              section_id: 's-1',
+              section_position: 0,
+              section_name: 'Phần I',
+              question_id: 'q-1',
+              question_position: 0,
+              code: null,
+              prompt: 'Array là gì?',
+              level: null,
+              blocks: [{ type: 'text', text: 'a' }],
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const exported = await authoring.exportTopicDocument('t-1');
+    const parsed = importRequestSchema.safeParse({ mode: 'replace', document: exported });
+
+    expect(parsed.success).toBe(true);
+    expect(normalizeImportDocument(parsed.success ? parsed.data.document : ({} as never))).toEqual({
+      title: 'Data Structures',
+      subtitle: null,
+      label: 'DSA',
+      color: '#B71C1C',
+      sections: [
+        {
+          name: 'Phần I',
+          questions: [
+            {
+              code: null,
+              prompt: 'Array là gì?',
+              level: null,
+              blocks: [{ type: 'text', text: 'a' }],
+            },
+          ],
+        },
       ],
     });
   });

@@ -12,7 +12,7 @@ import {
   type LibraryAuthoring,
 } from '../modules/library/libraryAuthoring';
 import type { Locale } from '../modules/library/libraryRepository';
-import type { ImportDocument } from '../modules/library/libraryValidation';
+import type { ImportDocumentJson } from '../modules/library/libraryValidation';
 import {
   dailyEntryCreateSchema,
   dailyEntryPatchSchema,
@@ -32,6 +32,8 @@ interface LibraryAdminDeps {
   requireAuth: RequestHandler;
   requireAdmin: RequestHandler;
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function resolveLocale(value: unknown): Locale | null {
   if (value === undefined || value === 'vi') return 'vi';
@@ -74,7 +76,7 @@ function sendError(res: Response, error: unknown, next: NextFunction): void {
 async function snapshotForQuestion(
   authoring: LibraryAuthoring,
   questionId: string,
-): Promise<ImportDocument> {
+): Promise<ImportDocumentJson> {
   const topicId = await authoring.findTopicIdForQuestion(questionId);
   if (!topicId) throw new LibraryNotFoundError('library_not_found');
   const snapshot = await authoring.exportTopicDocument(topicId);
@@ -85,7 +87,7 @@ async function snapshotForQuestion(
 async function snapshotForSection(
   authoring: LibraryAuthoring,
   sectionId: string,
-): Promise<ImportDocument> {
+): Promise<ImportDocumentJson> {
   const topicId = await authoring.findTopicIdForSection(sectionId);
   if (!topicId) throw new LibraryNotFoundError('library_not_found');
   const snapshot = await authoring.exportTopicDocument(topicId);
@@ -98,8 +100,12 @@ export function createLibraryAdminRouter(deps: LibraryAdminDeps): Router {
 
   router.use(deps.requireAuth, deps.requireAdmin);
 
+  /**
+   * Every id in this API is a UUID. Rejecting anything else here keeps a
+   * malformed id from reaching Postgres, which would answer with a 500.
+   */
   router.param('id', (_req, res, next, value) => {
-    if (typeof value !== 'string' || value.length === 0 || value.length > 100) {
+    if (typeof value !== 'string' || !UUID_PATTERN.test(value)) {
       res.status(400).json({ error: 'Invalid id', code: 'invalid_id' });
       return;
     }

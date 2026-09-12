@@ -2314,6 +2314,35 @@ Phase 2 is done when all of the following hold:
 - [ ] The read API and the Daily API still answer exactly as in phase 1.
 - [ ] `content/*.json` is unmodified.
 
+## Post-implementation corrections
+
+Executing this plan surfaced defects in the plan itself. They are fixed in the
+code and recorded here so nobody re-introduces them.
+
+1. **`atLeastOneField` must call `.partial()`** before `.strict()`. Without it
+   every patch field is required, so `PATCH { level: 'basic' }` and
+   `PATCH { title: 'New' }` are rejected with 400.
+2. **`formatValidationIssue` must coerce path segments with `String()`**,
+   because Zod path segments can be symbols and a template literal over a symbol
+   is a TypeScript error.
+3. **Export must emit the import wire format.** Exporting the internal
+   `ImportDocument` produced `prompt`, `code: null` and `subtitle: null`, none of
+   which `importRequestSchema` accepted — so a snapshot could not be re-imported
+   and the round-trip guarantee was false. There are now two types:
+   `ImportDocument` (internal, `prompt`) and `ImportDocumentJson` (wire, `q`),
+   with `toDocumentJson` bridging them; `code` and `subtitle` are
+   `.nullable().optional()` in the schema.
+4. **`router.param('id')` must validate a UUID.** A non-UUID id previously
+   reached Postgres and answered 500 (`invalid input syntax for type uuid`)
+   instead of 400.
+5. **`renumber` covers topics too** (scope `locale`), instead of a second inline
+   copy, so the helper is never dead code under `noUnusedLocals`.
+6. **`updateTopic`, `updateSection` and `updateQuestion` run metadata and
+   position changes in one transaction**, so a reorder cannot half-apply.
+7. **Sections and questions are refused on an archived topic for every mutation,
+   including deletes**, and existence is checked before a patch so an unknown id
+   answers 404 rather than a silent 204.
+
 ## Notes for the executor
 
 - The reader projection in `libraryRepository.ts` must not change in this phase; the editor reads a different shape on purpose.

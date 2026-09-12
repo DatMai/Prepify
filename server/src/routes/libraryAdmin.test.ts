@@ -6,6 +6,13 @@ import { createLibraryAdminRouter } from './libraryAdmin';
 
 type Role = 'user' | 'admin';
 
+/** Every id in this API is a UUID; the router rejects anything else with 400. */
+const TOPIC_ID = '11111111-1111-4111-8111-111111111111';
+const SECTION_ID = '22222222-2222-4222-8222-222222222222';
+const QUESTION_ID = '33333333-3333-4333-8333-333333333333';
+const DAILY_ID = '44444444-4444-4444-8444-444444444444';
+const UNKNOWN_ID = '99999999-9999-4999-8999-999999999999';
+
 function appWith(
   authoring: Record<string, unknown>,
   role: Role = 'admin',
@@ -25,9 +32,11 @@ function appWith(
     next();
   };
   const authoringWithDefaults = {
-    findTopicStatus: vi.fn().mockResolvedValue({ id: 't-1', archived: options?.archived ?? false }),
-    findTopicIdForSection: vi.fn().mockResolvedValue('t-1'),
-    findTopicIdForQuestion: vi.fn().mockResolvedValue('t-1'),
+    findTopicStatus: vi
+      .fn()
+      .mockResolvedValue({ id: TOPIC_ID, archived: options?.archived ?? false }),
+    findTopicIdForSection: vi.fn().mockResolvedValue(TOPIC_ID),
+    findTopicIdForQuestion: vi.fn().mockResolvedValue(TOPIC_ID),
     listDailyReferencesForTopic: vi.fn().mockResolvedValue([]),
     listDailyReferencesForSection: vi.fn().mockResolvedValue([]),
     listDailyReferencesForQuestion: vi.fn().mockResolvedValue([]),
@@ -62,11 +71,11 @@ describe('library admin routes — guards', () => {
     expect(createTopic).not.toHaveBeenCalled();
   });
 
-  it('rejects an over-long id before any repository call', async () => {
+  it('rejects an id that is not a UUID before any repository call', async () => {
     const updateTopic = vi.fn();
 
     const res = await request(appWith({ updateTopic }))
-      .patch(`/admin/topics/${'x'.repeat(150)}`)
+      .patch('/admin/topics/not-a-uuid')
       .send({ title: 'x' })
       .expect(400);
 
@@ -89,7 +98,7 @@ describe('library admin routes — topics', () => {
   it('creates a topic and refuses a duplicate key', async () => {
     const createTopic = vi
       .fn()
-      .mockResolvedValueOnce({ id: 't-1' })
+      .mockResolvedValueOnce({ id: TOPIC_ID })
       .mockRejectedValueOnce(new LibraryConflictError('library_key_in_use'));
     const body = {
       key: 'system-design',
@@ -103,7 +112,7 @@ describe('library admin routes — topics', () => {
       .post('/admin/topics')
       .send(body)
       .expect(201);
-    expect(created.body).toEqual({ id: 't-1' });
+    expect(created.body).toEqual({ id: TOPIC_ID });
 
     const conflict = await request(appWith({ createTopic }))
       .post('/admin/topics')
@@ -129,7 +138,7 @@ describe('library admin routes — topics', () => {
     const updateTopic = vi.fn();
 
     const res = await request(appWith({ updateTopic }))
-      .patch('/admin/topics/t-1')
+      .patch(`/admin/topics/${TOPIC_ID}`)
       .send({ key: 'renamed' })
       .expect(400);
 
@@ -140,7 +149,9 @@ describe('library admin routes — topics', () => {
   it('404s an unknown topic', async () => {
     const getTopicDetail = vi.fn().mockResolvedValue(null);
 
-    const res = await request(appWith({ getTopicDetail })).get('/admin/topics/t-1').expect(404);
+    const res = await request(appWith({ getTopicDetail }))
+      .get(`/admin/topics/${UNKNOWN_ID}`)
+      .expect(404);
 
     expect(res.body.code).toBe('library_not_found');
   });
@@ -149,10 +160,10 @@ describe('library admin routes — topics', () => {
     const setTopicArchived = vi.fn().mockResolvedValue(undefined);
 
     const res = await request(appWith({ setTopicArchived }))
-      .post('/admin/topics/t-1/archive')
+      .post(`/admin/topics/${TOPIC_ID}/archive`)
       .expect(200);
 
-    expect(setTopicArchived).toHaveBeenCalledWith('t-1', true);
+    expect(setTopicArchived).toHaveBeenCalledWith(TOPIC_ID, true);
     expect(res.body.snapshot).toMatchObject({ title: 'T' });
   });
 
@@ -160,7 +171,7 @@ describe('library admin routes — topics', () => {
     const createSection = vi.fn();
 
     const res = await request(appWith({ createSection }, 'admin', { archived: true }))
-      .post('/admin/topics/t-1/sections')
+      .post(`/admin/topics/${TOPIC_ID}/sections`)
       .send({ name: 'Phần II' })
       .expect(409);
 
@@ -171,23 +182,23 @@ describe('library admin routes — topics', () => {
 
 describe('library admin routes — sections and questions', () => {
   it('creates a section and a question', async () => {
-    const createSection = vi.fn().mockResolvedValue({ id: 's-1' });
-    const createQuestion = vi.fn().mockResolvedValue({ id: 'q-1' });
+    const createSection = vi.fn().mockResolvedValue({ id: SECTION_ID });
+    const createQuestion = vi.fn().mockResolvedValue({ id: QUESTION_ID });
 
     const section = await request(appWith({ createSection }))
-      .post('/admin/topics/t-1/sections')
+      .post(`/admin/topics/${TOPIC_ID}/sections`)
       .send({ name: 'Phần II' })
       .expect(201);
-    expect(section.body).toEqual({ id: 's-1' });
-    expect(createSection).toHaveBeenCalledWith({ topicId: 't-1', name: 'Phần II' });
+    expect(section.body).toEqual({ id: SECTION_ID });
+    expect(createSection).toHaveBeenCalledWith({ topicId: TOPIC_ID, name: 'Phần II' });
 
     const question = await request(appWith({ createQuestion }))
-      .post('/admin/sections/s-1/questions')
+      .post(`/admin/sections/${SECTION_ID}/questions`)
       .send({ prompt: 'Câu mới', blocks: [{ type: 'text', text: 'x' }] })
       .expect(201);
-    expect(question.body).toEqual({ id: 'q-1' });
+    expect(question.body).toEqual({ id: QUESTION_ID });
     expect(createQuestion).toHaveBeenCalledWith({
-      sectionId: 's-1',
+      sectionId: SECTION_ID,
       code: null,
       prompt: 'Câu mới',
       level: null,
@@ -195,11 +206,11 @@ describe('library admin routes — sections and questions', () => {
     });
   });
 
-  it('rejects a question without any block field of the right shape', async () => {
+  it('rejects a question whose blocks do not match the contract', async () => {
     const createQuestion = vi.fn();
 
     const res = await request(appWith({ createQuestion }))
-      .post('/admin/sections/s-1/questions')
+      .post(`/admin/sections/${SECTION_ID}/questions`)
       .send({ prompt: 'x', blocks: [{ type: 'image', src: 'y' }] })
       .expect(400);
 
@@ -211,26 +222,26 @@ describe('library admin routes — sections and questions', () => {
     const updateQuestion = vi.fn().mockResolvedValue(undefined);
 
     await request(appWith({ updateQuestion }))
-      .patch('/admin/questions/q-1')
+      .patch(`/admin/questions/${QUESTION_ID}`)
       .send({ level: 'advanced' })
       .expect(204);
-    expect(updateQuestion).toHaveBeenCalledWith('q-1', { level: 'advanced' });
+    expect(updateQuestion).toHaveBeenCalledWith(QUESTION_ID, { level: 'advanced' });
 
     await request(appWith({ updateQuestion }))
-      .patch('/admin/questions/q-1')
+      .patch(`/admin/questions/${QUESTION_ID}`)
       .send({ level: null })
       .expect(204);
-    expect(updateQuestion).toHaveBeenLastCalledWith('q-1', { level: null });
+    expect(updateQuestion).toHaveBeenLastCalledWith(QUESTION_ID, { level: null });
   });
 
   it('returns the pre-delete snapshot so a delete is undoable', async () => {
     const deleteQuestion = vi.fn().mockResolvedValue(undefined);
 
     const res = await request(appWith({ deleteQuestion }))
-      .delete('/admin/questions/q-1')
+      .delete(`/admin/questions/${QUESTION_ID}`)
       .expect(200);
 
-    expect(deleteQuestion).toHaveBeenCalledWith('q-1');
+    expect(deleteQuestion).toHaveBeenCalledWith(QUESTION_ID);
     expect(res.body.snapshot).toMatchObject({ title: 'T' });
   });
 
@@ -239,7 +250,7 @@ describe('library admin routes — sections and questions', () => {
     const listDailyReferencesForQuestion = vi.fn().mockResolvedValue(['d-mcq-001']);
 
     const res = await request(appWith({ deleteQuestion, listDailyReferencesForQuestion }))
-      .delete('/admin/questions/q-1')
+      .delete(`/admin/questions/${QUESTION_ID}`)
       .expect(409);
 
     expect(res.body).toMatchObject({ code: 'library_in_use', entryIds: ['d-mcq-001'] });
@@ -251,7 +262,7 @@ describe('library admin routes — sections and questions', () => {
     const listDailyReferencesForSection = vi.fn().mockResolvedValue(['d-mcq-002']);
 
     const res = await request(appWith({ deleteSection, listDailyReferencesForSection }))
-      .delete('/admin/sections/s-1')
+      .delete(`/admin/sections/${SECTION_ID}`)
       .expect(409);
 
     expect(res.body.entryIds).toEqual(['d-mcq-002']);
@@ -264,7 +275,7 @@ describe('library admin routes — import and export', () => {
     const importTopic = vi.fn().mockResolvedValue({ sections: 2, questions: 9 });
 
     const res = await request(appWith({ importTopic }))
-      .post('/admin/topics/t-1/import')
+      .post(`/admin/topics/${TOPIC_ID}/import`)
       .send({
         mode: 'append',
         document: {
@@ -285,7 +296,7 @@ describe('library admin routes — import and export', () => {
       .expect(200);
 
     expect(importTopic).toHaveBeenCalledWith({
-      topicId: 't-1',
+      topicId: TOPIC_ID,
       mode: 'append',
       document: {
         title: 'T',
@@ -306,11 +317,43 @@ describe('library admin routes — import and export', () => {
     expect(res.body).toEqual({ sections: 2, questions: 9 });
   });
 
+  it('accepts an exported document back, including null code and subtitle', async () => {
+    const importTopic = vi.fn().mockResolvedValue({ sections: 1, questions: 1 });
+
+    await request(appWith({ importTopic }))
+      .post(`/admin/topics/${TOPIC_ID}/import`)
+      .send({
+        mode: 'replace',
+        document: {
+          title: 'T',
+          subtitle: null,
+          label: 'L',
+          color: '#000000',
+          sections: [{ name: 'S', questions: [{ code: null, level: null, q: 'one', blocks: [] }] }],
+        },
+      })
+      .expect(200);
+
+    expect(importTopic).toHaveBeenCalledWith({
+      topicId: TOPIC_ID,
+      mode: 'replace',
+      document: {
+        title: 'T',
+        subtitle: null,
+        label: 'L',
+        color: '#000000',
+        sections: [
+          { name: 'S', questions: [{ code: null, prompt: 'one', level: null, blocks: [] }] },
+        ],
+      },
+    });
+  });
+
   it('reports the nested path of a broken import', async () => {
     const importTopic = vi.fn();
 
     const res = await request(appWith({ importTopic }))
-      .post('/admin/topics/t-1/import')
+      .post(`/admin/topics/${TOPIC_ID}/import`)
       .send({
         mode: 'replace',
         document: {
@@ -327,7 +370,7 @@ describe('library admin routes — import and export', () => {
   });
 
   it('exports a topic document', async () => {
-    const res = await request(appWith({})).get('/admin/topics/t-1/export').expect(200);
+    const res = await request(appWith({})).get(`/admin/topics/${TOPIC_ID}/export`).expect(200);
 
     expect(res.body).toEqual({
       title: 'T',
@@ -341,7 +384,7 @@ describe('library admin routes — import and export', () => {
 
 describe('library admin routes — daily pool', () => {
   it('creates a fib entry and rejects an mcq without a question id', async () => {
-    const createDailyEntry = vi.fn().mockResolvedValue({ id: 'd-1' });
+    const createDailyEntry = vi.fn().mockResolvedValue({ id: DAILY_ID });
 
     await request(appWith({ createDailyEntry }))
       .post('/admin/daily-entries')
@@ -395,12 +438,14 @@ describe('library admin routes — daily pool', () => {
   it('deletes an entry and 404s an unknown one', async () => {
     const deleteDailyEntry = vi.fn().mockResolvedValue(undefined);
 
-    await request(appWith({ deleteDailyEntry })).delete('/admin/daily-entries/d-1').expect(204);
-    expect(deleteDailyEntry).toHaveBeenCalledWith('d-1');
+    await request(appWith({ deleteDailyEntry }))
+      .delete(`/admin/daily-entries/${DAILY_ID}`)
+      .expect(204);
+    expect(deleteDailyEntry).toHaveBeenCalledWith(DAILY_ID);
 
     const missing = vi.fn().mockRejectedValue(new LibraryNotFoundError('library_not_found'));
     const res = await request(appWith({ deleteDailyEntry: missing }))
-      .delete('/admin/daily-entries/gone')
+      .delete(`/admin/daily-entries/${UNKNOWN_ID}`)
       .expect(404);
 
     expect(res.body.code).toBe('library_not_found');

@@ -71,8 +71,8 @@ export const questionPatchSchema = atLeastOneField({
 
 const importQuestionSchema = z
   .object({
-    code: z.string().trim().max(20).optional(),
-    id: z.string().trim().max(20).optional(),
+    code: z.string().trim().max(20).nullable().optional(),
+    id: z.string().trim().max(20).nullable().optional(),
     level: levelSchema.nullable().optional(),
     q: z.string().trim().min(1).max(MAX_TEXT_LENGTH),
     blocks: blockListSchema,
@@ -89,7 +89,7 @@ const importSectionSchema = z
 const importDocumentSchema = z
   .object({
     title: z.string().trim().min(1).max(200),
-    subtitle: z.string().trim().max(300).optional(),
+    subtitle: z.string().trim().max(300).nullable().optional(),
     label: z.string().trim().min(1).max(60),
     color: colorSchema,
     sections: z.array(importSectionSchema).min(1).max(50),
@@ -141,12 +141,33 @@ export interface ImportSection {
   questions: ImportQuestion[];
 }
 
+/** The shape `importTopic` works with internally. */
 export interface ImportDocument {
   title: string;
   subtitle: string | null;
   label: string;
   color: string;
   sections: ImportSection[];
+}
+
+/**
+ * The wire format: exactly what `import` accepts and what `export` emits, so a
+ * topic can be exported and imported back without loss.
+ */
+export interface ImportDocumentJson {
+  title: string;
+  subtitle: string | null;
+  label: string;
+  color: string;
+  sections: Array<{
+    name: string;
+    questions: Array<{
+      code: string | null;
+      level: Level | null;
+      q: string;
+      blocks: Block[];
+    }>;
+  }>;
 }
 
 type ImportDocumentInput = z.infer<typeof importDocumentSchema>;
@@ -163,6 +184,25 @@ export function normalizeImportDocument(input: ImportDocumentInput): ImportDocum
         code: question.code ?? question.id ?? null,
         prompt: question.q,
         level: question.level ?? null,
+        blocks: question.blocks,
+      })),
+    })),
+  };
+}
+
+/** Projects the internal document back onto the import format. */
+export function toDocumentJson(document: ImportDocument): ImportDocumentJson {
+  return {
+    title: document.title,
+    subtitle: document.subtitle,
+    label: document.label,
+    color: document.color,
+    sections: document.sections.map((section) => ({
+      name: section.name,
+      questions: section.questions.map((question) => ({
+        code: question.code,
+        level: question.level,
+        q: question.prompt,
         blocks: question.blocks,
       })),
     })),
