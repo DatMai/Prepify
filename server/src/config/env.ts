@@ -96,7 +96,12 @@ function splitList(value: string): string[] {
 export function loadConfig(
   source: NodeJS.ProcessEnv | Record<string, string | undefined>,
 ): AppConfig {
-  const env = environmentSchema.parse(source);
+  // Treat blank values as unset: copying `.env.example` leaves optional
+  // placeholders (OAuth, SMTP) as empty strings rather than omitting them.
+  const normalized = Object.fromEntries(
+    Object.entries(source).filter(([, value]) => value !== undefined && value !== ''),
+  );
+  const env = environmentSchema.parse(normalized);
   const obsidianEnabled = env.OBSIDIAN_SYNC_ENABLED === 'true';
 
   if (obsidianEnabled && env.HOST !== '127.0.0.1' && env.HOST !== '::1') {

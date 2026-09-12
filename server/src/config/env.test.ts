@@ -30,6 +30,23 @@ describe('loadConfig', () => {
     expect(config.session.secure).toBe(true);
   });
 
+  it('treats blank optional values as unset', () => {
+    const config = loadConfig({
+      ...valid,
+      GOOGLE_CLIENT_ID: '',
+      GOOGLE_CLIENT_SECRET: '',
+      FACEBOOK_APP_ID: '',
+      FACEBOOK_APP_SECRET: '',
+      EMAIL_USER: '',
+      EMAIL_PASS: '',
+    });
+
+    expect(config.oauth.google).toBeUndefined();
+    expect(config.oauth.facebook).toBeUndefined();
+    expect(config.email.user).toBeUndefined();
+    expect(config.email.password).toBeUndefined();
+  });
+
   it('rejects session lifetimes outside one hour to thirty days', () => {
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '0' })).toThrow(/SESSION_TTL_HOURS/);
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '721' })).toThrow(/SESSION_TTL_HOURS/);
