@@ -109,6 +109,18 @@ function patchBuilder(): PatchBuilder {
   };
 }
 
+/**
+ * Maps Postgres write failures onto the API's error vocabulary, so a caller
+ * sees 409/404 instead of a raw 500. `23503` is a foreign key violation: the
+ * parent or referenced row does not exist.
+ */
+function translateWriteError(error: unknown): unknown {
+  const code = (error as { code?: string }).code;
+  if (code === '23505') return new LibraryConflictError('library_key_in_use');
+  if (code === '23503') return new LibraryNotFoundError('library_not_found');
+  return error;
+}
+
 export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransaction: Tx }) {
   /**
    * Moves one row to `targetIndex` within its parent scope and rewrites
@@ -213,6 +225,22 @@ export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransact
       archived: topic.archived,
       sections,
     };
+  }
+
+  /** Shared by the public method and the in-transaction import guard. */
+  async function listDailyReferencesForTopicWith(
+    tx: LibraryQuery,
+    topicId: string,
+  ): Promise<string[]> {
+    const { rows } = await tx<{ entry_id: string }>(
+      `SELECT d.entry_id FROM library_daily_entries d
+         JOIN library_questions q ON q.id = d.question_id
+         JOIN library_sections s ON s.id = q.section_id
+        WHERE s.topic_id = $1
+        ORDER BY d.entry_id`,
+      [topicId],
+    );
+    return rows.map((row) => row.entry_id);
   }
 
   return {
@@ -326,6 +354,165 @@ export function createLibraryAuthoring(deps: { query: LibraryQuery; withTransact
           WHERE id = $1`,
         [topicId, archived],
       );
+    },
+
+    async listDailyReferencesForTopic(topicId: string): Promise<string[]> {
+      return listDailyReferencesForTopicWith(deps.query, topicId);
+    },
+
+    async listDailyReferencesForSection(sectionId: string): Promise<string[]> {
+      const { rows } = await deps.query<{ entry_id: string }>(
+        `SELECT d.entry_id FROM library_daily_entries d
+           JOIN library_questions q ON q.id = d.question_id
+          WHERE q.section_id = $1
+          ORDER BY d.entry_id`,
+        [sectionId],
+      );
+      return rows.map((row) => row.entry_id);
+    },
+
+    async listDailyReferencesForQuestion(questionId: string): Promise<string[]> {
+      const { rows } = await deps.query<{ entry_id: string }>(
+        `SELECT entry_id FROM library_daily_entries WHERE question_id = $1 ORDER BY entry_id`,
+        [questionId],
+      );
+      return rows.map((row) => row.entry_id);
+    },
+
+    async findTopicIdForSection(sectionId: string): Promise<string | null> {
+      const { rows } = await deps.query<{ topic_id: string }>(
+        `SELECT topic_id FROM library_sections WHERE id = $1`,
+        [sectionId],
+      );
+      return rows[0]?.topic_id ?? null;
+    },
+
+    async findTopicIdForQuestion(questionId: string): Promise<string | null> {
+      const { rows } = await deps.query<{ topic_id: string }>(
+        `SELECT s.topic_id FROM library_questions q
+           JOIN library_sections s ON s.id = q.section_id
+          WHERE q.id = $1`,
+        [questionId],
+      );
+      return rows[0]?.topic_id ?? null;
+    },
+
+    async createSection(input: { topicId: string; name: string }): Promise<{ id: string }> {
+      try {
+        const { rows } = await deps.query<{ id: string }>(
+          `INSERT INTO library_sections (topic_id, position, name)
+           VALUES ($1, COALESCE((SELECT MAX(position) + 1 FROM library_sections WHERE topic_id = $1), 0), $2)
+           RETURNING id`,
+          [input.topicId, input.name],
+        );
+        return { id: rows[0]!.id };
+      } catch (error) {
+        throw translateWriteError(error);
+      }
+    },
+
+    async updateSection(
+      sectionId: string,
+      patch: { name?: string; position?: number },
+    ): Promise<void> {
+      await deps.withTransaction(async (tx) => {
+        const { rows } = await tx<{ topic_id: string }>(
+          `SELECT topic_id FROM library_sections WHERE id = $1`,
+          [sectionId],
+        );
+        const topicId = rows[0]?.topic_id;
+        if (!topicId) throw new LibraryNotFoundError('library_not_found');
+
+        const builder = patchBuilder();
+        if (patch.name !== undefined) builder.set('name', patch.name);
+        if (builder.sql.length > 0) {
+          await tx(
+            `UPDATE library_sections SET ${builder.sql} WHERE id = $${builder.values.length + 1}`,
+            [...builder.values, sectionId],
+          );
+        }
+        if (patch.position !== undefined) {
+          await renumber(
+            tx,
+            { table: 'library_sections', scopeColumn: 'topic_id', scopeValue: topicId },
+            sectionId,
+            patch.position,
+          );
+        }
+      });
+    },
+
+    async deleteSection(sectionId: string): Promise<void> {
+      await deps.query(`DELETE FROM library_sections WHERE id = $1`, [sectionId]);
+    },
+
+    async deleteSectionsForTopic(topicId: string): Promise<void> {
+      await deps.query(`DELETE FROM library_sections WHERE topic_id = $1`, [topicId]);
+    },
+
+    async createQuestion(input: {
+      sectionId: string;
+      code: string | null;
+      prompt: string;
+      level: Level | null;
+      blocks: Block[];
+    }): Promise<{ id: string }> {
+      try {
+        const { rows } = await deps.query<{ id: string }>(
+          `INSERT INTO library_questions (section_id, position, code, prompt, level, blocks)
+           VALUES ($1, COALESCE((SELECT MAX(position) + 1 FROM library_questions WHERE section_id = $1), 0), $2, $3, $4, $5::jsonb)
+           RETURNING id`,
+          [input.sectionId, input.code, input.prompt, input.level, JSON.stringify(input.blocks)],
+        );
+        return { id: rows[0]!.id };
+      } catch (error) {
+        throw translateWriteError(error);
+      }
+    },
+
+    async updateQuestion(
+      questionId: string,
+      patch: {
+        code?: string | null;
+        prompt?: string;
+        level?: Level | null;
+        blocks?: Block[];
+        position?: number;
+      },
+    ): Promise<void> {
+      await deps.withTransaction(async (tx) => {
+        const { rows } = await tx<{ section_id: string }>(
+          `SELECT section_id FROM library_questions WHERE id = $1`,
+          [questionId],
+        );
+        const sectionId = rows[0]?.section_id;
+        if (!sectionId) throw new LibraryNotFoundError('library_not_found');
+
+        const builder = patchBuilder();
+        if (patch.code !== undefined) builder.set('code', patch.code);
+        if (patch.prompt !== undefined) builder.set('prompt', patch.prompt);
+        if (patch.level !== undefined) builder.set('level', patch.level);
+        if (patch.blocks !== undefined)
+          builder.set('blocks', JSON.stringify(patch.blocks), '::jsonb');
+        if (builder.sql.length > 0) {
+          await tx(
+            `UPDATE library_questions SET ${builder.sql} WHERE id = $${builder.values.length + 1}`,
+            [...builder.values, questionId],
+          );
+        }
+        if (patch.position !== undefined) {
+          await renumber(
+            tx,
+            { table: 'library_questions', scopeColumn: 'section_id', scopeValue: sectionId },
+            questionId,
+            patch.position,
+          );
+        }
+      });
+    },
+
+    async deleteQuestion(questionId: string): Promise<void> {
+      await deps.query(`DELETE FROM library_questions WHERE id = $1`, [questionId]);
     },
 
     async exportTopicDocument(topicId: string): Promise<ImportDocument | null> {
