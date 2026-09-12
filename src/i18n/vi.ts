@@ -43,7 +43,6 @@ export const vi: Record<string, string> = {
   'library.sidebarHint': 'Chạm câu hỏi để mở · ✓ đánh dấu đã học',
   'library.favorites': 'Yêu thích',
   'library.favoriteCount': '// {count} câu yêu thích',
-  'library.questionCount': '// {subtitle} · {count} câu',
   'library.noFavorites': 'Chưa có câu hỏi yêu thích nào.',
   'library.noResults': 'Không tìm thấy câu hỏi nào khớp.',
   'library.reveal': 'Hiện đáp án',

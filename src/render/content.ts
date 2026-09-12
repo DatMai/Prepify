@@ -118,12 +118,7 @@ export function render(): void {
   if (!topic) return;
 
   if (titleEl) titleEl.textContent = topic.label;
-  const total = topic.sections.reduce((a, s) => a + s.questions.length, 0);
-  if (subEl)
-    subEl.textContent = t('library.questionCount', {
-      subtitle: topic.subtitle || '',
-      count: total,
-    });
+  if (subEl) subEl.textContent = '';
 
   const searchEl = document.getElementById('search') as HTMLInputElement | null;
   const search = (searchEl?.value || '').trim().toLowerCase();
