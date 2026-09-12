@@ -60,19 +60,21 @@ function buildTable(entries: LeaderboardEntry[], myRank: number | null): string 
     return `<div class="lb-empty">${t('lb.noData')}</div>`;
   }
 
-  const rows = entries.map((e) => {
-    const isMe = myRank !== null && e.rank === myRank;
-    const medalMap: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-    const rankLabel = medalMap[e.rank] ?? `#${e.rank}`;
+  const rows = entries
+    .map((e) => {
+      const isMe = myRank !== null && e.rank === myRank;
+      const medalMap: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+      const rankLabel = medalMap[e.rank] ?? `#${e.rank}`;
 
-    return `
+      return `
       <tr class="lb-row${isMe ? ' lb-me' : ''}">
         <td class="lb-rank">${rankLabel}</td>
         <td class="lb-name">${isMe ? t('lb.mePrefix') : ''}${escName(e.displayName)}</td>
         <td class="lb-learned">${e.learnedCount}</td>
         <td class="lb-streak">${e.streakDays > 0 ? `🔥 ${e.streakDays}` : '—'}</td>
       </tr>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <table class="lb-table">
@@ -89,8 +91,5 @@ function buildTable(entries: LeaderboardEntry[], myRank: number | null): string 
 }
 
 function escName(name: string): string {
-  return name
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

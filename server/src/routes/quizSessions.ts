@@ -47,12 +47,18 @@ router.post('/', async (req, res) => {
   };
 
   if (
-    typeof topicKey !== 'string' || !topicKey ||
+    typeof topicKey !== 'string' ||
+    !topicKey ||
     (mode !== 'flashcard' && mode !== 'mcq') ||
-    typeof total !== 'number' || total < 1 ||
-    typeof score !== 'number' || score < 0 || score > total
+    typeof total !== 'number' ||
+    total < 1 ||
+    typeof score !== 'number' ||
+    score < 0 ||
+    score > total
   ) {
-    res.status(400).json({ error: 'topicKey, mode (flashcard|mcq), total, score là bắt buộc và hợp lệ' });
+    res
+      .status(400)
+      .json({ error: 'topicKey, mode (flashcard|mcq), total, score là bắt buộc và hợp lệ' });
     return;
   }
 

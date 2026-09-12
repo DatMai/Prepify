@@ -7,11 +7,18 @@
   flex-shrink: 0;
   padding: 0 2px;
   margin-top: 1px;
-  transition: transform .15s, color .15s;
+  transition:
+    transform 0.15s,
+    color 0.15s;
   line-height: 1;
 }
-.q-fav:hover { transform: scale(1.2); color: #e05c6a; }
-.q-fav.faved { color: #e05c6a; }
+.q-fav:hover {
+  transform: scale(1.2);
+  color: #e05c6a;
+}
+.q-fav.faved {
+  color: #e05c6a;
+}
 
 .filter-fav-btn {
   background: none;
@@ -21,8 +28,15 @@
   border-radius: 8px;
   padding: 5px 10px;
   cursor: pointer;
-  transition: .15s;
+  transition: 0.15s;
   white-space: nowrap;
 }
-.filter-fav-btn:hover { border-color: #e05c6a; color: #e05c6a; }
-.filter-fav-btn.active { border-color: #e05c6a; color: #e05c6a; background: rgba(224,92,106,.08); }
+.filter-fav-btn:hover {
+  border-color: #e05c6a;
+  color: #e05c6a;
+}
+.filter-fav-btn.active {
+  border-color: #e05c6a;
+  color: #e05c6a;
+  background: rgba(224, 92, 106, 0.08);
+}

@@ -9,7 +9,9 @@ import { t, securityQuestions } from '../i18n';
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
 let _openProfile: (() => void) | null = null;
-export function setProfileOpener(fn: () => void): void { _openProfile = fn; }
+export function setProfileOpener(fn: () => void): void {
+  _openProfile = fn;
+}
 
 type Mode = 'login' | 'register' | 'forgot' | 'forgot-question' | 'reset';
 
@@ -118,7 +120,9 @@ export function buildModal(mode: Mode): string {
   return wrap(`
     <h2>${isLogin ? t('auth.loginTitle') : t('auth.registerTitle')}</h2>
     <p>${isLogin ? t('auth.loginTagline') : t('auth.registerTagline')}</p>
-    ${isLogin ? `
+    ${
+      isLogin
+        ? `
     <div class="oauth-btns">
       <a class="oauth-btn google" href="${API_BASE}/auth/google">
         <img src="/icons/google.svg" alt="" /> ${t('auth.continueGoogle')}
@@ -128,24 +132,30 @@ export function buildModal(mode: Mode): string {
       </a>
     </div>
     <div class="or-divider"><span>${t('auth.or')}</span></div>
-    ` : ''}
+    `
+        : ''
+    }
     ${!isLogin ? `<div class="field"><label>${t('auth.displayNameLabel')}</label><input id="authName" placeholder="${t('auth.displayNamePlaceholder')}" autocomplete="name" /></div>` : ''}
     <div class="field"><label>${t('auth.emailLabel')}</label><input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div>
     <div class="field"><label>${t('auth.passwordLabel')}</label><input id="authPass" type="password" placeholder="${isLogin ? '••••••' : t('auth.passwordPlaceholder')}" autocomplete="${isLogin ? 'current-password' : 'new-password'}" /></div>
-    ${!isLogin ? `
+    ${
+      !isLogin
+        ? `
     ${strengthMeterHtml()}
     <div class="security-q-section">
       <div class="sq-label">${t('auth.secQuestionLabel')} <span>${t('auth.secQuestionOptional')}</span></div>
       <select id="secQuestion">
         <option value="">${t('auth.selectQuestion')}</option>
-        ${questions.map(q => `<option value="${q}">${q}</option>`).join('')}
+        ${questions.map((q) => `<option value="${q}">${q}</option>`).join('')}
       </select>
       <div id="secAnswerField" style="display:none" class="field">
         <label>${t('auth.answerLabel')}</label>
         <input id="secAnswer" type="text" placeholder="${t('auth.answerPlaceholder')}" autocomplete="off" />
       </div>
     </div>
-    ` : ''}
+    `
+        : ''
+    }
     ${isLogin ? `<div class="forgot-link"><a id="goForgot">${t('auth.forgotLink')}</a></div>` : ''}
     <div class="modal-error" id="authError"></div>
     <button class="modal-submit" id="authSubmit" ${!isLogin ? 'disabled' : ''}>${isLogin ? t('auth.loginBtn') : t('auth.registerBtn')}</button>
@@ -162,7 +172,7 @@ function updateStrengthMeter(password: string): void {
   const btn = overlay!.querySelector('#authSubmit') as HTMLButtonElement | null;
 
   if (fill) fill.dataset.score = String(result.score);
-  rules.forEach((el, i) => (el as HTMLElement).dataset.pass = String(result.passed[i]));
+  rules.forEach((el, i) => ((el as HTMLElement).dataset.pass = String(result.passed[i])));
   if (btn) btn.disabled = result.score < 5;
 }
 
@@ -172,7 +182,10 @@ function bindModal(): void {
   overlay.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
 
-    if (el.id === 'modalClose') { hideModal(); return; }
+    if (el.id === 'modalClose') {
+      hideModal();
+      return;
+    }
 
     if (el.id === 'modeSwitch') {
       const current = overlay!.querySelector('.modal')?.getAttribute('data-mode') as Mode;
@@ -206,7 +219,14 @@ function bindModal(): void {
   });
 
   overlay.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') void submitAuth();
+    if (e.key === 'Enter') {
+      const mode = overlay?.querySelector('.modal')?.getAttribute('data-mode') as Mode | null;
+      if (mode === 'forgot') {
+        void handleForgotByEmail();
+      } else {
+        void submitAuth();
+      }
+    }
     if (e.key === 'Escape') hideModal();
   });
 }
@@ -217,7 +237,10 @@ async function handleForgotByEmail(): Promise<void> {
   const errEl = overlay.querySelector('#authError') as HTMLElement;
   const btn = overlay.querySelector('#forgotByEmailBtn') as HTMLButtonElement;
   errEl.textContent = '';
-  if (!email) { errEl.textContent = t('err.enterEmail'); return; }
+  if (!email) {
+    errEl.textContent = t('err.enterEmail');
+    return;
+  }
   btn.disabled = true;
   try {
     await api.auth.forgotByEmail(email);
@@ -236,7 +259,10 @@ async function handleForgotByQuestion(): Promise<void> {
   const errEl = overlay.querySelector('#authError') as HTMLElement;
   const btn = overlay.querySelector('#forgotByQuestionBtn') as HTMLButtonElement;
   errEl.textContent = '';
-  if (!email) { errEl.textContent = t('err.enterEmail'); return; }
+  if (!email) {
+    errEl.textContent = t('err.enterEmail');
+    return;
+  }
   btn.disabled = true;
   try {
     const res = await api.auth.forgotGetQuestion(email);
@@ -252,14 +278,19 @@ async function handleForgotByQuestion(): Promise<void> {
 async function submitAuth(): Promise<void> {
   if (!overlay) return;
   const mode = overlay.querySelector('.modal')?.getAttribute('data-mode') as Mode;
-  const errEl = overlay.querySelector('#authError') as HTMLElement;
-  const btn = overlay.querySelector('#authSubmit') as HTMLButtonElement;
+  const errEl = overlay.querySelector<HTMLElement>('#authError');
+  const btn = overlay.querySelector<HTMLButtonElement>('#authSubmit');
+  if (!errEl || !btn) return;
   errEl.textContent = '';
   btn.disabled = true;
 
   if (mode === 'forgot-question') {
     const answer = (overlay.querySelector('#sqAnswer') as HTMLInputElement)?.value.trim();
-    if (!answer) { errEl.textContent = t('err.enterAnswer'); btn.disabled = false; return; }
+    if (!answer) {
+      errEl.textContent = t('err.enterAnswer');
+      btn.disabled = false;
+      return;
+    }
     try {
       const res = await api.auth.forgotVerifyQuestion(forgotEmail, answer);
       _pendingResetToken = res.resetToken;
@@ -296,13 +327,18 @@ async function submitAuth(): Promise<void> {
   const name = (overlay.querySelector('#authName') as HTMLInputElement)?.value.trim();
 
   try {
-    const res = mode === 'login'
-      ? await api.auth.login(email, pass)
-      : await api.auth.register(email, pass, name || undefined);
+    const res =
+      mode === 'login'
+        ? await api.auth.login(email, pass)
+        : await api.auth.register(email, pass, name || undefined);
 
     setSession(res.token, res.user);
+    hideModal();
+    updateAuthBtn();
+    onAuthChange?.();
+
     const localRaw = localStorage.getItem('quiz:progress');
-    const local = localRaw ? JSON.parse(localRaw) as Record<string, boolean> : null;
+    const local = localRaw ? (JSON.parse(localRaw) as Record<string, boolean>) : null;
     if (local && Object.keys(local).length > 0) {
       const { data } = await api.progress.get();
       state.progress = Object.keys(data).length > 0 ? data : local;
@@ -320,10 +356,6 @@ async function submitAuth(): Promise<void> {
       }
       showToast(t('ok.registered'), 'ok');
     }
-
-    hideModal();
-    updateAuthBtn();
-    onAuthChange?.();
   } catch (err) {
     errEl.textContent = err instanceof ApiError ? err.message : t('err.generic');
     if (mode === 'register') btn.disabled = false;
@@ -333,7 +365,7 @@ async function submitAuth(): Promise<void> {
 }
 
 export function showModal(mode: Mode = 'login'): void {
-  if (overlay && mode !== 'login') overlay.innerHTML = buildModal(mode);
+  if (overlay) overlay.innerHTML = buildModal(mode);
   overlay?.classList.add('show');
   setTimeout(() => (overlay?.querySelector('input') as HTMLInputElement)?.focus(), 50);
 }
@@ -369,7 +401,8 @@ export function updateAuthBtn(): void {
         <button id="dismissVerifyBtn">✕</button>
       `;
       document.getElementById('resendVerifyBtn')?.addEventListener('click', () => {
-        void api.auth.resendVerification()
+        void api.auth
+          .resendVerification()
           .then(() => showToast(t('ok.verifyEmailResent'), 'ok'))
           .catch((err: unknown) => {
             const msg = err instanceof ApiError ? err.message : t('err.generic');

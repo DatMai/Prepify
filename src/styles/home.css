@@ -1,0 +1,106 @@
+.site-header {
+  position: relative;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  flex: 0 0 62px;
+  padding: 0 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(11, 15, 20, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+.site-brand {
+  border: 0;
+  background: none;
+  color: var(--txt);
+  font:
+    700 21px 'Fraunces',
+    serif;
+  cursor: pointer;
+}
+
+.site-brand em {
+  color: var(--accent);
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 14px;
+}
+.site-nav button {
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--faint);
+  font:
+    600 14px 'Outfit',
+    sans-serif;
+  cursor: pointer;
+}
+.site-nav button:hover,
+.site-nav button.is-active {
+  background: var(--panel);
+  color: var(--txt);
+}
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+}
+
+.home-view {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  width: 100%;
+  padding: 40px 24px;
+}
+
+.home-view[hidden],
+.app-shell[hidden] {
+  display: none;
+}
+.home-copy {
+  width: min(760px, 100%);
+}
+.home-kicker {
+  margin-bottom: 12px;
+  color: var(--accent2);
+  font:
+    700 10px 'Space Mono',
+    monospace;
+  letter-spacing: 0.13em;
+}
+.home-copy h1 {
+  font:
+    600 clamp(38px, 6vw, 68px)/1.08 'Fraunces',
+    serif;
+  letter-spacing: -0.045em;
+}
+
+.app-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+@media (max-width: 680px) {
+  .site-header {
+    padding: 0 14px;
+  }
+  .site-nav button {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+  .auth-name {
+    display: none;
+  }
+  .home-copy h1 {
+    font-size: 42px;
+  }
+}

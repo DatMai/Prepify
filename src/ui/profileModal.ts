@@ -18,10 +18,22 @@ export function initProfileModal(onLogout: () => void): void {
 
   overlay.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
-    if (t === overlay) { closeProfile(); return; }
-    if (t.id === 'profileClose') { closeProfile(); return; }
-    if (t.id === 'profileSave') { void saveProfile(); return; }
-    if (t.id === 'profileLogout') { handleLogout(); return; }
+    if (t === overlay) {
+      closeProfile();
+      return;
+    }
+    if (t.id === 'profileClose') {
+      closeProfile();
+      return;
+    }
+    if (t.id === 'profileSave') {
+      void saveProfile();
+      return;
+    }
+    if (t.id === 'profileLogout') {
+      handleLogout();
+      return;
+    }
 
     const avOpt = t.closest('.av-opt') as HTMLElement | null;
     if (avOpt) {
@@ -38,7 +50,7 @@ function buildProfileModal(): string {
   return `
     <div class="modal profile-modal">
       <button class="modal-close" id="profileClose">✕</button>
-      <h2>Profile</h2>
+      <h2>${t('profile.title')}</h2>
 
       <div class="profile-header">
         <img class="profile-av-main" id="profileAvMain" src="/avatars/av01.svg" alt="avatar" />
@@ -48,7 +60,7 @@ function buildProfileModal(): string {
         </div>
       </div>
 
-      <div class="profile-section-label">Chọn avatar</div>
+      <div class="profile-section-label">${t('profile.avatarLabel')}</div>
       <div class="av-grid">
         ${Array.from({ length: 20 }, (_, i) => {
           const n = i + 1;
@@ -57,27 +69,27 @@ function buildProfileModal(): string {
         }).join('')}
       </div>
 
-      <div class="profile-section-label">Thông tin</div>
+      <div class="profile-section-label">${t('profile.infoLabel')}</div>
       <div class="field">
-        <label>Tên hiển thị</label>
-        <input id="profileName" type="text" maxlength="50" placeholder="Tên hiển thị" />
+        <label>${t('profile.displayNameLabel')}</label>
+        <input id="profileName" type="text" maxlength="50" placeholder="${t('profile.displayNamePlaceholder')}" />
       </div>
       <div class="field">
-        <label>Địa điểm</label>
-        <input id="profileLoc" type="text" maxlength="100" placeholder="VD: Hà Nội, Việt Nam" />
+        <label>${t('profile.locationLabel')}</label>
+        <input id="profileLoc" type="text" maxlength="100" placeholder="${t('profile.locationPlaceholder')}" />
       </div>
 
       <div class="modal-error" id="profileError"></div>
 
-      <div class="profile-section-label">Thống kê</div>
+      <div class="profile-section-label">${t('profile.statsLabel')}</div>
       <div class="profile-stats">
         <div class="stat-chip">
           <div class="val" id="statLearned">0</div>
-          <div class="lbl">câu đã học</div>
+          <div class="lbl">${t('profile.learnedLabel')}</div>
         </div>
         <div class="stat-chip">
           <div class="val" id="statStreak">--</div>
-          <div class="lbl">ngày streak</div>
+          <div class="lbl">${t('profile.streakLabel')}</div>
         </div>
       </div>
 
@@ -99,6 +111,8 @@ function selectAvatar(id: number): void {
 
 export function openProfile(): void {
   if (!overlay || !auth.user) return;
+
+  overlay.innerHTML = buildProfileModal();
 
   const user = auth.user;
   const avatarId = user.avatarId ?? 1;

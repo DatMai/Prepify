@@ -1,3 +1,6 @@
+import type { DailyQuestion } from '../daily/types';
+import type { Lang } from '../i18n';
+
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
 
 function authHeaders(): HeadersInit {
@@ -68,6 +71,14 @@ export interface DailyStatusResponse {
   currentStreak?: number;
 }
 
+export async function fetchDailyQuestions(
+  lang: Lang,
+): Promise<{ date: string; questions: DailyQuestion[] }> {
+  const res = await fetch(`${BASE}/daily?lang=${lang}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch daily questions');
+  return res.json() as Promise<{ date: string; questions: DailyQuestion[] }>;
+}
+
 export interface DailyCompletePayload {
   date: string;
   score: number;
@@ -85,7 +96,9 @@ export async function fetchDailyStatus(): Promise<DailyStatusResponse> {
   return res.json() as Promise<DailyStatusResponse>;
 }
 
-export async function completeDailyChallenge(payload: DailyCompletePayload): Promise<DailyCompleteResult> {
+export async function completeDailyChallenge(
+  payload: DailyCompletePayload,
+): Promise<DailyCompleteResult> {
   const res = await fetch(`${BASE}/daily/complete`, {
     method: 'POST',
     headers: authHeaders(),

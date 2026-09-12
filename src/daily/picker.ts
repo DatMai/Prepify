@@ -3,7 +3,7 @@ import type { DailyQuestion } from './types';
 export function dailySeed(dateStr: string): number {
   let h = 0;
   for (let i = 0; i < dateStr.length; i++) {
-    h = Math.imul(31, h) + dateStr.charCodeAt(i) | 0;
+    h = (Math.imul(31, h) + dateStr.charCodeAt(i)) | 0;
   }
   return Math.abs(h);
 }

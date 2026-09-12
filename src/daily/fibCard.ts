@@ -34,10 +34,14 @@ export function renderFibCard(
 
   card.innerHTML = `
     <div class="daily-fib-prompt">${promptHtml}</div>
-    ${q.hint ? `
+    ${
+      q.hint
+        ? `
       <button class="fib-hint-btn" id="fib-hint-${q.id}">${t('fib.hint')}</button>
       <div class="fib-hint" id="fib-hint-text-${q.id}" hidden>${escHtml(q.hint)}</div>
-    ` : ''}
+    `
+        : ''
+    }
     <div class="daily-fib-actions">
       <button class="daily-submit-btn" id="fib-submit-${q.id}">${t('fib.check')}</button>
     </div>
@@ -106,5 +110,9 @@ export function renderFibCard(
 }
 
 function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

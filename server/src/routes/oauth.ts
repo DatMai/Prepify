@@ -70,7 +70,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       async (_accessToken, _refreshToken, profile, done) => {
         try {
           const email = profile.emails?.[0]?.value ?? null;
-          const user = await findOrCreateOAuthUser('google', profile.id, email, profile.displayName);
+          const user = await findOrCreateOAuthUser(
+            'google',
+            profile.id,
+            email,
+            profile.displayName,
+          );
           done(null, user);
         } catch (e) {
           done(e as Error);
@@ -107,7 +112,9 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
 }
 
 function makeToken(user: OAuthUser): string {
-  return jwt.sign({ userId: user.userId, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+  return jwt.sign({ userId: user.userId, email: user.email }, process.env.JWT_SECRET!, {
+    expiresIn: '7d',
+  });
 }
 
 const router = Router();
@@ -116,10 +123,16 @@ const googleConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_C
 const facebookConfigured = !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET);
 
 if (googleConfigured) {
-  router.get('/google', passport.authenticate('google', { session: false, scope: ['profile', 'email'] }));
+  router.get(
+    '/google',
+    passport.authenticate('google', { session: false, scope: ['profile', 'email'] }),
+  );
   router.get(
     '/google/callback',
-    passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/?oauth_error=1` }),
+    passport.authenticate('google', {
+      session: false,
+      failureRedirect: `${FRONTEND_URL}/?oauth_error=1`,
+    }),
     (req, res) => {
       const user = req.user as unknown as OAuthUser;
       res.redirect(`${FRONTEND_URL}/?auth_token=${makeToken(user)}`);
@@ -127,22 +140,31 @@ if (googleConfigured) {
   );
 } else {
   router.get('/google', (_req, res) => res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`));
-  router.get('/google/callback', (_req, res) => res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`));
+  router.get('/google/callback', (_req, res) =>
+    res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`),
+  );
 }
 
 if (facebookConfigured) {
   router.get('/facebook', passport.authenticate('facebook', { session: false, scope: ['email'] }));
   router.get(
     '/facebook/callback',
-    passport.authenticate('facebook', { session: false, failureRedirect: `${FRONTEND_URL}/?oauth_error=1` }),
+    passport.authenticate('facebook', {
+      session: false,
+      failureRedirect: `${FRONTEND_URL}/?oauth_error=1`,
+    }),
     (req, res) => {
       const user = req.user as unknown as OAuthUser;
       res.redirect(`${FRONTEND_URL}/?auth_token=${makeToken(user)}`);
     },
   );
 } else {
-  router.get('/facebook', (_req, res) => res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`));
-  router.get('/facebook/callback', (_req, res) => res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`));
+  router.get('/facebook', (_req, res) =>
+    res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`),
+  );
+  router.get('/facebook/callback', (_req, res) =>
+    res.redirect(`${FRONTEND_URL}/?oauth_error=not_configured`),
+  );
 }
 
 export default router;

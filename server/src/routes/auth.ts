@@ -50,13 +50,13 @@ router.post('/register', async (req, res) => {
   };
 
   if (!email || !password) {
-    res.status(400).json({ error: 'email và password là bắt buộc' });
+    res.status(400).json({ error: 'email và password là bắt buộc', code: 'missing_credentials' });
     return;
   }
 
   const strength = checkPasswordStrength(password);
   if (!strength.valid) {
-    res.status(400).json({ error: strength.errors.join(' · ') });
+    res.status(400).json({ error: strength.errors.join(' · '), code: 'weak_password' });
     return;
   }
 
@@ -65,11 +65,16 @@ router.post('/register', async (req, res) => {
 
   try {
     const result = await db.query<{
-      id: string; email: string; display_name: string | null; avatar_id: number; email_verified_at: Date | null;
+      id: string;
+      email: string;
+      display_name: string | null;
+      avatar_id: number;
+      email_verified_at: Date | null;
+      role: 'user' | 'admin';
     }>(
       `INSERT INTO users (email, password_hash, display_name, avatar_id)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, email, display_name, avatar_id, email_verified_at`,
+       RETURNING id, email, display_name, avatar_id, email_verified_at, role`,
       [email.toLowerCase().trim(), passwordHash, displayName?.trim() || null, avatarId],
     );
     const user = result.rows[0];
@@ -93,12 +98,13 @@ router.post('/register', async (req, res) => {
         email: user.email,
         displayName: user.display_name,
         avatarId: user.avatar_id,
+        role: user.role,
         emailVerifiedAt: user.email_verified_at?.toISOString() ?? null,
       },
     });
   } catch (err: unknown) {
     if ((err as { code?: string }).code === '23505') {
-      res.status(409).json({ error: 'Email đã được sử dụng' });
+      res.status(409).json({ error: 'Email đã được sử dụng', code: 'email_in_use' });
       return;
     }
     throw err;
@@ -129,7 +135,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body as { email?: string; password?: string };
 
   if (!email || !password) {
-    res.status(400).json({ error: 'email và password là bắt buộc' });
+    res.status(400).json({ error: 'email và password là bắt buộc', code: 'missing_credentials' });
     return;
   }
 
@@ -141,22 +147,26 @@ router.post('/login', async (req, res) => {
     avatar_id: number;
     location: string | null;
     email_verified_at: Date | null;
+    role: 'user' | 'admin';
   }>(
-    'SELECT id, email, password_hash, display_name, avatar_id, location, email_verified_at FROM users WHERE email = $1',
+    'SELECT id, email, password_hash, display_name, avatar_id, location, email_verified_at, role FROM users WHERE email = $1',
     [email.toLowerCase().trim()],
   );
 
   const user = result.rows[0];
   if (!user) {
-    res.status(401).json({ error: 'Email hoặc password không đúng' });
+    res.status(401).json({ error: 'Email hoặc password không đúng', code: 'invalid_credentials' });
     return;
   }
   if (!user.password_hash) {
-    res.status(401).json({ error: 'Tài khoản này được đăng nhập qua Google hoặc Facebook.' });
+    res.status(401).json({
+      error: 'Tài khoản này được đăng nhập qua Google hoặc Facebook.',
+      code: 'oauth_password_disabled',
+    });
     return;
   }
   if (!(await bcrypt.compare(password, user.password_hash))) {
-    res.status(401).json({ error: 'Email hoặc password không đúng' });
+    res.status(401).json({ error: 'Email hoặc password không đúng', code: 'invalid_credentials' });
     return;
   }
 
@@ -169,6 +179,7 @@ router.post('/login', async (req, res) => {
       displayName: user.display_name,
       avatarId: user.avatar_id,
       location: user.location,
+      role: user.role,
       emailVerifiedAt: user.email_verified_at?.toISOString() ?? null,
     },
   });
@@ -187,20 +198,29 @@ router.post('/login', async (req, res) => {
  */
 router.get('/me', requireAuth, async (req, res) => {
   const result = await db.query<{
-    id: string; email: string; display_name: string | null; avatar_id: number;
-    location: string | null; email_verified_at: Date | null;
+    id: string;
+    email: string;
+    display_name: string | null;
+    avatar_id: number;
+    location: string | null;
+    email_verified_at: Date | null;
+    role: 'user' | 'admin';
   }>(
-    'SELECT id, email, display_name, avatar_id, location, email_verified_at FROM users WHERE id = $1',
+    'SELECT id, email, display_name, avatar_id, location, email_verified_at, role FROM users WHERE id = $1',
     [req.user!.userId],
   );
   const user = result.rows[0];
-  if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+  if (!user) {
+    res.status(404).json({ error: 'User not found', code: 'user_not_found' });
+    return;
+  }
   res.json({
     id: user.id,
     email: user.email,
     displayName: user.display_name,
     avatarId: user.avatar_id,
     location: user.location,
+    role: user.role,
     emailVerifiedAt: user.email_verified_at?.toISOString() ?? null,
   });
 });
@@ -253,9 +273,12 @@ router.post('/resend-verification', requireAuth, async (req, res) => {
     [req.user!.userId],
   );
   const user = userResult.rows[0];
-  if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+  if (!user) {
+    res.status(404).json({ error: 'User not found', code: 'user_not_found' });
+    return;
+  }
   if (user.email_verified_at) {
-    res.status(400).json({ error: 'Email đã được xác minh' });
+    res.status(400).json({ error: 'Email đã được xác minh', code: 'email_already_verified' });
     return;
   }
 
@@ -266,7 +289,9 @@ router.post('/resend-verification', requireAuth, async (req, res) => {
   if (recent.rows[0]) {
     const ageMs = Date.now() - recent.rows[0].created_at.getTime();
     if (ageMs < 5 * 60 * 1000) {
-      res.status(429).json({ error: 'Vui lòng đợi 5 phút trước khi gửi lại' });
+      res
+        .status(429)
+        .json({ error: 'Vui lòng đợi 5 phút trước khi gửi lại', code: 'resend_too_soon' });
       return;
     }
   }
@@ -308,11 +333,13 @@ router.post('/resend-verification', requireAuth, async (req, res) => {
 router.post('/security-question/set', requireAuth, async (req, res) => {
   const { question, answer } = req.body as { question?: string; answer?: string };
   if (!question || !answer) {
-    res.status(400).json({ error: 'question và answer là bắt buộc' });
+    res
+      .status(400)
+      .json({ error: 'question và answer là bắt buộc', code: 'missing_security_answer' });
     return;
   }
   if (!(SECURITY_QUESTIONS as readonly string[]).includes(question)) {
-    res.status(400).json({ error: 'Câu hỏi không hợp lệ' });
+    res.status(400).json({ error: 'Câu hỏi không hợp lệ', code: 'invalid_security_question' });
     return;
   }
   const answerHash = await bcrypt.hash(answer.trim().toLowerCase(), 10);
@@ -353,19 +380,27 @@ router.patch('/profile', requireAuth, async (req, res) => {
   };
 
   if (displayName !== undefined && displayName.trim().length > 50) {
-    res.status(400).json({ error: 'Tên hiển thị không được quá 50 ký tự' });
+    res
+      .status(400)
+      .json({ error: 'Tên hiển thị không được quá 50 ký tự', code: 'display_name_too_long' });
     return;
   }
   if (location !== undefined && location.trim().length > 100) {
-    res.status(400).json({ error: 'Địa điểm không được quá 100 ký tự' });
+    res.status(400).json({ error: 'Địa điểm không được quá 100 ký tự', code: 'location_too_long' });
     return;
   }
   if (avatarId !== undefined && (avatarId < 1 || avatarId > 20 || !Number.isInteger(avatarId))) {
-    res.status(400).json({ error: 'avatarId phải là số nguyên từ 1 đến 20' });
+    res
+      .status(400)
+      .json({ error: 'avatarId phải là số nguyên từ 1 đến 20', code: 'invalid_avatar' });
     return;
   }
 
-  const result = await db.query<{ display_name: string | null; location: string | null; avatar_id: number }>(
+  const result = await db.query<{
+    display_name: string | null;
+    location: string | null;
+    avatar_id: number;
+  }>(
     `UPDATE users
      SET display_name = COALESCE($1, display_name),
          location     = COALESCE($2, location),
@@ -373,8 +408,8 @@ router.patch('/profile', requireAuth, async (req, res) => {
      WHERE id = $4
      RETURNING display_name, location, avatar_id`,
     [
-      displayName !== undefined ? (displayName.trim() || null) : null,
-      location !== undefined ? (location.trim() || null) : null,
+      displayName !== undefined ? displayName.trim() || null : null,
+      location !== undefined ? location.trim() || null : null,
       avatarId ?? null,
       req.user!.userId,
     ],

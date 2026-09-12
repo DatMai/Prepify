@@ -7,9 +7,13 @@ export interface AuthPayload {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- Express exposes this namespace for declaration merging.
   namespace Express {
     // Passport declares Request.user?: User — extend User with our payload fields
-    interface User extends AuthPayload {}
+    interface User {
+      userId: string;
+      email: string;
+    }
   }
 }
 

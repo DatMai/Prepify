@@ -54,7 +54,7 @@
 .profile-section-label {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dim);
   margin: 16px 0 8px;
@@ -76,7 +76,9 @@
   padding: 0;
   overflow: hidden;
   background: none;
-  transition: border-color .15s, box-shadow .15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .av-opt img {
@@ -145,10 +147,10 @@
   font-family: 'Outfit', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  transition: background .15s;
+  transition: background 0.15s;
   white-space: nowrap;
 }
 
 .profile-logout:hover {
-  background: rgba(231, 76, 60, .08);
+  background: rgba(231, 76, 60, 0.08);
 }

@@ -12,12 +12,17 @@ export function buildSession(config: QuizConfig, progress: ProgressMap): QuizSes
     sec.questions.forEach((q, qi) => {
       if (config.mode === 'mcq' && !isMcqEligible(q)) return;
       const key = keyOf(config.topicKey, si, qi);
-      questions.push({ topicKey: config.topicKey, sectionIdx: si, questionIdx: qi, progressKey: key });
+      questions.push({
+        topicKey: config.topicKey,
+        sectionIdx: si,
+        questionIdx: qi,
+        progressKey: key,
+      });
     });
   });
 
   if (config.questionSet === 'unlearned') {
-    questions = questions.filter(q => !progress[q.progressKey]);
+    questions = questions.filter((q) => !progress[q.progressKey]);
   }
 
   for (let i = questions.length - 1; i > 0; i--) {

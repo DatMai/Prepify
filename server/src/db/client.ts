@@ -1,17 +1,34 @@
 import { Pool } from 'pg';
+import type { Logger } from 'pino';
 
-let _pool: Pool | null = null;
+let databasePool: Pool | undefined;
 
-function getPool(): Pool {
-  if (!_pool) {
-    _pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    _pool.on('error', (err) => console.error('[db] unexpected error:', err.message));
+export function createPool(databaseUrl: string, logger: Logger): Pool {
+  const pool = new Pool({ connectionString: databaseUrl });
+  pool.on('error', (error) => {
+    logger.error({ err: error }, 'unexpected database pool error');
+  });
+  return pool;
+}
+
+export function initializeDatabase(pool: Pool): void {
+  if (databasePool && databasePool !== pool) {
+    throw new Error('Database pool has already been initialized');
   }
-  return _pool;
+  databasePool = pool;
+}
+
+function getDatabasePool(): Pool {
+  if (!databasePool) {
+    throw new Error('Database pool has not been initialized');
+  }
+  return databasePool;
 }
 
 export const db = new Proxy({} as Pool, {
   get(_target, prop) {
-    return (getPool() as any)[prop as any];
+    const pool = getDatabasePool();
+    const value = Reflect.get(pool, prop, pool) as unknown;
+    return typeof value === 'function' ? value.bind(pool) : value;
   },
 });

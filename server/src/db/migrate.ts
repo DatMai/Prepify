@@ -1,23 +1,28 @@
-import fs from 'node:fs';
 import path from 'node:path';
-import { db } from './client';
+import dotenv from 'dotenv';
+import pino from 'pino';
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), quiet: true });
+dotenv.config({ path: path.resolve(__dirname, '../../.env.local'), override: true, quiet: true });
+
+import { loadConfig } from '../config/env';
+import { createPool } from './client';
+import { runMigrations } from './migrationRunner';
 
 async function migrate(): Promise<void> {
+  const config = loadConfig(process.env);
+  const logger = pino({ level: config.nodeEnv === 'development' ? 'debug' : 'info' });
+  const pool = createPool(config.databaseUrl, logger);
   const migDir = path.join(__dirname, '../../migrations');
-  const files = fs.readdirSync(migDir).filter((f) => f.endsWith('.sql')).sort();
-
-  for (const file of files) {
-    const sql = fs.readFileSync(path.join(migDir, file), 'utf8');
-    console.log(`[migrate] running ${file}`);
-    await db.query(sql);
-    console.log(`[migrate] ✓ ${file}`);
+  try {
+    const files = await runMigrations(pool, migDir);
+    logger.info({ migrations: files }, 'database migrations complete');
+  } finally {
+    await pool.end();
   }
-
-  await db.end();
-  console.log('[migrate] done');
 }
 
 migrate().catch((err) => {
-  console.error('[migrate] failed:', err.message);
+  pino().fatal({ err }, 'database migration failed');
   process.exit(1);
 });

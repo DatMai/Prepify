@@ -7,3 +7,9 @@ dist
 .env.*
 !.env.example
 .claude/
+.worktrees/
+coverage/
+server/coverage/
+/content/en/
+.continue/
+deepseek-config.yaml
