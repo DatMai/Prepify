@@ -93,6 +93,26 @@ Design and implementation records:
 `docs/superpowers/specs/2026-09-12-home-rss-feed-design.md` and
 `docs/superpowers/plans/2026-09-12-home-rss-feed-implementation.md`.
 
+## Admin panel
+
+Admins (`role = 'admin'`) see an Admin entry in the top navigation that opens
+the panel: dashboard stat cards plus a searchable user table with role changes
+and account disable/enable. All endpoints are server-enforced behind
+`requireAuth` + `requireAdmin`.
+
+| Method | Path                      | Description                                                          |
+| ------ | ------------------------- | -------------------------------------------------------------------- |
+| GET    | `/api/v1/admin/stats`     | `{ totalUsers, totalAdmins, activeSessions, dailyCompletionsToday }` |
+| GET    | `/api/v1/admin/users`     | `{ total, items }` with `search`, `limit`, `offset`                  |
+| PATCH  | `/api/v1/admin/users/:id` | Set `role` and/or `disabled` (self-modification rejected)            |
+
+Disabling a user revokes their sessions, and disabled accounts cannot log in
+(HTTP 403). The `users.disabled` column comes from migration `010_add_user_disabled.sql`.
+
+Design and implementation records:
+`docs/superpowers/specs/2026-09-12-admin-panel-design.md` and
+`docs/superpowers/plans/2026-09-12-admin-panel-implementation.md`.
+
 ## Privacy and authorization
 
 - Library and Journey authorization is checked by the server.
