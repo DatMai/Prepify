@@ -1,6 +1,9 @@
 import {
   api,
+  type AdminLevel,
   type AdminLocale,
+  type AdminQuestion,
+  type AdminSection,
   type AdminTopicDetail,
   type AdminTopicListItem,
 } from '../api/client';
@@ -11,6 +14,7 @@ let locale: AdminLocale = 'vi';
 let topics: AdminTopicListItem[] = [];
 let body: HTMLElement | null = null;
 let editorTopicId: string | null = null;
+let detail: AdminTopicDetail | null = null;
 
 const KEY_PATTERN = /^[a-z0-9-]{2,40}$/;
 const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
@@ -61,6 +65,7 @@ export function renderContentTab(target: HTMLElement): void {
 
 export function closeTopicEditor(): void {
   editorTopicId = null;
+  detail = null;
   body?.querySelector('.la-editor')?.remove();
   if (body) void reloadTopics();
 }
@@ -79,11 +84,19 @@ export async function reloadTopics(): Promise<void> {
 export async function openTopicEditor(topicId: string): Promise<void> {
   if (!body) return;
   editorTopicId = topicId;
-  renderTopicEditor(null);
+  detail = null;
+  renderEditor();
+
+  await reloadTopicDetail();
+}
+
+export async function reloadTopicDetail(): Promise<void> {
+  const topicId = editorTopicId;
+  if (!topicId) return;
 
   await run(async () => {
-    const topic = await api.libraryAdmin.getTopic(topicId);
-    renderTopicEditor(topic);
+    detail = await api.libraryAdmin.getTopic(topicId);
+    renderEditor();
   });
 }
 
@@ -298,8 +311,7 @@ async function exportTopic(topic: AdminTopicListItem): Promise<void> {
   });
 }
 
-/** Task 4 replaces this placeholder with the full topic editor. */
-function renderTopicEditor(topic: AdminTopicDetail | null): void {
+function renderEditor(): void {
   if (!body) return;
 
   let node = body.querySelector('.la-editor');
@@ -311,12 +323,288 @@ function renderTopicEditor(topic: AdminTopicDetail | null): void {
   }
   node.textContent = '';
 
-  if (!topic) {
-    node.appendChild(element('p', 'la-empty', '…'));
+  if (!detail) {
+    node.appendChild(element('p', 'la-empty', t('admin.loading')));
     return;
   }
 
-  node.appendChild(element('h3', 'la-editor-title', topic.label));
-  node.appendChild(element('code', 'la-editor-key', topic.key));
-  node.appendChild(button('la-editor-back', t('libAdmin.back'), closeTopicEditor));
+  node.appendChild(button('la-back', t('libAdmin.back'), closeTopicEditor));
+  node.appendChild(element('h3', 'la-editor-title', detail.label));
+  node.appendChild(element('code', 'la-editor-key', detail.key));
+  node.appendChild(renderMetaForm(detail));
+  node.appendChild(renderEditorActions());
+
+  const sections = element('div', 'la-sections');
+  detail.sections.forEach((section, index) => {
+    sections.appendChild(renderSectionBlock(section, index));
+  });
+  node.appendChild(sections);
+
+  node.appendChild(button('la-new-section', t('libAdmin.newSection'), openSectionForm));
+}
+
+function renderMetaForm(topic: AdminTopicDetail): HTMLElement {
+  const form = element('form', 'la-meta-form');
+  form.addEventListener('submit', (event) => event.preventDefault());
+  form.appendChild(field('metaLabel', t('libAdmin.fieldLabel'), { value: topic.label }));
+  form.appendChild(field('metaTitle', t('libAdmin.fieldTitle'), { value: topic.title }));
+  form.appendChild(
+    field('metaSubtitle', t('libAdmin.fieldSubtitle'), { value: topic.subtitle ?? '' }),
+  );
+  form.appendChild(
+    field('metaColor', t('libAdmin.fieldColor'), { type: 'color', value: topic.color }),
+  );
+  form.appendChild(button('la-save-meta', t('libAdmin.save'), () => void saveMeta()));
+  return form;
+}
+
+function renderEditorActions(): HTMLElement {
+  const actions = element('div', 'la-editor-actions');
+  actions.appendChild(button('la-export', t('libAdmin.export'), () => void exportCurrentTopic()));
+  actions.appendChild(
+    button('la-archive', t('libAdmin.archive'), () => void archiveCurrentTopic()),
+  );
+  return actions;
+}
+
+function openSectionForm(): void {
+  const sections = body?.querySelector('.la-sections');
+  if (!sections) return;
+
+  const existing = sections.parentElement?.querySelector('.la-new-section-form');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const form = element('form', 'la-new-section-form');
+  form.addEventListener('submit', (event) => event.preventDefault());
+  form.appendChild(field('sectionName', t('libAdmin.sectionName')));
+  form.appendChild(element('p', 'la-form-error'));
+
+  const actions = element('div', 'la-form-actions');
+  actions.appendChild(
+    button('la-section-submit', t('libAdmin.create'), () => void createSection()),
+  );
+  actions.appendChild(button('la-section-cancel', t('libAdmin.cancel'), () => form.remove()));
+  form.appendChild(actions);
+
+  sections.insertAdjacentElement('afterend', form);
+}
+
+function renderSectionBlock(section: AdminSection, index: number): HTMLElement {
+  const block = element('section', 'la-section');
+  block.dataset.section = section.id;
+
+  const head = element('div', 'la-section-head');
+  head.appendChild(element('h4', 'la-section-name', section.name));
+
+  const rename = element('input', 'la-input la-section-rename-input');
+  rename.value = section.name;
+  rename.dataset.role = 'section-rename';
+  head.appendChild(rename);
+  head.appendChild(
+    button(
+      'la-section-rename',
+      t('libAdmin.save'),
+      () => void renameSection(section, rename.value),
+    ),
+  );
+  block.appendChild(head);
+
+  const last = (detail?.sections.length ?? 0) - 1;
+  const actions = element('div', 'la-section-actions');
+  const up = button('la-section-up', '↑', () => void moveSection(section, index - 1));
+  up.disabled = index === 0;
+  const down = button('la-section-down', '↓', () => void moveSection(section, index + 1));
+  down.disabled = index === last;
+  actions.append(
+    up,
+    down,
+    button('la-section-delete', t('libAdmin.remove'), () => void deleteSection(section)),
+  );
+  block.appendChild(actions);
+
+  const questions = element('div', 'la-questions');
+  section.questions.forEach((question, questionIndex) => {
+    questions.appendChild(renderQuestionRow(question, section, questionIndex));
+  });
+  block.appendChild(questions);
+
+  return block;
+}
+
+export function renderLevelSelect(
+  value: AdminLevel | null,
+  onChange: (next: AdminLevel | null) => void,
+): HTMLSelectElement {
+  const select = element('select', 'la-level');
+
+  const options: Array<[string, string]> = [
+    ['', t('libAdmin.levelNone')],
+    ['basic', t('libAdmin.levelBasic')],
+    ['intermediate', t('libAdmin.levelIntermediate')],
+    ['advanced', t('libAdmin.levelAdvanced')],
+  ];
+  for (const [raw, label] of options) {
+    const option = element('option', 'la-level-option', label);
+    option.value = raw;
+    select.appendChild(option);
+  }
+  select.value = value ?? '';
+  select.addEventListener('change', () => {
+    onChange((select.value || null) as AdminLevel | null);
+  });
+
+  return select;
+}
+
+function renderQuestionRow(
+  question: AdminQuestion,
+  section: AdminSection,
+  index: number,
+): HTMLElement {
+  const row = element('article', 'la-question');
+  row.dataset.question = question.id;
+
+  const prompt = element('div', 'la-question-prompt');
+  if (question.code) prompt.appendChild(element('code', 'la-question-code', question.code));
+  prompt.appendChild(element('p', 'la-question-text', question.prompt));
+  row.appendChild(prompt);
+
+  row.appendChild(
+    renderLevelSelect(question.level, (level) => void setQuestionLevel(question, level)),
+  );
+
+  const actions = element('div', 'la-question-actions');
+  const up = button('la-move-up', '↑', () => void moveQuestion(section, index, index - 1));
+  up.disabled = index === 0;
+  const down = button('la-move-down', '↓', () => void moveQuestion(section, index, index + 1));
+  down.disabled = index === section.questions.length - 1;
+  actions.append(
+    up,
+    down,
+    button('la-delete', t('libAdmin.remove'), () => void deleteQuestion(question)),
+  );
+  row.appendChild(actions);
+
+  return row;
+}
+
+/** Runs a mutation, reports it, then re-reads the topic so the UI matches the database. */
+async function mutate(action: () => Promise<void>): Promise<void> {
+  let ok = false;
+  await run(async () => {
+    await action();
+    ok = true;
+  });
+  if (!ok) return;
+
+  showToast(t('libAdmin.saved'), 'ok');
+  await reloadTopicDetail();
+}
+
+async function saveMeta(): Promise<void> {
+  const topicId = editorTopicId;
+  if (!topicId) return;
+
+  await mutate(async () => {
+    await api.libraryAdmin.updateTopic(topicId, {
+      label: inputValue('metaLabel'),
+      title: inputValue('metaTitle'),
+      subtitle: inputValue('metaSubtitle') || null,
+      color: inputValue('metaColor'),
+    });
+  });
+}
+
+async function exportCurrentTopic(): Promise<void> {
+  const topicId = editorTopicId;
+  if (!topicId) return;
+
+  await run(async () => {
+    const documentJson = await api.libraryAdmin.exportTopic(topicId);
+    snapshotDownloader(`${detail?.key ?? 'topic'}.json`, documentJson);
+  });
+}
+
+async function archiveCurrentTopic(): Promise<void> {
+  const topicId = editorTopicId;
+  if (!topicId || !window.confirm(t('libAdmin.deleteWarning'))) return;
+
+  await run(async () => {
+    const { snapshot } = await api.libraryAdmin.archiveTopic(topicId);
+    snapshotDownloader(`${detail?.key ?? 'topic'}.json`, snapshot);
+    closeTopicEditor();
+  });
+}
+
+async function createSection(): Promise<void> {
+  const topicId = editorTopicId;
+  const name = inputValue('sectionName');
+  if (!topicId) return;
+  if (!name) {
+    setFormError(t('libAdmin.formInvalid'));
+    return;
+  }
+
+  await mutate(async () => {
+    await api.libraryAdmin.createSection(topicId, name);
+  });
+}
+
+async function renameSection(section: AdminSection, name: string): Promise<void> {
+  if (!name.trim() || name.trim() === section.name) return;
+
+  await mutate(async () => {
+    await api.libraryAdmin.updateSection(section.id, { name: name.trim() });
+  });
+}
+
+async function moveSection(section: AdminSection, to: number): Promise<void> {
+  const sections = detail?.sections ?? [];
+  const target = sections[to];
+  if (!target || !window.confirm(t('libAdmin.reorderWarning'))) return;
+
+  await mutate(async () => {
+    await api.libraryAdmin.updateSection(section.id, { position: target.position });
+  });
+}
+
+async function deleteSection(section: AdminSection): Promise<void> {
+  if (!window.confirm(t('libAdmin.deleteWarning'))) return;
+
+  await run(async () => {
+    const { snapshot } = await api.libraryAdmin.deleteSection(section.id);
+    snapshotDownloader(`${detail?.key ?? 'topic'}.json`, snapshot);
+    showToast(t('libAdmin.saved'), 'ok');
+    await reloadTopicDetail();
+  });
+}
+
+async function setQuestionLevel(question: AdminQuestion, level: AdminLevel | null): Promise<void> {
+  await mutate(async () => {
+    await api.libraryAdmin.updateQuestion(question.id, { level });
+  });
+}
+
+async function moveQuestion(section: AdminSection, from: number, to: number): Promise<void> {
+  const moved = section.questions[from];
+  const target = section.questions[to];
+  if (!moved || !target || !window.confirm(t('libAdmin.reorderWarning'))) return;
+
+  await mutate(async () => {
+    await api.libraryAdmin.updateQuestion(moved.id, { position: target.position });
+  });
+}
+
+async function deleteQuestion(question: AdminQuestion): Promise<void> {
+  if (!window.confirm(t('libAdmin.deleteWarning'))) return;
+
+  await run(async () => {
+    const { snapshot } = await api.libraryAdmin.deleteQuestion(question.id);
+    snapshotDownloader(`${detail?.key ?? 'topic'}.json`, snapshot);
+    showToast(t('libAdmin.saved'), 'ok');
+    await reloadTopicDetail();
+  });
 }

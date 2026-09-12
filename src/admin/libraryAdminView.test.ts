@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AdminTopicListItem } from '../api/client';
+import type { AdminTopicDetail, AdminTopicListItem } from '../api/client';
 
 vi.mock('../api/client', () => ({
   api: {
@@ -187,5 +187,158 @@ describe('content tab', () => {
     expect(document.querySelector('.la-badge-archived')?.textContent).toBeTruthy();
     expect(document.querySelector('.la-restore')).not.toBeNull();
     expect(document.querySelector('.la-archive')).toBeNull();
+  });
+});
+
+const detail: AdminTopicDetail = {
+  id: 't-1',
+  key: 'dsa',
+  locale: 'vi',
+  label: 'DSA',
+  title: 'Data Structures',
+  subtitle: null,
+  color: '#B71C1C',
+  position: 0,
+  archived: false,
+  sections: [
+    {
+      id: 's-1',
+      position: 0,
+      name: 'Phần I',
+      questions: [
+        { id: 'q-1', position: 0, code: 'Q1', prompt: 'Array là gì?', level: 'basic', blocks: [] },
+        { id: 'q-2', position: 1, code: 'Q2', prompt: 'Linked list?', level: null, blocks: [] },
+      ],
+    },
+  ],
+};
+
+async function openEditor(api: typeof import('../api/client').api): Promise<void> {
+  vi.mocked(api.libraryAdmin.listTopics).mockResolvedValue({ items: [topic] });
+  vi.mocked(api.libraryAdmin.getTopic).mockResolvedValue(detail);
+  const { renderContentTab } = await import('./libraryAdminView');
+
+  renderContentTab(mount());
+  await settled();
+  await settled();
+  (document.querySelector('.la-edit') as HTMLButtonElement).click();
+  await settled();
+  await settled();
+}
+
+describe('topic editor', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubGlobal('localStorage', memoryStorage());
+    document.body.innerHTML = '';
+  });
+
+  it('opens pinned to one topic and renders its sections and questions', async () => {
+    const { api } = await import('../api/client');
+    await openEditor(api);
+
+    expect(api.libraryAdmin.getTopic).toHaveBeenCalledWith('t-1');
+    expect(document.querySelector('.la-section-name')?.textContent).toBe('Phần I');
+    expect(document.querySelectorAll('.la-question')).toHaveLength(2);
+    expect(document.body.textContent).toContain('Array là gì?');
+  });
+
+  it('sends a level change for one question only', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.updateQuestion).mockResolvedValue(undefined);
+    await openEditor(api);
+
+    const select = document.querySelector(
+      '.la-question[data-question="q-2"] .la-level',
+    ) as HTMLSelectElement;
+    select.value = 'intermediate';
+    select.dispatchEvent(new Event('change'));
+    await settled();
+
+    expect(api.libraryAdmin.updateQuestion).toHaveBeenCalledWith('q-2', { level: 'intermediate' });
+  });
+
+  it('never renumbers a question unless the move is confirmed', async () => {
+    const { api } = await import('../api/client');
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    await openEditor(api);
+
+    (
+      document.querySelector('.la-question[data-question="q-2"] .la-move-up') as HTMLButtonElement
+    ).click();
+    await settled();
+
+    expect(api.libraryAdmin.updateQuestion).not.toHaveBeenCalled();
+  });
+
+  it('moves a question to the previous index when confirmed', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.updateQuestion).mockResolvedValue(undefined);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await openEditor(api);
+
+    (
+      document.querySelector('.la-question[data-question="q-2"] .la-move-up') as HTMLButtonElement
+    ).click();
+    await settled();
+
+    expect(api.libraryAdmin.updateQuestion).toHaveBeenCalledWith('q-2', { position: 0 });
+  });
+
+  it('disables the edge move buttons so a no-op move cannot be sent', async () => {
+    const { api } = await import('../api/client');
+    await openEditor(api);
+
+    const first = document.querySelector(
+      '.la-question[data-question="q-1"] .la-move-up',
+    ) as HTMLButtonElement;
+    const last = document.querySelector(
+      '.la-question[data-question="q-2"] .la-move-down',
+    ) as HTMLButtonElement;
+    const secondDown = document.querySelector(
+      '.la-question[data-question="q-1"] .la-move-down',
+    ) as HTMLButtonElement;
+
+    expect(first.disabled).toBe(true);
+    expect(last.disabled).toBe(true);
+    expect(secondDown.disabled).toBe(false);
+  });
+
+  it('deletes a question and downloads the snapshot, but only after confirmation', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.deleteQuestion).mockResolvedValue({
+      snapshot: { title: 'T', subtitle: null, label: 'L', color: '#000000', sections: [] },
+    });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { setSnapshotDownloader } = await import('./libraryAdminView');
+    const download = vi.fn();
+    setSnapshotDownloader(download);
+
+    await openEditor(api);
+
+    (
+      document.querySelector('.la-question[data-question="q-1"] .la-delete') as HTMLButtonElement
+    ).click();
+    await settled();
+    await settled();
+
+    expect(api.libraryAdmin.deleteQuestion).toHaveBeenCalledWith('q-1');
+    expect(download).toHaveBeenCalledWith('dsa.json', expect.any(Object));
+  });
+
+  it('adds a section through the API and reloads the editor', async () => {
+    const { api } = await import('../api/client');
+    vi.mocked(api.libraryAdmin.createSection).mockResolvedValue({ id: 's-2' });
+    await openEditor(api);
+
+    (document.querySelector('.la-new-section') as HTMLButtonElement).click();
+    await settled();
+    (document.querySelector('[name="sectionName"]') as HTMLInputElement).value = 'Phần II';
+    (document.querySelector('.la-section-submit') as HTMLButtonElement).click();
+    await settled();
+    await settled();
+
+    expect(api.libraryAdmin.createSection).toHaveBeenCalledWith('t-1', 'Phần II');
+    expect(api.libraryAdmin.getTopic).toHaveBeenCalledTimes(2);
   });
 });
