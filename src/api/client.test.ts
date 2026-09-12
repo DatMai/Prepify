@@ -54,4 +54,18 @@ describe('API client authentication', () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/auth/session');
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('DELETE');
   });
+
+  it('fetches the public feed with a default limit', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await api.feed.list();
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/feed?limit=30');
+  });
 });

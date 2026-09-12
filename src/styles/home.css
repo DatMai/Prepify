@@ -53,11 +53,12 @@
 }
 
 .home-view {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 1;
   width: 100%;
-  padding: 40px 24px;
+  overflow-y: auto;
 }
 
 .home-view[hidden],
@@ -65,7 +66,12 @@
   display: none;
 }
 .home-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: min(760px, 100%);
+  min-height: 46vh;
+  padding: 64px 24px 48px;
 }
 .home-kicker {
   margin-bottom: 12px;

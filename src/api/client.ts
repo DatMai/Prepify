@@ -1,5 +1,6 @@
 import type { JourneyJournal, JourneySnapshot } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
+import type { FeedArticle } from '../feed/types';
 import { t, type Lang } from '../i18n';
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
@@ -169,5 +170,9 @@ export const api = {
     index: (lang: Lang) => apiRequest<TopicIndexEntry[]>(`/library/index?lang=${lang}`),
     topic: (key: string, lang: Lang) =>
       apiRequest<Topic>(`/library/topics/${encodeURIComponent(key)}?lang=${lang}`),
+  },
+
+  feed: {
+    list: (limit = 30) => apiRequest<{ items: FeedArticle[] }>(`/feed?limit=${limit}`),
   },
 };

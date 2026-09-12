@@ -29,6 +29,9 @@ import libraryRouter from './routes/library';
 import progressRouter from './routes/progress';
 import quizSessionsRouter from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
+import { createFeedRouter } from './routes/feed';
+import { createFeedService } from './modules/feed/feedService';
+import { DEFAULT_FEED_SOURCES } from './modules/feed/sources';
 import { syncConfiguredAdmins } from './services/adminBootstrap';
 import { createObsidianVault } from './services/obsidianVault';
 import { createMailer } from './utils/email';
@@ -46,6 +49,7 @@ function registerRoutes(
     dailyRoutes: ReturnType<typeof createDailyRouter>;
     journeyRoutes: ReturnType<typeof createJourneyRouter>;
     streakRoutes: ReturnType<typeof createStreakRouter>;
+    feedRoutes: ReturnType<typeof createFeedRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -53,6 +57,7 @@ function registerRoutes(
   app.use('/api/v1/auth', identity.oauthRoutes);
   app.use('/api/v1/progress', progressRouter);
   app.use('/api/v1/streak', identity.streakRoutes);
+  app.use('/api/v1/feed', identity.feedRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
@@ -116,6 +121,9 @@ async function main(): Promise<void> {
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
   const streakRoutes = createStreakRouter({ pool, timeZone: config.timeZone });
+  const feedRoutes = createFeedRouter({
+    service: createFeedService({ sources: DEFAULT_FEED_SOURCES }),
+  });
   const journeyRoutes = createJourneyRouter({
     requireAuth,
     requireAdmin,
@@ -151,6 +159,7 @@ async function main(): Promise<void> {
           dailyRoutes,
           journeyRoutes,
           streakRoutes,
+          feedRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');
