@@ -18,7 +18,7 @@ const publicUser: PublicUser = {
 };
 
 function record(passwordHash: string | null = 'hash:StrongPass1!'): UserRecord {
-  return { ...publicUser, passwordHash };
+  return { ...publicUser, passwordHash, disabled: false };
 }
 
 function users(initial?: UserRecord): UserRepository {
@@ -27,7 +27,14 @@ function users(initial?: UserRecord): UserRepository {
     findByEmail: async (email) => (current?.email === email ? current : null),
     findById: async (id) => (current?.id === id ? current : null),
     create: async (input) => {
-      current = { ...publicUser, ...input, id: 'user-1', location: null, role: 'user' };
+      current = {
+        ...publicUser,
+        ...input,
+        id: 'user-1',
+        location: null,
+        role: 'user',
+        disabled: false,
+      };
       return current;
     },
     updateProfile: async (_id, input) => {
@@ -106,6 +113,23 @@ describe('auth service', () => {
         password: 'StrongPass1!',
       }),
     ).rejects.toMatchObject({ code: 'invalid_credentials' });
+    expect(issued).toHaveLength(0);
+  });
+
+  it('rejects a disabled account with account_disabled', async () => {
+    const issued: Array<{ userId: string; token: string; expiresAt: Date }> = [];
+    const service = createAuthService({
+      users: users({ ...record(), disabled: true }),
+      sessions: sessions(issued),
+      passwords,
+      randomToken: () => 'opaque-token',
+      now: () => new Date('2026-09-12T00:00:00Z'),
+      sessionTtlMs: 60_000,
+    });
+
+    await expect(
+      service.login({ email: publicUser.email, password: 'StrongPass1!' }),
+    ).rejects.toMatchObject({ code: 'account_disabled' });
     expect(issued).toHaveLength(0);
   });
 

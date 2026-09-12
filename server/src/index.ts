@@ -30,6 +30,8 @@ import progressRouter from './routes/progress';
 import quizSessionsRouter from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
 import { createFeedRouter } from './routes/feed';
+import { createAdminRouter } from './routes/admin';
+import { createAdminRepository } from './modules/admin/adminRepository';
 import { createFeedService } from './modules/feed/feedService';
 import { DEFAULT_FEED_SOURCES } from './modules/feed/sources';
 import { createReviewRouter } from './routes/review';
@@ -52,6 +54,7 @@ function registerRoutes(
     journeyRoutes: ReturnType<typeof createJourneyRouter>;
     streakRoutes: ReturnType<typeof createStreakRouter>;
     feedRoutes: ReturnType<typeof createFeedRouter>;
+    adminRoutes: ReturnType<typeof createAdminRouter>;
     reviewRoutes: ReturnType<typeof createReviewRouter>;
   },
 ): void {
@@ -61,6 +64,7 @@ function registerRoutes(
   app.use('/api/v1/progress', progressRouter);
   app.use('/api/v1/streak', identity.streakRoutes);
   app.use('/api/v1/feed', identity.feedRoutes);
+  app.use('/api/v1/admin', identity.adminRoutes);
   app.use('/api/v1/review', identity.reviewRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
@@ -128,6 +132,15 @@ async function main(): Promise<void> {
   const feedRoutes = createFeedRouter({
     service: createFeedService({ sources: DEFAULT_FEED_SOURCES }),
   });
+  const adminRoutes = createAdminRouter({
+    repo: createAdminRepository({
+      query: pool.query.bind(pool) as unknown as Parameters<
+        typeof createAdminRepository
+      >[0]['query'],
+    }),
+    requireAuth,
+    requireAdmin,
+  });
   const reviewRoutes = createReviewRouter({
     repo: createReviewRepository({ query: pool.query.bind(pool) }),
     requireAuth,
@@ -170,6 +183,7 @@ async function main(): Promise<void> {
           journeyRoutes,
           streakRoutes,
           feedRoutes,
+          adminRoutes,
           reviewRoutes,
         }),
       readiness: async () => {

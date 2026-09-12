@@ -5,6 +5,7 @@ import type { PublicUser, SessionRepository, UserRole } from './sessionRepositor
 
 export interface UserRecord extends PublicUser {
   passwordHash: string | null;
+  disabled: boolean;
 }
 
 export interface UserRepository {
@@ -90,6 +91,7 @@ export function createAuthService(dependencies: AuthServiceDependencies) {
       const hash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
       const matches = await dependencies.passwords.verify(input.password, hash);
       if (!user || !user.passwordHash || !matches) throw codedError('invalid_credentials');
+      if (user.disabled) throw codedError('account_disabled');
       return issueSession(user);
     },
 
