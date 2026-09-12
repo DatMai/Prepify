@@ -1,9 +1,7 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import express, { type RequestHandler } from 'express';
 import request from 'supertest';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DailyEntryRecord, LibraryRepository } from '../modules/library/libraryRepository';
 import { createDailyRouter } from './daily';
 
 const auth: RequestHandler = (req, _res, next) => {
@@ -11,31 +9,30 @@ const auth: RequestHandler = (req, _res, next) => {
   next();
 };
 
+/** The single fib entry the fixture used to write to content/daily.json. */
+const fibEntry: DailyEntryRecord = {
+  entryId: 'fib-1',
+  type: 'fib',
+  difficulty: 1,
+  questionId: null,
+  topicKey: null,
+  prompt: 'A ___ stores key-value pairs.',
+  blanks: ['hash table'],
+  hint: null,
+};
+
 describe('daily routes', () => {
-  let contentDir: string;
   const query = vi.fn();
+  const listDailyEntries = vi.fn();
+  const getQuestion = vi.fn();
+  const listSiblingBlocks = vi.fn();
 
   beforeEach(() => {
-    contentDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prepify-daily-'));
-    fs.writeFileSync(
-      path.join(contentDir, 'daily.json'),
-      JSON.stringify({
-        version: 1,
-        pool: [
-          {
-            id: 'fib-1',
-            type: 'fib',
-            difficulty: 1,
-            prompt: 'A ___ stores key-value pairs.',
-            blanks: ['hash table'],
-          },
-        ],
-      }),
-    );
     query.mockReset();
+    listDailyEntries.mockReset().mockResolvedValue([fibEntry]);
+    getQuestion.mockReset();
+    listSiblingBlocks.mockReset();
   });
-
-  afterEach(() => fs.rmSync(contentDir, { recursive: true, force: true }));
 
   function app() {
     const instance = express();
@@ -44,11 +41,15 @@ describe('daily routes', () => {
       '/daily',
       createDailyRouter({
         query,
+        repo: {
+          listDailyEntries,
+          getQuestion,
+          listSiblingBlocks,
+        } as unknown as LibraryRepository,
         requireAuth: auth,
         requireAdmin: auth,
         secret: '0123456789abcdef0123456789abcdef',
         timeZone: 'Asia/Ho_Chi_Minh',
-        contentDir,
         recordStudyDay: vi.fn().mockResolvedValue(undefined),
       }),
     );
@@ -88,5 +89,67 @@ describe('daily routes', () => {
       .expect(400);
 
     expect(query).not.toHaveBeenCalled();
+  });
+
+  it('reads the Daily pool from the repository for the requested locale', async () => {
+    const challenge = await request(app()).get('/daily').expect(200);
+
+    expect(listDailyEntries).toHaveBeenCalledWith({ locale: 'vi' });
+    expect(challenge.body.questions).toHaveLength(1);
+  });
+
+  it('builds an MCQ from the referenced question and its siblings', async () => {
+    listDailyEntries.mockResolvedValue([
+      {
+        entryId: 'mcq-1',
+        type: 'mcq',
+        difficulty: 1,
+        questionId: 'q1',
+        topicKey: 'javascript',
+        prompt: null,
+        blanks: null,
+        hint: null,
+      },
+    ]);
+    getQuestion.mockResolvedValue({
+      blocks: [{ type: 'text', text: 'Closures capture the enclosing scope.' }],
+      questionText: 'Closure là gì?',
+    });
+    listSiblingBlocks.mockResolvedValue([
+      [{ type: 'text', text: 'A promise represents a future value that may resolve.' }],
+      [{ type: 'text', text: 'An event loop schedules callbacks onto the task queue.' }],
+      [{ type: 'text', text: 'A module caches its exports after the first evaluation.' }],
+    ]);
+
+    const challenge = await request(app()).get('/daily').expect(200);
+
+    expect(getQuestion).toHaveBeenCalledWith({ questionId: 'q1' });
+    expect(listSiblingBlocks).toHaveBeenCalledWith({
+      topicKey: 'javascript',
+      locale: 'vi',
+      excludeQuestionId: 'q1',
+    });
+    const question = challenge.body.questions[0];
+    expect(question).toMatchObject({ id: 'mcq-1', type: 'mcq', q: 'Closure là gì?' });
+    expect(question.options).toHaveLength(4);
+    expect(
+      question.options.some((option: { text: string }) =>
+        option.text.startsWith('Closures capture'),
+      ),
+    ).toBe(true);
+    expect(question).not.toHaveProperty('correctIdx');
+  });
+
+  it('serves English questions for lang=en', async () => {
+    await request(app()).get('/daily?lang=en').expect(200);
+
+    expect(listDailyEntries).toHaveBeenCalledWith({ locale: 'en' });
+  });
+
+  it('rejects an unsupported locale', async () => {
+    const res = await request(app()).get('/daily?lang=fr').expect(400);
+
+    expect(res.body.code).toBe('unsupported_language');
+    expect(listDailyEntries).not.toHaveBeenCalled();
   });
 });

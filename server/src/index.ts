@@ -25,7 +25,8 @@ import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
 import leaderboardRouter from './routes/leaderboard';
-import libraryRouter from './routes/library';
+import { createLibraryRouter } from './routes/library';
+import { createLibraryRepository, type LibraryQuery } from './modules/library/libraryRepository';
 import progressRouter from './routes/progress';
 import quizSessionsRouter from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
@@ -56,6 +57,7 @@ function registerRoutes(
     feedRoutes: ReturnType<typeof createFeedRouter>;
     adminRoutes: ReturnType<typeof createAdminRouter>;
     reviewRoutes: ReturnType<typeof createReviewRouter>;
+    libraryRoutes: ReturnType<typeof createLibraryRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -70,7 +72,7 @@ function registerRoutes(
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
   app.use('/api/v1/journey', identity.journeyRoutes);
-  app.use('/api/v1/library', libraryRouter);
+  app.use('/api/v1/library', identity.libraryRoutes);
 }
 
 async function main(): Promise<void> {
@@ -119,13 +121,17 @@ async function main(): Promise<void> {
       ),
     },
   });
+  const libraryRepository = createLibraryRepository({
+    query: pool.query.bind(pool) as unknown as LibraryQuery,
+  });
+  const libraryRoutes = createLibraryRouter({ repo: libraryRepository });
   const dailyRoutes = createDailyRouter({
     query: pool.query.bind(pool) as unknown as DailyQuery,
+    repo: libraryRepository,
     requireAuth,
     requireAdmin,
     secret: config.sessionSecret,
     timeZone: config.timeZone,
-    contentDir: path.resolve(__dirname, '../..', 'content'),
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
   const streakRoutes = createStreakRouter({ pool, timeZone: config.timeZone });
@@ -185,6 +191,7 @@ async function main(): Promise<void> {
           feedRoutes,
           adminRoutes,
           reviewRoutes,
+          libraryRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');

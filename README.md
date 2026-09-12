@@ -54,6 +54,15 @@ Database migrations remain append-only:
 npm --prefix server run migrate
 ```
 
+The Library corpus and the Daily pool live in PostgreSQL. `content/*.json` is now
+the seed snapshot, so a fresh database needs the seed after migrating:
+
+```bash
+npm --prefix server run seed:library
+```
+
+See [ADR-004](docs/ADR-004-library-corpus-in-postgresql.md).
+
 ## Current architecture
 
 The Foundation phase has a pure Express app factory, validated configuration,
@@ -131,6 +140,8 @@ due count and opens the review overlay.
 
 - Library and Journey authorization is checked by the server.
 - The Home feed is public and read-only; it exposes no private data.
+- The Library corpus lives in PostgreSQL and is served only through protected
+  backend routes; `content/*.json` is the seed snapshot, not the runtime source.
 - The frontend build does not import the real `content/*.json` corpus.
 - Current content is served through protected backend routes.
 - The overhaul will replace repository-held real corpus files with an
