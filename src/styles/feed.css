@@ -4,6 +4,10 @@
 }
 
 .feed-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
@@ -23,11 +27,54 @@
   letter-spacing: -0.03em;
 }
 
+.feed-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.feed-count {
+  color: var(--faint);
+  font:
+    400 12px 'Space Mono',
+    monospace;
+}
+
+.feed-view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.feed-view-btn {
+  width: 34px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.feed-view-btn:hover {
+  color: var(--txt);
+}
+
+.feed-view-btn.active {
+  background: var(--panel2);
+  color: var(--accent);
+}
+
 .feed-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .feed-chip {
@@ -57,17 +104,11 @@
   color: var(--accent);
 }
 
-.feed-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
+/* ── Cards ─────────────────────────────────────────────── */
 
 .feed-card {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px 18px 16px;
+  gap: 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent), var(--panel);
@@ -87,11 +128,34 @@
   display: none;
 }
 
-.feed-card-top {
+.feed-tile {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  color: #fff;
+  font:
+    700 18px 'Space Mono',
+    monospace;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.feed-body {
+  min-width: 0;
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-meta {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 7px;
+  min-height: 18px;
 }
 
 .feed-source {
@@ -103,12 +167,13 @@
   text-transform: uppercase;
 }
 
-.feed-time {
+.feed-time,
+.feed-reading,
+.feed-sep {
   color: var(--faint);
   font:
     400 12px 'Space Mono',
     monospace;
-  white-space: nowrap;
 }
 
 .feed-card-title {
@@ -132,11 +197,49 @@
 .feed-summary {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
   color: var(--dim);
   font-size: 14px;
 }
+
+/* ── List view ─────────────────────────────────────────── */
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feed-list .feed-card {
+  padding: 15px 18px;
+}
+
+.feed-list .feed-card:hover {
+  transform: none;
+}
+
+/* ── Grid view ─────────────────────────────────────────── */
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.feed-grid .feed-card {
+  flex-direction: column;
+  padding: 18px 18px 16px;
+}
+
+.feed-grid .feed-tile {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+/* ── States ────────────────────────────────────────────── */
 
 .feed-empty,
 .feed-error {
@@ -221,6 +324,10 @@
 @media (max-width: 680px) {
   .feed {
     padding: 28px 16px 56px;
+  }
+  .feed-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
   .feed-grid,
   .feed-skeleton-grid {

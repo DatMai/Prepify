@@ -184,6 +184,44 @@ describe('initFeed', () => {
 
     expect(container.textContent).toContain('EN:feed.title');
   });
+
+  it('renders a list layout with monogram, meta and reading time by default', async () => {
+    const { initFeed } = await import('./feedView');
+    initFeed({
+      container,
+      load: () => Promise.resolve([alpha]),
+      t: (key) => key,
+      formatTime: () => 'TIME',
+    });
+    await settled();
+    await settled();
+
+    expect(container.querySelector('.feed-list')).not.toBeNull();
+    expect(container.querySelector('.feed-grid')).toBeNull();
+    expect(container.querySelector('.feed-tile')?.textContent).toBe('A');
+    expect(container.querySelector('.feed-reading')?.textContent).toContain('feed.readTime');
+    expect(container.querySelector('.feed-count')?.textContent).toContain('feed.count');
+  });
+
+  it('switches between list and grid views', async () => {
+    const { initFeed } = await import('./feedView');
+    initFeed({
+      container,
+      load: () => Promise.resolve([alpha]),
+      t: (key) => key,
+      formatTime: () => 'TIME',
+    });
+    await settled();
+    await settled();
+
+    container.querySelector<HTMLButtonElement>('.feed-view-btn[data-view="grid"]')!.click();
+    expect(container.querySelector('.feed-grid')).not.toBeNull();
+    expect(container.querySelector('.feed-list')).toBeNull();
+
+    container.querySelector<HTMLButtonElement>('.feed-view-btn[data-view="list"]')!.click();
+    expect(container.querySelector('.feed-list')).not.toBeNull();
+    expect(container.querySelector('.feed-grid')).toBeNull();
+  });
 });
 
 describe('timeAgoLabel', () => {

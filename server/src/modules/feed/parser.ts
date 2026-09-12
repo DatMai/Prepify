@@ -38,13 +38,28 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function cleanSummary(item: RawItem): string {
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)]\([^)]*\)/g, '$1')
+    .replace(/[*_~`#>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cleanSummary(item: RawItem, title: string): string {
   const raw =
     item.contentSnippet ??
     item['content:encodedSnippet'] ??
     (item.content ? stripHtml(item.content) : undefined) ??
     (item.summary ? stripHtml(item.summary) : undefined);
-  const text = raw ?? '';
+  let text = stripMarkdown(raw ?? '');
+
+  const normalizedTitle = title.trim();
+  if (normalizedTitle.length > 0 && text.toLowerCase().startsWith(normalizedTitle.toLowerCase())) {
+    text = text.slice(normalizedTitle.length).replace(/^[\s:–—-]+/, '');
+  }
+
   if (text.length <= MAX_SUMMARY_LENGTH) return text;
   return `${text.slice(0, MAX_SUMMARY_LENGTH - 1).trimEnd()}…`;
 }
@@ -64,7 +79,7 @@ export async function parseFeedXml(source: string, xml: string): Promise<FeedArt
     .map((item) => ({
       title: item.title!.trim(),
       url: item.link!.trim(),
-      summary: cleanSummary(item),
+      summary: cleanSummary(item, item.title!.trim()),
       source,
       publishedAt: cleanPublishedAt(item),
     }));

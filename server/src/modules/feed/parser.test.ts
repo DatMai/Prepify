@@ -102,4 +102,27 @@ describe('parseFeedXml', () => {
     expect(item.summary).toHaveLength(280);
     expect(item.summary.endsWith('…')).toBe(true);
   });
+
+  it('strips markdown artifacts from summaries', async () => {
+    const xml = `<?xml version="1.0"?>
+      <rss version="2.0"><channel><title>T</title>
+        <item><title>Tidy</title><link>https://example.dev/tidy</link><description>![cover](https://x/img.png) Some *bold* and _em_ and [link](https://x) text</description></item>
+      </channel></rss>`;
+
+    const [item] = await parse(xml);
+
+    expect(item.summary).toBe('Some bold and em and link text');
+  });
+
+  it('drops a leading title repeated inside the summary', async () => {
+    const xml = `<?xml version="1.0"?>
+      <rss version="2.0"><channel><title>T</title>
+        <item><title>Great Post</title><link>https://example.dev/great</link><description>Great Post By Nokka | September 11, 2026 The real content follows.</description></item>
+      </channel></rss>`;
+
+    const [item] = await parse(xml);
+
+    expect(item.summary).not.toContain('Great Post');
+    expect(item.summary).toContain('The real content follows');
+  });
 });

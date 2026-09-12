@@ -27,13 +27,31 @@ function defaultFormatTime(publishedAt: string): string {
   return n === 0 ? defaultT(key) : defaultT(key, { n });
 }
 
+const SOURCE_COLORS: Record<string, [string, string]> = {
+  'dev.to': ['#5d5fef', '#3a3a9d'],
+  'Hacker News': ['#ff6600', '#b34700'],
+  Viblo: ['#5488c7', '#2f5d94'],
+  'VnExpress Số hóa': ['#9f224e', '#6d1234'],
+  'TopDev Blog': ['#e63946', '#a51d2b'],
+};
+
+function sourceColors(source: string): [string, string] {
+  return SOURCE_COLORS[source] ?? ['#f5a623', '#8a5a00'];
+}
+
+function readingMinutes(summary: string): number {
+  const words = summary.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 interface FeedState {
   items: FeedArticle[];
   filter: string | null;
   status: 'loading' | 'ready' | 'error';
+  view: 'list' | 'grid';
 }
 
-let state: FeedState = { items: [], filter: null, status: 'loading' };
+let state: FeedState = { items: [], filter: null, status: 'loading', view: 'list' };
 let activeDeps: FeedViewDeps | null = null;
 
 const SKELETON_HTML = `
@@ -45,6 +63,33 @@ const SKELETON_HTML = `
       <div class="feed-skeleton-card"></div>
     </div>
   </div>`;
+
+function cardHTML(
+  item: FeedArticle,
+  formatTime: (iso: string) => string,
+  readLabel: (summary: string) => string,
+): string {
+  const hidden = state.filter !== null && item.source !== state.filter ? ' hidden' : '';
+  const [tileA, tileB] = sourceColors(item.source);
+  const initial = (item.source.trim()[0] ?? '?').toUpperCase();
+  return `
+    <article class="feed-card" data-source="${esc(item.source)}"${hidden}>
+      <span class="feed-tile" style="background:linear-gradient(135deg, ${tileA}, ${tileB})">${esc(initial)}</span>
+      <div class="feed-body">
+        <div class="feed-meta">
+          <span class="feed-source">${esc(item.source)}</span>
+          <span class="feed-sep">·</span>
+          <time class="feed-time">${esc(formatTime(item.publishedAt))}</time>
+          <span class="feed-sep">·</span>
+          <span class="feed-reading">${readLabel(item.summary)}</span>
+        </div>
+        <h3 class="feed-card-title">
+          <a class="feed-link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>
+        </h3>
+        <p class="feed-summary">${esc(item.summary)}</p>
+      </div>
+    </article>`;
+}
 
 function render(deps: FeedViewDeps): void {
   const t = deps.t ?? defaultT;
@@ -73,27 +118,33 @@ function render(deps: FeedViewDeps): void {
         `<button class="feed-chip${source === state.filter ? ' active' : ''}" data-source="${esc(source)}" type="button">${esc(source)}</button>`,
     )
     .join('');
+
   const cards = state.items
-    .map((item) => {
-      const hidden = state.filter !== null && item.source !== state.filter ? ' hidden' : '';
-      return `
-        <article class="feed-card" data-source="${esc(item.source)}"${hidden}>
-          <div class="feed-card-top">
-            <span class="feed-source">${esc(item.source)}</span>
-            <time class="feed-time">${esc(formatTime(item.publishedAt))}</time>
-          </div>
-          <h3 class="feed-card-title">
-            <a class="feed-link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>
-          </h3>
-          <p class="feed-summary">${esc(item.summary)}</p>
-        </article>`;
-    })
+    .map((item) =>
+      cardHTML(item, formatTime, (summary) =>
+        esc(t('feed.readTime', { n: readingMinutes(summary) })),
+      ),
+    )
     .join('');
+  const containerClass = state.view === 'list' ? 'feed-list' : 'feed-grid';
+  const toolbar =
+    state.items.length > 0
+      ? `<div class="feed-toolbar">
+          <span class="feed-count">${esc(t('feed.count', { n: state.items.length }))}</span>
+          <div class="feed-view-toggle" role="group">
+            <button class="feed-view-btn${state.view === 'list' ? ' active' : ''}" data-view="list" type="button" aria-label="${esc(t('feed.listView'))}">☰</button>
+            <button class="feed-view-btn${state.view === 'grid' ? ' active' : ''}" data-view="grid" type="button" aria-label="${esc(t('feed.gridView'))}">▦</button>
+          </div>
+        </div>`
+      : '';
 
   container.innerHTML = `
     <div class="feed-head">
-      <p class="feed-kicker">${esc(t('feed.kicker'))}</p>
-      <h2 class="feed-title">${esc(t('feed.title'))}</h2>
+      <div class="feed-head-copy">
+        <p class="feed-kicker">${esc(t('feed.kicker'))}</p>
+        <h2 class="feed-title">${esc(t('feed.title'))}</h2>
+      </div>
+      ${toolbar}
     </div>
     ${
       state.items.length > 0
@@ -103,13 +154,20 @@ function render(deps: FeedViewDeps): void {
           </div>`
         : ''
     }
-    <div class="feed-grid">
+    <div class="${containerClass}">
       ${state.items.length === 0 ? `<p class="feed-empty">${esc(t('feed.empty'))}</p>` : cards}
     </div>`;
 
   container.querySelectorAll<HTMLButtonElement>('.feed-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
       state.filter = chip.dataset.source || null;
+      render(deps);
+    });
+  });
+
+  container.querySelectorAll<HTMLButtonElement>('.feed-view-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.view = button.dataset.view === 'grid' ? 'grid' : 'list';
       render(deps);
     });
   });
@@ -129,7 +187,7 @@ async function load(deps: FeedViewDeps): Promise<void> {
 }
 
 export function initFeed(deps: FeedViewDeps): void {
-  state = { items: [], filter: null, status: 'loading' };
+  state = { items: [], filter: null, status: 'loading', view: 'list' };
   activeDeps = deps;
   void load(deps);
 }
