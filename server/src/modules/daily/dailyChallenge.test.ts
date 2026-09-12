@@ -65,8 +65,8 @@ describe('daily challenge integrity', () => {
     });
 
     expect(codec.grade(token, 'user-1', '2026-09-12', [])).toEqual({ score: 0, total: 2 });
-    expect(codec.grade(token, 'user-1', '2026-09-12', [{ questionId: 'q1', selectedIdx: 0 }])).toEqual(
-      { score: 1, total: 2 },
-    );
+    expect(
+      codec.grade(token, 'user-1', '2026-09-12', [{ questionId: 'q1', selectedIdx: 0 }]),
+    ).toEqual({ score: 1, total: 2 });
   });
 });

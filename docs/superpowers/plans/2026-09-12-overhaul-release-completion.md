@@ -87,9 +87,16 @@
 
 - [ ] Write failing boundary tests around local midnight and duplicated/missing submitted answers.
 - [ ] Confirm RED.
-- [ ] Share one injected clock/time-zone implementation between Daily and streak routes.
-- [ ] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
-- [ ] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
+- [x] Share one injected clock/time-zone implementation between Daily and streak routes.
+- [x] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
+- [x] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
+
+Task 3 verification (2026-09-12): the time-zone boundary tests passed (2 files,
+13 tests), and the full `npm run check` passed, including 105 frontend tests,
+224 server tests, production builds, the private bundle scan, and production
+audits with 0 vulnerabilities. Migration `012_make_quiz_score_nullable.sql`
+was not applied locally because `DATABASE_URL` and `SESSION_SECRET` were not
+available in the environment.
 
 ### Task 4: Private corpus boundary
 

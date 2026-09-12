@@ -72,7 +72,9 @@ describe('quiz session routes', () => {
       ],
     });
 
-    const response = await request(app(query as QuizSessionQuery)).get('/quiz-sessions/my').expect(200);
+    const response = await request(app(query as QuizSessionQuery))
+      .get('/quiz-sessions/my')
+      .expect(200);
 
     expect(response.body.sessions).toEqual([
       {

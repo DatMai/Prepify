@@ -192,6 +192,17 @@ due count and opens the review overlay.
 - Design: `docs/superpowers/specs/2026-09-12-spaced-repetition-design.md`;
   plan: `docs/superpowers/plans/2026-09-12-spaced-repetition-implementation.md`.
 
+## Learning result integrity
+
+Quiz-session recording currently supports flashcard activity only:
+`POST /api/v1/quiz-sessions` accepts `{ topicKey, mode: "flashcard", total }`
+and stores a session without a score. Client-submitted scores and `mode: "mcq"`
+are rejected with `scored_attempt_required`. Scored MCQ history is intentionally
+unavailable until the server issues quiz attempts and can grade their answers.
+
+Daily answers are graded from a sealed, server-issued challenge, and streak
+dates use the configured application time zone.
+
 ## Privacy and authorization
 
 - Library and Journey authorization is checked by the server.
