@@ -141,10 +141,13 @@ describe('question contracts', () => {
 });
 
 describe('daily entry contracts', () => {
+  const questionId = '3f2504e0-4f89-11d3-9a0c-0305e82c3301';
+
   it('requires a question for mcq and prompt plus blanks for fib', () => {
-    const mcq = { entryId: 'd-1', locale: 'vi', type: 'mcq', difficulty: 1, questionId: 'q-1' };
+    const mcq = { entryId: 'd-1', locale: 'vi', type: 'mcq', difficulty: 1, questionId };
     expect(dailyEntryCreateSchema.safeParse(mcq).success).toBe(true);
     expect(dailyEntryCreateSchema.safeParse({ ...mcq, questionId: null }).success).toBe(false);
+    expect(dailyEntryCreateSchema.safeParse({ ...mcq, questionId: 'q-1' }).success).toBe(false);
 
     const fib = {
       entryId: 'd-2',
@@ -159,7 +162,7 @@ describe('daily entry contracts', () => {
   });
 
   it('rejects a difficulty outside 1..3', () => {
-    const entry = { entryId: 'd-1', locale: 'vi', type: 'mcq', difficulty: 4, questionId: 'q-1' };
+    const entry = { entryId: 'd-1', locale: 'vi', type: 'mcq', difficulty: 4, questionId };
     expect(dailyEntryCreateSchema.safeParse(entry).success).toBe(false);
   });
 });
@@ -247,7 +250,8 @@ describe('import document', () => {
 
     expect(parsed.success).toBe(false);
     const issue = formatValidationIssue(parsed.success ? ({} as never) : parsed.error);
-    expect(issue.path).toBe('sections[0].questions[1].blocks[0].type');
+    // the path is relative to the request body, so it names the nested document
+    expect(issue.path).toBe('document.sections[0].questions[1].blocks[0].type');
   });
 });
 ```
@@ -284,6 +288,7 @@ const topicKeySchema = z
 function atLeastOneField<T extends z.ZodRawShape>(shape: T) {
   return z
     .object(shape)
+    .partial()
     .strict()
     .refine((value) => Object.keys(value).length > 0, {
       message: 'At least one field is required',
@@ -438,9 +443,11 @@ export function formatValidationIssue(error: z.ZodError): { path: string; messag
   const issue = error.issues[0];
   if (!issue) return { path: '', message: 'Invalid document' };
   const path = issue.path
-    .map((segment, index) =>
-      typeof segment === 'number' ? `[${segment}]` : index === 0 ? String(segment) : `.${segment}`,
-    )
+    .map((segment, index) => {
+      if (typeof segment === 'number') return `[${segment}]`;
+      const text = String(segment);
+      return index === 0 ? text : `.${text}`;
+    })
     .join('');
   return { path, message: issue.message };
 }
