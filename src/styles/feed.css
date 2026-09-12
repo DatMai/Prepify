@@ -128,21 +128,6 @@
   display: none;
 }
 
-.feed-tile {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
-  border-radius: 11px;
-  color: #fff;
-  font:
-    700 18px 'Space Mono',
-    monospace;
-  letter-spacing: 0.02em;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-}
-
 .feed-body {
   min-width: 0;
   display: flex;
@@ -230,13 +215,6 @@
 .feed-grid .feed-card {
   flex-direction: column;
   padding: 18px 18px 16px;
-}
-
-.feed-grid .feed-tile {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 16px;
 }
 
 /* ── States ────────────────────────────────────────────── */

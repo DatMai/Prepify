@@ -185,7 +185,7 @@ describe('initFeed', () => {
     expect(container.textContent).toContain('EN:feed.title');
   });
 
-  it('renders a list layout with monogram, meta and reading time by default', async () => {
+  it('renders a list layout with meta and reading time by default', async () => {
     const { initFeed } = await import('./feedView');
     initFeed({
       container,
@@ -198,7 +198,7 @@ describe('initFeed', () => {
 
     expect(container.querySelector('.feed-list')).not.toBeNull();
     expect(container.querySelector('.feed-grid')).toBeNull();
-    expect(container.querySelector('.feed-tile')?.textContent).toBe('A');
+    expect(container.querySelector('.feed-tile')).toBeNull();
     expect(container.querySelector('.feed-reading')?.textContent).toContain('feed.readTime');
     expect(container.querySelector('.feed-count')?.textContent).toContain('feed.count');
   });

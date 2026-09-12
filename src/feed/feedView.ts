@@ -27,18 +27,6 @@ function defaultFormatTime(publishedAt: string): string {
   return n === 0 ? defaultT(key) : defaultT(key, { n });
 }
 
-const SOURCE_COLORS: Record<string, [string, string]> = {
-  'dev.to': ['#5d5fef', '#3a3a9d'],
-  'Hacker News': ['#ff6600', '#b34700'],
-  Viblo: ['#5488c7', '#2f5d94'],
-  'VnExpress Số hóa': ['#9f224e', '#6d1234'],
-  'TopDev Blog': ['#e63946', '#a51d2b'],
-};
-
-function sourceColors(source: string): [string, string] {
-  return SOURCE_COLORS[source] ?? ['#f5a623', '#8a5a00'];
-}
-
 function readingMinutes(summary: string): number {
   const words = summary.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
@@ -70,11 +58,8 @@ function cardHTML(
   readLabel: (summary: string) => string,
 ): string {
   const hidden = state.filter !== null && item.source !== state.filter ? ' hidden' : '';
-  const [tileA, tileB] = sourceColors(item.source);
-  const initial = (item.source.trim()[0] ?? '?').toUpperCase();
   return `
     <article class="feed-card" data-source="${esc(item.source)}"${hidden}>
-      <span class="feed-tile" style="background:linear-gradient(135deg, ${tileA}, ${tileB})">${esc(initial)}</span>
       <div class="feed-body">
         <div class="feed-meta">
           <span class="feed-source">${esc(item.source)}</span>
