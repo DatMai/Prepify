@@ -85,8 +85,8 @@
 - Consumes: authenticated user ID, `APP_TIME_ZONE`, sealed daily challenge answers.
 - Produces: deterministic `dateInTimeZone()`, `computeStreak()`, and server-derived stored scores.
 
-- [ ] Write failing boundary tests around local midnight and duplicated/missing submitted answers.
-- [ ] Confirm RED.
+- [x] Write failing boundary tests around local midnight and duplicated/missing submitted answers.
+- [x] Confirm RED.
 - [x] Share one injected clock/time-zone implementation between Daily and streak routes.
 - [x] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
 - [x] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
