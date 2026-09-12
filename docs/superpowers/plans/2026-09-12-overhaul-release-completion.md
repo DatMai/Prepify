@@ -85,8 +85,8 @@
 - Consumes: authenticated user ID, `APP_TIME_ZONE`, sealed daily challenge answers.
 - Produces: deterministic `dateInTimeZone()`, `computeStreak()`, and server-derived stored scores.
 
-- [x] Write failing boundary tests around local midnight and duplicated/missing submitted answers.
-- [x] Confirm RED.
+- [x] Add boundary tests covering local midnight and duplicated/missing submitted answers.
+- [x] Verify test sensitivity retrospectively: a controlled local-midnight mutation failed, while the original RED for duplicate/unknown submissions and client-asserted scores is recorded in the Task 1/2 reports.
 - [x] Share one injected clock/time-zone implementation between Daily and streak routes.
 - [x] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
 - [x] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
@@ -97,6 +97,13 @@ Task 3 verification (2026-09-12): the time-zone boundary tests passed (2 files,
 audits with 0 vulnerabilities. Migration `012_make_quiz_score_nullable.sql`
 was not applied locally because `DATABASE_URL` and `SESSION_SECRET` were not
 available in the environment.
+
+The pre-GREEN RED run for commit `03ccb20` is not available as a durable
+historical artifact; no such historical claim is made. The current mutation
+evidence is limited to temporarily forcing `dateInTimeZone` to use UTC, which
+failed the configured `Asia/Ho_Chi_Minh` midnight assertion (`expected
+2026-09-13`, `received 2026-09-12`), after which the production file was
+restored byte-for-byte.
 
 ### Task 4: Private corpus boundary
 
