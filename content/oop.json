@@ -22,43 +22,27 @@
                 ],
                 [
                   "Code reuse qua inheritance và composition",
-                  "Phức tạp hơn procedural programming"
+                  "Phức tạp hơn lập trình thủ tục"
                 ],
                 [
-                  "Encapsulation bảo vệ data",
-                  "Có thể over-engineer nếu dùng sai"
+                  "Encapsulation bảo vệ dữ liệu",
+                  "Dễ over-engineering nếu dùng sai"
                 ],
                 [
-                  "Polymorphism giúp mở rộng không sửa code cũ",
-                  "Performance overhead so với procedural"
+                  "Polymorphism giúp mở rộng mà không cần sửa code cũ",
+                  "Chi phí hiệu năng cao hơn lập trình thủ tục"
                 ],
                 [
-                  "Dễ maintain và refactor code lớn",
+                  "Dễ bảo trì và refactor code lớn",
                   "Không phù hợp cho mọi loại bài toán"
                 ],
                 [
-                  "Map tự nhiên với real-world entities",
-                  "Các vào lập phải nắm vững tư duy object"
+                  "Mô hình hóa tự nhiên các thực thể thực tế",
+                  "Cần nắm vững tư duy hướng đối tượng"
                 ]
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "OOP (Object-Oriented Programming) is a programming paradigm that organises software around objects — units that bundle state (data) and behaviour (methods) together. It promotes code reuse, maintainability, and natural modelling of real-world entities."
-            },
-            {
-              "type": "text",
-              "text": "Benefits: Code reuse via inheritance and composition; encapsulation protects data; polymorphism enables extension without modifying existing code; easier to maintain large codebases."
-            },
-            {
-              "type": "text",
-              "text": "Drawbacks: More complex than procedural programming; risk of over-engineering; slight performance overhead; requires a solid object-oriented mindset."
-            },
-            {
-              "type": "text",
-              "text": "When to use: Large-scale systems, domain-rich applications, and any project that benefits from modular, reusable, and easily extensible design."
             }
           ]
         },
@@ -100,26 +84,6 @@
             {
               "type": "note",
               "text": "💡 Cách nhớ: APIE — Abstraction, Polymorphism, Inheritance, Encapsulation. Hay hỏi: 'Cho ví dụ thực tế cho từng pillar.'"
-            },
-            {
-              "type": "text",
-              "text": "The four pillars of OOP are Encapsulation, Abstraction, Inheritance, and Polymorphism (mnemonic: APIE). Together they enable modular, reusable, and maintainable software design."
-            },
-            {
-              "type": "text",
-              "text": "Encapsulation: Bundles data + methods into a class; hides internal details using access modifiers (private, protected)."
-            },
-            {
-              "type": "text",
-              "text": "Abstraction: Exposes only what the user needs; hides complexity via abstract classes and interfaces."
-            },
-            {
-              "type": "text",
-              "text": "Inheritance: Child class reuses parent class properties/methods via extends and super()."
-            },
-            {
-              "type": "text",
-              "text": "Polymorphism: The same interface behaves differently depending on the concrete type — enabled by overriding and overloading."
             }
           ]
         },
@@ -848,30 +812,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "SOLID is a set of five OOP design principles introduced by Robert C. Martin (Uncle Bob) that make software easier to maintain, extend, and test."
-            },
-            {
-              "type": "text",
-              "text": "S — SRP: Each class should have only one reason to change."
-            },
-            {
-              "type": "text",
-              "text": "O — OCP: Open for extension, closed for modification."
-            },
-            {
-              "type": "text",
-              "text": "L — LSP: Subtypes must be substitutable for their supertypes."
-            },
-            {
-              "type": "text",
-              "text": "I — ISP: Prefer multiple small interfaces over one large interface."
-            },
-            {
-              "type": "text",
-              "text": "D — DIP: Depend on abstractions, not on concrete implementations."
             }
           ]
         },
@@ -992,7 +932,7 @@
             },
             {
               "type": "note",
-              "text": "📌 SOLID là guidelines, không phải law. Áp dụng pragmatically — over-engineering cũng là vấn đề."
+              "text": "📌 SOLID là nguyên tắc, không phải luật. Áp dụng thực dụng — over-engineering cũng là một vấn đề."
             }
           ]
         },
@@ -1241,26 +1181,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "Design patterns are reusable, proven solutions to recurring software design problems. The 'Gang of Four' (GoF) catalogue defines 23 classic patterns grouped into three categories."
-            },
-            {
-              "type": "text",
-              "text": "Creational: Deal with object creation — Singleton, Factory, Abstract Factory, Builder, Prototype."
-            },
-            {
-              "type": "text",
-              "text": "Structural: Deal with composition of classes/objects — Adapter, Decorator, Facade, Proxy, Composite, Bridge, Flyweight."
-            },
-            {
-              "type": "text",
-              "text": "Behavioral: Deal with communication between objects — Observer, Strategy, Command, Iterator, State, Chain of Responsibility, Template Method."
-            },
-            {
-              "type": "text",
-              "text": "Value: Patterns provide a shared vocabulary and battle-tested blueprints — they speed up design decisions and improve code readability."
             }
           ]
         },
@@ -1300,7 +1220,7 @@
           "blocks": [
             {
               "type": "text",
-              "text": "Builder tách việc cấu trúc và biểu diễn của object. Hữu ích khi object có nhiều optional parameters."
+              "text": "Builder tách việc dựng object khỏi cách biểu diễn của nó. Hữu ích khi object có nhiều tham số tùy chọn."
             },
             {
               "type": "code",

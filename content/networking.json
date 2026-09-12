@@ -1212,7 +1212,7 @@
           "blocks": [
             {
               "type": "text",
-              "text": "Piggybacking là kỹ thuẫt kết hợp data và acknowledgment trong cùng frame khi truyền 2 chiều. Tiết kiệm bandwidth."
+              "text": "Piggybacking là kỹ thuật kết hợp data và acknowledgment trong cùng frame khi truyền 2 chiều. Tiết kiệm bandwidth."
             }
           ]
         },

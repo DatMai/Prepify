@@ -36,30 +36,6 @@
             {
               "type": "text",
               "text": "Ví dụ: MySQL, PostgreSQL, Oracle, SQL Server, SQLite."
-            },
-            {
-              "type": "text",
-              "text": "A Database Management System (DBMS) is software that manages and organizes databases, providing a structured interface for storing, retrieving, and manipulating data while ensuring integrity, security, and concurrent access."
-            },
-            {
-              "type": "text",
-              "text": "Database Engine: stores, retrieves, and manages data on disk."
-            },
-            {
-              "type": "text",
-              "text": "Query Processor: parses and executes SQL queries."
-            },
-            {
-              "type": "text",
-              "text": "Transaction Manager: enforces ACID properties for reliable operations."
-            },
-            {
-              "type": "text",
-              "text": "Security Manager: controls access via authentication and authorization."
-            },
-            {
-              "type": "text",
-              "text": "Recovery Manager: restores data after failures or crashes."
             }
           ]
         },
@@ -90,34 +66,6 @@
             {
               "type": "text",
               "text": "- Concurrent Access: Nhiều users đồng thời mà không xảy ra conflicts."
-            },
-            {
-              "type": "text",
-              "text": "A DBMS provides several key advantages over traditional file-based data storage, making it the foundation of modern application development."
-            },
-            {
-              "type": "text",
-              "text": "Data Integrity: ensures accuracy and consistency through constraints."
-            },
-            {
-              "type": "text",
-              "text": "Data Security: restricts access to sensitive data by user permissions."
-            },
-            {
-              "type": "text",
-              "text": "Efficient Retrieval: speeds up data access via indexing and query optimization."
-            },
-            {
-              "type": "text",
-              "text": "Reduced Redundancy: avoids duplicate data through normalization."
-            },
-            {
-              "type": "text",
-              "text": "Backup & Recovery: provides automated backup and recovery from failures."
-            },
-            {
-              "type": "text",
-              "text": "Concurrent Access: allows multiple users to operate simultaneously without conflicts."
             }
           ]
         },
@@ -227,18 +175,6 @@
             {
               "type": "text",
               "text": "--------|--------|-----|-------"
-            },
-            {
-              "type": "text",
-              "text": "1       | Ram    | 20  | CS"
-            },
-            {
-              "type": "text",
-              "text": "2       | Suresh | 21  | IT"
-            },
-            {
-              "type": "text",
-              "text": "3       | Priya  | 20  | CS"
             }
           ]
         },
@@ -852,26 +788,6 @@
             },
             {
               "type": "text",
-              "text": "A transaction is a sequence of SQL operations executed as a single logical unit — either all operations succeed and are committed, or all are rolled back on failure."
-            },
-            {
-              "type": "text",
-              "text": "BEGIN TRANSACTION: starts a new transaction block."
-            },
-            {
-              "type": "text",
-              "text": "COMMIT: permanently saves all changes made in the transaction."
-            },
-            {
-              "type": "text",
-              "text": "ROLLBACK: undoes all changes and restores the previous database state."
-            },
-            {
-              "type": "text",
-              "text": "SAVEPOINT: creates an intermediate checkpoint to enable partial rollbacks."
-            },
-            {
-              "type": "text",
               "text": "-- TRUNCATE: xóa tất cả rows, nhanh hơn"
             },
             {
@@ -943,26 +859,6 @@
             {
               "type": "text",
               "text": "DROP INDEX idx_email;"
-            },
-            {
-              "type": "text",
-              "text": "An index is a data structure (typically a B+ tree) that speeds up data retrieval on a table column, similar to a book's index — the database locates rows directly without a full table scan."
-            },
-            {
-              "type": "text",
-              "text": "Faster SELECT: queries on indexed columns are resolved without scanning the full table."
-            },
-            {
-              "type": "text",
-              "text": "Slower writes: INSERT/UPDATE/DELETE must also update the index structure."
-            },
-            {
-              "type": "text",
-              "text": "Extra storage: indexes consume additional disk space."
-            },
-            {
-              "type": "text",
-              "text": "When to use: create indexes on columns frequently used in WHERE, JOIN, or ORDER BY clauses."
             }
           ]
         },
@@ -1155,34 +1051,6 @@
             {
               "type": "text",
               "text": "LEFT JOIN EMPLOYEE E2 ON E1.MANAGER_ID = E2.EMP_ID;"
-            },
-            {
-              "type": "text",
-              "text": "SQL JOIN operations combine rows from two or more tables based on a related column; the type of JOIN controls which rows are included when there is no match."
-            },
-            {
-              "type": "text",
-              "text": "INNER JOIN: returns only rows that have matching values in both tables."
-            },
-            {
-              "type": "text",
-              "text": "LEFT JOIN: returns all rows from the left table plus matched rows from the right (NULL for no match)."
-            },
-            {
-              "type": "text",
-              "text": "RIGHT JOIN: returns all rows from the right table plus matched rows from the left (NULL for no match)."
-            },
-            {
-              "type": "text",
-              "text": "FULL JOIN: returns all rows from both tables, with NULLs where there is no match."
-            },
-            {
-              "type": "text",
-              "text": "CROSS JOIN: produces the Cartesian product (every combination of rows from both tables)."
-            },
-            {
-              "type": "text",
-              "text": "SELF JOIN: joins a table to itself using aliases, useful for hierarchical data."
             }
           ]
         },
@@ -1592,26 +1460,6 @@
             {
               "type": "note",
               "text": "💡 Cách nhớ ACID: Atomicity = All or Nothing; Consistency = Valid to Valid; Isolation = Invisible intermediate; Durability = Permanent after commit."
-            },
-            {
-              "type": "text",
-              "text": "ACID is a set of four properties that guarantee reliable transaction processing in a DBMS, ensuring data remains correct even in the event of errors or system failures."
-            },
-            {
-              "type": "text",
-              "text": "Atomicity: all operations in a transaction succeed, or none are applied (all-or-nothing)."
-            },
-            {
-              "type": "text",
-              "text": "Consistency: a transaction moves the database from one valid state to another, preserving all defined rules."
-            },
-            {
-              "type": "text",
-              "text": "Isolation: concurrent transactions execute independently; intermediate states are invisible to others."
-            },
-            {
-              "type": "text",
-              "text": "Durability: once committed, changes persist permanently even after a system failure."
             }
           ]
         },
@@ -1852,34 +1700,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "Indexing creates a separate data structure (usually a B+ tree) on one or more columns that allows the database to find rows quickly without scanning the entire table."
-            },
-            {
-              "type": "text",
-              "text": "Clustered Index: physically orders table data by the index key; at most one per table. Best for range queries."
-            },
-            {
-              "type": "text",
-              "text": "Non-clustered Index: stores pointers to data rows; multiple allowed per table. Best for specific column lookups."
-            },
-            {
-              "type": "text",
-              "text": "Unique Index: enforces no duplicate values on the indexed column (e.g., email, SSN)."
-            },
-            {
-              "type": "text",
-              "text": "Composite Index: covers multiple columns; effective for queries filtering on those columns together."
-            },
-            {
-              "type": "text",
-              "text": "Full-text Index: optimised for LIKE and text-search queries."
-            },
-            {
-              "type": "text",
-              "text": "Partial Index: indexes only a subset of rows (e.g., active records), reducing size and maintenance cost."
             }
           ]
         },
@@ -2002,30 +1822,6 @@
             {
               "type": "text",
               "text": "-- Enrollment(StudentID, CourseID)"
-            },
-            {
-              "type": "text",
-              "text": "Normalization is the process of organising a database to reduce data redundancy and prevent update, insert, and delete anomalies by decomposing tables into well-structured forms."
-            },
-            {
-              "type": "text",
-              "text": "1NF: each cell holds a single atomic value; no repeating groups."
-            },
-            {
-              "type": "text",
-              "text": "2NF: satisfies 1NF and every non-key attribute is fully dependent on the entire primary key (no partial dependency)."
-            },
-            {
-              "type": "text",
-              "text": "3NF: satisfies 2NF and no non-key attribute depends on another non-key attribute (no transitive dependency)."
-            },
-            {
-              "type": "text",
-              "text": "BCNF: stricter than 3NF — every determinant must be a candidate key."
-            },
-            {
-              "type": "text",
-              "text": "When to use: apply 3NF/BCNF for OLTP systems to minimise anomalies; consider denormalisation for read-heavy OLAP workloads."
             }
           ]
         },
@@ -2297,30 +2093,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "Database locks control concurrent access to data, ensuring that transactions do not interfere with each other and maintaining data consistency."
-            },
-            {
-              "type": "text",
-              "text": "Shared Lock (S): allows multiple transactions to read simultaneously; blocks writes."
-            },
-            {
-              "type": "text",
-              "text": "Exclusive Lock (X): only one transaction can read or write; blocks all other locks."
-            },
-            {
-              "type": "text",
-              "text": "Update Lock (U): signals intent to update; prevents deadlocks caused by lock conversion."
-            },
-            {
-              "type": "text",
-              "text": "Intent Lock (IS/IX): signals that child rows will be locked, supporting hierarchical (multiple granularity) locking."
-            },
-            {
-              "type": "text",
-              "text": "Schema Lock: protects the table structure during DDL operations such as ALTER TABLE."
             }
           ]
         },
@@ -2426,26 +2198,6 @@
             {
               "type": "text",
               "text": "COMMIT;"
-            },
-            {
-              "type": "text",
-              "text": "COMMIT and ROLLBACK are the two core TCL (Transaction Control Language) commands that finalise or cancel a transaction's work."
-            },
-            {
-              "type": "text",
-              "text": "COMMIT: permanently saves all changes made in the current transaction; cannot be undone."
-            },
-            {
-              "type": "text",
-              "text": "ROLLBACK: cancels all changes in the current transaction, restoring the database to its previous state."
-            },
-            {
-              "type": "text",
-              "text": "SAVEPOINT: marks an intermediate point within a transaction; ROLLBACK TO SAVEPOINT undoes only work done after that point."
-            },
-            {
-              "type": "text",
-              "text": "Auto-commit: in many databases, each individual DML statement is auto-committed unless wrapped in an explicit transaction block."
             }
           ]
         },
@@ -2580,14 +2332,6 @@
             {
               "type": "text",
               "text": ");"
-            },
-            {
-              "type": "text",
-              "text": "-- Vi pham: insert order voi CustomerID khong ton tai"
-            },
-            {
-              "type": "text",
-              "text": "-- INSERT INTO Orders VALUES (1, 999, 100); -- ERROR!"
             }
           ]
         },
@@ -2660,26 +2404,6 @@
             {
               "type": "text",
               "text": "- Write-Ahead Logging (WAL): Ghi log trước khi ghi data — đảm bảo recoverability."
-            },
-            {
-              "type": "text",
-              "text": "A transaction log (also called write-ahead log) records every database operation, providing the foundation for crash recovery and ensuring the Durability property of ACID."
-            },
-            {
-              "type": "text",
-              "text": "Stored data: transaction ID, timestamp, before-image and after-image of changed data."
-            },
-            {
-              "type": "text",
-              "text": "UNDO Log: used to roll back uncommitted transactions after a crash."
-            },
-            {
-              "type": "text",
-              "text": "REDO Log: used to re-apply committed transactions after a crash."
-            },
-            {
-              "type": "text",
-              "text": "Write-Ahead Logging (WAL): log entry is always written to disk before the actual data page, guaranteeing recoverability."
             }
           ]
         },
@@ -2854,26 +2578,6 @@
             {
               "type": "text",
               "text": "ORDER BY avg_salary DESC;"
-            },
-            {
-              "type": "text",
-              "text": "GROUP BY groups rows that share the same values in specified columns into summary rows, typically used with aggregate functions to produce per-group statistics."
-            },
-            {
-              "type": "text",
-              "text": "Use case: count, sum, average, or find min/max values per group (e.g., total orders per customer)."
-            },
-            {
-              "type": "text",
-              "text": "With HAVING: filter groups after aggregation (WHERE filters rows before grouping; HAVING filters groups after)."
-            },
-            {
-              "type": "text",
-              "text": "Column rule: every column in SELECT must either appear in GROUP BY or be wrapped in an aggregate function."
-            },
-            {
-              "type": "text",
-              "text": "Execution order: WHERE → GROUP BY → HAVING → SELECT → ORDER BY."
             }
           ]
         },
@@ -2953,10 +2657,6 @@
             {
               "type": "text",
               "text": "-- Dung trong SELECT"
-            },
-            {
-              "type": "text",
-              "text": "SELECT Name, GetEmployeeSalary(ID) AS salary FROM Employee;"
             }
           ]
         },
@@ -3015,26 +2715,6 @@
             {
               "type": "text",
               "text": "WHERE c.city = 'HCM' AND o.amount > 1000;"
-            },
-            {
-              "type": "text",
-              "text": "Query optimization is the process by which the DBMS's query optimizer analyses a SQL statement and selects the most efficient execution plan to minimise I/O, CPU usage, and response time."
-            },
-            {
-              "type": "text",
-              "text": "Index usage: create indexes on columns frequently used in WHERE, JOIN, and ORDER BY to avoid full table scans."
-            },
-            {
-              "type": "text",
-              "text": "Query rewriting: convert correlated subqueries to JOINs; remove redundant conditions."
-            },
-            {
-              "type": "text",
-              "text": "Statistics: the optimizer relies on column cardinality statistics to estimate selectivity; keep statistics up to date."
-            },
-            {
-              "type": "text",
-              "text": "EXPLAIN / EXPLAIN ANALYZE: inspect the execution plan and actual runtime metrics to identify bottlenecks."
             }
           ]
         },
@@ -3069,14 +2749,6 @@
             {
               "type": "text",
               "text": "-- INSERT qua view - chi thanh cong neu Status = 'Active'"
-            },
-            {
-              "type": "text",
-              "text": "INSERT INTO ActiveStudents VALUES (4, 'Dat', 'Active');  -- OK"
-            },
-            {
-              "type": "text",
-              "text": "INSERT INTO ActiveStudents VALUES (5, 'An', 'Inactive'); -- ERROR!"
             }
           ]
         },
@@ -3177,26 +2849,6 @@
             {
               "type": "text",
               "text": "ORDER BY S.NAME;"
-            },
-            {
-              "type": "text",
-              "text": "-- 1. Parser: kiem tra syntax OK"
-            },
-            {
-              "type": "text",
-              "text": "-- 2. Translate: relational algebra (select, project, join)"
-            },
-            {
-              "type": "text",
-              "text": "-- 3. Optimize: dung index BRANCH_CODE? AGE index?"
-            },
-            {
-              "type": "text",
-              "text": "--    Chon join order: STUDENT (nho) join BRANCH (lon)?"
-            },
-            {
-              "type": "text",
-              "text": "-- 4. Execute: lay data, join, filter, sort, tra ve"
             }
           ]
         },
@@ -3261,30 +2913,6 @@
             {
               "type": "text",
               "text": "- Better cache utilization: Internal nodes chỉ chứa keys, branching factor cao hơn."
-            },
-            {
-              "type": "text",
-              "text": "B-tree and B+ tree are self-balancing tree data structures used for database indexing; B+ tree is far more common in DBMS because it enables efficient range queries via a linked-list at the leaf level."
-            },
-            {
-              "type": "text",
-              "text": "B-tree data storage: stores data records in both internal and leaf nodes, making single-key lookup faster but range queries slower."
-            },
-            {
-              "type": "text",
-              "text": "B+ tree data storage: stores data only in leaf nodes; internal nodes hold only keys (pointers), increasing branching factor."
-            },
-            {
-              "type": "text",
-              "text": "Range queries: B+ tree is faster — leaf nodes form a doubly linked list, so range traversal requires no backtracking up the tree."
-            },
-            {
-              "type": "text",
-              "text": "Tree height: B+ tree is shorter due to higher branching factor, reducing I/O operations per lookup."
-            },
-            {
-              "type": "text",
-              "text": "Use in DBMS: B+ tree is the standard structure for clustered and non-clustered indexes in MySQL InnoDB, PostgreSQL, and most relational databases."
             }
           ]
         },
@@ -3358,30 +2986,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "Hashing maps a key to a fixed-size bucket index via a hash function, enabling O(1) average-case exact-match lookups — ideal when range queries are not needed."
-            },
-            {
-              "type": "text",
-              "text": "Hash function: computes hash(key) → bucket index where the record is stored or retrieved."
-            },
-            {
-              "type": "text",
-              "text": "Collision: occurs when two keys map to the same bucket; must be resolved to maintain correctness."
-            },
-            {
-              "type": "text",
-              "text": "Chaining: each bucket holds a linked list of records; simple but can degrade to O(n) on overloaded buckets."
-            },
-            {
-              "type": "text",
-              "text": "Open Addressing: probes subsequent buckets (linear, quadratic, or double hashing) until an empty slot is found."
-            },
-            {
-              "type": "text",
-              "text": "vs. B+ tree: hashing is faster for exact-match lookups; B+ tree is better for range queries and sorted access."
             }
           ]
         },
@@ -3469,34 +3073,6 @@
             {
               "type": "text",
               "text": ");"
-            },
-            {
-              "type": "text",
-              "text": "Data partitioning divides a large table or dataset into smaller, more manageable segments (partitions) to improve query performance, maintenance, and scalability."
-            },
-            {
-              "type": "text",
-              "text": "Horizontal partitioning: splits rows across partitions (e.g., orders by year); each partition has the same schema."
-            },
-            {
-              "type": "text",
-              "text": "Vertical partitioning: splits columns; frequently-accessed and rarely-accessed columns are stored separately."
-            },
-            {
-              "type": "text",
-              "text": "Range partitioning: assigns rows based on a value range (e.g., date ranges, age groups)."
-            },
-            {
-              "type": "text",
-              "text": "Hash partitioning: distributes rows evenly using a hash function on a key column (e.g., CustomerID % 4)."
-            },
-            {
-              "type": "text",
-              "text": "List partitioning: assigns rows based on discrete values (e.g., region = 'HN', 'HCM', 'DN')."
-            },
-            {
-              "type": "text",
-              "text": "Benefit: partition pruning allows the query engine to skip irrelevant partitions, drastically reducing I/O."
             }
           ]
         },
@@ -3717,10 +3293,6 @@
             {
               "type": "text",
               "text": "-- PostgreSQL"
-            },
-            {
-              "type": "text",
-              "text": "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;"
             }
           ]
         },

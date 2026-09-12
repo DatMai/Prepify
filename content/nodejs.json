@@ -90,38 +90,6 @@
             {
               "type": "text",
               "text": "- Giảm runtime bugs là ưu tiên"
-            },
-            {
-              "type": "text",
-              "text": "JavaScript is a dynamically typed language that runs directly in browsers and Node.js. TypeScript is a superset of JavaScript developed by Microsoft, adding static typing and compile-time checking."
-            },
-            {
-              "type": "text",
-              "text": "- Typing: JavaScript uses dynamic typing (checked at runtime); TypeScript uses static typing (checked at compile time)."
-            },
-            {
-              "type": "text",
-              "text": "- Compilation: JavaScript needs no compilation; TypeScript must be compiled via tsc."
-            },
-            {
-              "type": "text",
-              "text": "- Error detection: JavaScript surfaces errors at runtime; TypeScript catches them before runtime."
-            },
-            {
-              "type": "text",
-              "text": "- Tooling: TypeScript provides superior autocomplete, safer refactoring, better code navigation, and clearer APIs through types and interfaces."
-            },
-            {
-              "type": "text",
-              "text": "- Runtime behavior: TypeScript types exist only during development — both compile down to plain JavaScript, so TypeScript has no runtime performance cost."
-            },
-            {
-              "type": "text",
-              "text": "- Use JavaScript for: small scripts, quick prototypes, or when type safety is not critical."
-            },
-            {
-              "type": "text",
-              "text": "- Use TypeScript for: large or long-lived applications, team codebases, and when minimising runtime bugs is a priority."
             }
           ]
         },
@@ -218,26 +186,6 @@
             {
               "type": "note",
               "text": "⚠️  Single-threaded nghĩa là CPU-intensive tasks sẽ block event loop. Dùng Worker Threads hoặc cluster cho các tác vụ nặng về CPU."
-            },
-            {
-              "type": "text",
-              "text": "Node.js is single-threaded because it was built on the asynchronous and non-blocking nature of JavaScript. This design simplifies development and allows efficient handling of many concurrent requests."
-            },
-            {
-              "type": "text",
-              "text": "- Avoid race conditions: No need for synchronization primitives (mutex, semaphore)."
-            },
-            {
-              "type": "text",
-              "text": "- Memory efficient: No overhead from multiple threads."
-            },
-            {
-              "type": "text",
-              "text": "- Concurrency via async I/O: Instead of creating threads, Node.js delegates I/O to the OS/libuv."
-            },
-            {
-              "type": "text",
-              "text": "- ⚠️  Single-threaded means CPU-intensive tasks will block the event loop. Use Worker Threads or cluster for CPU-heavy tasks."
             }
           ]
         },
@@ -313,34 +261,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "Why is Node.js preferred over Java and PHP?"
-            },
-            {
-              "type": "text",
-              "text": "- Concurrency model: Non-blocking, event-driven vs Thread-per-request (RAM-heavy)."
-            },
-            {
-              "type": "text",
-              "text": "- I/O Performance: Very high (non-blocking) vs Java OK; PHP slower."
-            },
-            {
-              "type": "text",
-              "text": "- Full-stack JS: Yes — same language for both FE and BE. Java/PHP: No."
-            },
-            {
-              "type": "text",
-              "text": "- NPM Ecosystem: 2M+ packages vs smaller ecosystem."
-            },
-            {
-              "type": "text",
-              "text": "- Real-time apps: Excellent fit (WebSocket) vs more complex with Java/PHP."
-            },
-            {
-              "type": "text",
-              "text": "- CPU-intensive: Not suitable for Node.js vs Java is better."
             }
           ]
         },
@@ -388,26 +308,6 @@
             {
               "type": "text",
               "text": "Synchronous vs Asynchronous Functions:"
-            },
-            {
-              "type": "text",
-              "text": "- Blocking: Sync blocks execution until done. Async does not block — other tasks run in parallel."
-            },
-            {
-              "type": "text",
-              "text": "- Order: Sync is sequential. Async starts a task and continues processing other work."
-            },
-            {
-              "type": "text",
-              "text": "- Return: Sync returns result immediately. Async returns a Promise, callback, or event."
-            },
-            {
-              "type": "text",
-              "text": "- Error handling: Sync uses simple try-catch. Async is more complex: .catch(), try/catch in async."
-            },
-            {
-              "type": "text",
-              "text": "- Use case: Sync for simple sequential logic. Async for I/O-bound: file, DB, network, API calls."
             }
           ]
         },
@@ -472,22 +372,6 @@
             {
               "type": "text",
               "text": "- Optimization: V8 tự động optimize các functions được gọi nhiều lần (hot paths)."
-            },
-            {
-              "type": "text",
-              "text": "V8 is an open-source JavaScript engine developed by Google in C++, the same engine powering Google Chrome. Node.js uses V8 to execute JavaScript outside the browser."
-            },
-            {
-              "type": "text",
-              "text": "- JIT Compilation: V8 compiles JavaScript to machine code before execution — faster than interpretation."
-            },
-            {
-              "type": "text",
-              "text": "- Garbage Collection: Automatic memory management — uses generational GC (Young/Old generation)."
-            },
-            {
-              "type": "text",
-              "text": "- Optimization: V8 automatically optimizes frequently called functions (hot paths)."
             }
           ]
         },
@@ -626,22 +510,6 @@
             {
               "type": "text",
               "text": "Main disadvantages of Node.js:"
-            },
-            {
-              "type": "text",
-              "text": "- CPU-intensive tasks: Running CPU-heavy code will block the event loop. Solution: Worker Threads."
-            },
-            {
-              "type": "text",
-              "text": "- Callback complexity: Async code can be hard to read if async/await is not used correctly."
-            },
-            {
-              "type": "text",
-              "text": "- Rapid API changes: The ecosystem changes quickly, leading to compatibility issues."
-            },
-            {
-              "type": "text",
-              "text": "- NoSQL preference: Setting up relational databases is more complex than MongoDB."
             }
           ]
         },
@@ -710,22 +578,6 @@
             {
               "type": "text",
               "text": "Node.js vs Angular comparison:"
-            },
-            {
-              "type": "text",
-              "text": "- Type: Node.js is a server-side runtime environment. Angular is a client-side frontend framework."
-            },
-            {
-              "type": "text",
-              "text": "- Purpose: Node.js for backend — APIs, server, database. Angular for frontend — Single-Page Applications."
-            },
-            {
-              "type": "text",
-              "text": "- Runs on: Node.js runs on the server (any OS). Angular runs in the browser."
-            },
-            {
-              "type": "text",
-              "text": "- Language: Node.js uses JavaScript. Angular primarily uses TypeScript."
             }
           ]
         },
@@ -824,46 +676,6 @@
             {
               "type": "text",
               "text": "Most popular Node.js libraries:"
-            },
-            {
-              "type": "text",
-              "text": "- Express.js — Web framework: Minimal, flexible — routing, middleware, REST APIs."
-            },
-            {
-              "type": "text",
-              "text": "- Fastify — Web framework: Higher performance than Express, built-in schema validation."
-            },
-            {
-              "type": "text",
-              "text": "- NestJS — Web framework: TypeScript, opinionated, DI, enterprise-grade."
-            },
-            {
-              "type": "text",
-              "text": "- Mongoose — ODM: MongoDB object modeling with schema and validation."
-            },
-            {
-              "type": "text",
-              "text": "- Prisma — ORM: Type-safe ORM for PostgreSQL, MySQL, SQLite."
-            },
-            {
-              "type": "text",
-              "text": "- Jest — Testing: Unit/integration testing with mocking and coverage."
-            },
-            {
-              "type": "text",
-              "text": "- Socket.io — Real-time: WebSocket abstraction, bi-directional communication."
-            },
-            {
-              "type": "text",
-              "text": "- Bull/BullMQ — Queue: Background job queues backed by Redis."
-            },
-            {
-              "type": "text",
-              "text": "- Passport.js — Auth: Authentication middleware with many strategies."
-            },
-            {
-              "type": "text",
-              "text": "- Winston — Logging: Structured logging with levels and transports."
             }
           ]
         },
@@ -947,26 +759,6 @@
             {
               "type": "text",
               "text": "HTTP Request methods:"
-            },
-            {
-              "type": "text",
-              "text": "- GET — Retrieve data. Idempotent. Example: GET /api/users."
-            },
-            {
-              "type": "text",
-              "text": "- POST — Create new resource. Not idempotent. Example: POST /api/users."
-            },
-            {
-              "type": "text",
-              "text": "- PUT — Replace entire resource. Idempotent. Example: PUT /api/users/1."
-            },
-            {
-              "type": "text",
-              "text": "- PATCH — Partial update. Idempotent. Example: PATCH /api/users/1."
-            },
-            {
-              "type": "text",
-              "text": "- DELETE — Remove resource. Idempotent. Example: DELETE /api/users/1."
             }
           ]
         },
@@ -1171,18 +963,6 @@
             {
               "type": "text",
               "text": "process.nextTick() vs setImmediate():"
-            },
-            {
-              "type": "text",
-              "text": "- nextTick: Runs immediately after the current operation — before Promises. Risk: recursive calls can block I/O."
-            },
-            {
-              "type": "text",
-              "text": "- setImmediate: Runs in the next event loop iteration (check phase — after I/O). Safer for I/O-heavy code."
-            },
-            {
-              "type": "text",
-              "text": "- *⚠️  Avoid calling process.nextTick() recursively! It will block I/O callbacks and freeze the server.*"
             }
           ]
         },
@@ -1262,22 +1042,6 @@
             {
               "type": "note",
               "text": "📌 fork() khác Worker Threads: fork tạo process mới (nặng), Worker Threads dùng chung process nhưng có thread riêng (nhẹ hơn)."
-            },
-            {
-              "type": "text",
-              "text": "fork() creates separate child processes with their own memory and event loop. Used to handle CPU-intensive tasks without blocking the main thread."
-            },
-            {
-              "type": "text",
-              "text": "- New process: Each fork() creates a separate Node.js process — with its own memory, event loop, and V8."
-            },
-            {
-              "type": "text",
-              "text": "- IPC ( Inter-Process Communication ) channel: fork() automatically creates a two-way communication channel via process.send() and process.on('message')."
-            },
-            {
-              "type": "text",
-              "text": "- *📌 fork() vs Worker Threads: fork creates a new process (heavy), Worker Threads share the same process but have a separate thread (lighter).*"
             }
           ]
         },
@@ -1296,22 +1060,6 @@
             {
               "type": "text",
               "text": "- 3. Generators (function*): Control flow mạnh mẽ nhưng cú pháp phức tạp. Ít dùng thực tế."
-            },
-            {
-              "type": "text",
-              "text": "Three methods to avoid Callback Hell:"
-            },
-            {
-              "type": "text",
-              "text": "- 1. async/await: Syntax closest to synchronous — easy to read, debug. Recommended for modern code."
-            },
-            {
-              "type": "text",
-              "text": "- 2. Promises (.then/.catch): Chain async operations in sequence, centralized error handling."
-            },
-            {
-              "type": "text",
-              "text": "- 3. Generators (function*): Powerful control flow but complex syntax. Rarely used in practice."
             }
           ]
         },
@@ -1383,18 +1131,6 @@
               ],
               "headerDone": true,
               "closed": true
-            },
-            {
-              "type": "text",
-              "text": "No. The DOM (Document Object Model) is a client-side concept that only exists in the browser. Node.js is a server-side environment with no browser context."
-            },
-            {
-              "type": "text",
-              "text": "- Available in Browser: window, document, DOM / localStorage, sessionStorage / fetch API (native) / navigator, location / XMLHttpRequest."
-            },
-            {
-              "type": "text",
-              "text": "- Available in Node.js: process, __dirname, __filename / fs (file system) / http, https modules / os module / http.request(), axios."
             }
           ]
         },
@@ -1417,18 +1153,6 @@
             {
               "type": "text",
               "text": "Package managers for Node.js projects:"
-            },
-            {
-              "type": "text",
-              "text": "- npm: Default package manager. Stores package-lock.json."
-            },
-            {
-              "type": "text",
-              "text": "- yarn: Faster than npm (parallel installs). Stores yarn.lock."
-            },
-            {
-              "type": "text",
-              "text": "- pnpm: Most disk-efficient (symlinks), strict dependency isolation."
             }
           ]
         },
@@ -1550,30 +1274,6 @@
             {
               "type": "text",
               "text": "- Language: JavaScript vs Python."
-            },
-            {
-              "type": "text",
-              "text": "- Concurrency: Non-blocking event-driven vs Thread-based or asyncio."
-            },
-            {
-              "type": "text",
-              "text": "- I/O Performance: Very high vs Good (asyncio)."
-            },
-            {
-              "type": "text",
-              "text": "- CPU-intensive: Weak (single thread) vs Stronger."
-            },
-            {
-              "type": "text",
-              "text": "- ML/Data Science: Limited vs Very strong (TensorFlow, PyTorch)."
-            },
-            {
-              "type": "text",
-              "text": "- Full-stack: Yes (JS for FE and BE) vs No."
-            },
-            {
-              "type": "text",
-              "text": "- Best for: Node.js → Real-time apps, APIs, microservices. Python → ML/AI, data processing."
             }
           ]
         },
@@ -1677,34 +1377,6 @@
             {
               "type": "text",
               "text": "Common Cluster Methods:"
-            },
-            {
-              "type": "text",
-              "text": "- cluster.fork() — Create a new worker process from the primary process."
-            },
-            {
-              "type": "text",
-              "text": "- cluster.isPrimary — true if this is the primary process."
-            },
-            {
-              "type": "text",
-              "text": "- cluster.isWorker — true if this is a worker process."
-            },
-            {
-              "type": "text",
-              "text": "- worker.send(msg) — Send a message between primary and worker."
-            },
-            {
-              "type": "text",
-              "text": "- worker.kill() — Terminate a worker process."
-            },
-            {
-              "type": "text",
-              "text": "- cluster.workers — Object containing all active workers."
-            },
-            {
-              "type": "text",
-              "text": "- cluster.on('exit', cb) — Event fired when a worker exits."
             }
           ]
         },
@@ -1945,38 +1617,6 @@
             {
               "type": "note",
               "text": "⚠️  Memory leak phổ biến: đăng ký listener trong loop mà không off(). Node.js cảnh báo khi > 10 listeners cùng một event."
-            },
-            {
-              "type": "text",
-              "text": "EventEmitter is the class from the events module — the foundation of event-driven architecture in Node.js. Most core modules (http, fs, stream) inherit from it."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.on(event, fn) — register a listener that runs every time the event fires."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.once(event, fn) — register a listener that runs only once."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.emit(event, ...args) — trigger the event, passing args to listeners."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.off(event, fn) — remove a specific listener."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.removeAllListeners(event) — remove all listeners for an event."
-            },
-            {
-              "type": "text",
-              "text": "- emitter.setMaxListeners(n) — set listener limit to avoid memory leak warnings."
-            },
-            {
-              "type": "note",
-              "text": "⚠️  Common memory leak: registering listeners in a loop without calling off(). Node.js warns when > 10 listeners share the same event."
             }
           ]
         },
@@ -2108,42 +1748,6 @@
             {
               "type": "text",
               "text": "fork() — mở công ty con mới (runtime riêng, memory riêng, isolate mạnh, tốn tài nguyên hơn)"
-            },
-            {
-              "type": "text",
-              "text": "Both Worker Threads and fork() leverage multi-core CPUs in Node.js, but they operate fundamentally differently."
-            },
-            {
-              "type": "text",
-              "text": "- Nature: Worker Threads create a new thread within the same process; fork() spawns a completely new child process."
-            },
-            {
-              "type": "text",
-              "text": "- Memory: Worker Threads can share memory via SharedArrayBuffer; fork() processes have fully separate memory."
-            },
-            {
-              "type": "text",
-              "text": "- Event Loop: Worker Threads share the same process with their own thread; fork() gives each child its own event loop."
-            },
-            {
-              "type": "text",
-              "text": "- Performance: Worker Threads are lighter with lower startup cost; fork() is heavier with higher overhead."
-            },
-            {
-              "type": "text",
-              "text": "- Communication: Worker Threads communicate faster (shared memory); fork() uses slower IPC/message passing."
-            },
-            {
-              "type": "text",
-              "text": "- Isolation: fork() offers better isolation — a crash in a child process does not affect the parent."
-            },
-            {
-              "type": "text",
-              "text": "- Use Worker Threads for: CPU-intensive tasks (image processing, cryptography, ML inference)."
-            },
-            {
-              "type": "text",
-              "text": "- Use fork() / Cluster for: scaling HTTP servers and running independent services."
             },
             {
               "type": "note",
