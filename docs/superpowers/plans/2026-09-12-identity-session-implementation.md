@@ -21,7 +21,7 @@
 - Modify: `server/src/config/env.test.ts`
 - Modify: `server/.env.example`
 
-- [ ] **Step 1: Write failing repository and config tests**
+- [x] **Step 1: Write failing repository and config tests**
 
 Cover:
 
@@ -32,11 +32,11 @@ Cover:
 - cookie configuration is secure in production and usable on localhost;
 - session TTL is bounded and validated.
 
-- [ ] **Step 2: Confirm RED**
+- [x] **Step 2: Confirm RED**
 
 Run the new tests and confirm failure is caused by missing session storage/config, not test setup.
 
-- [ ] **Step 3: Add migration 008**
+- [x] **Step 3: Add migration 008**
 
 Create append-only schema changes:
 
@@ -46,11 +46,11 @@ Create append-only schema changes:
 - drop the obsolete `security_question` and `security_answer_hash` columns only in this new migration;
 - delete no historical migration.
 
-- [ ] **Step 4: Implement the repository**
+- [x] **Step 4: Implement the repository**
 
 Use SHA-256 for opaque token/state lookup, cryptographically random raw values, parameterized SQL, constant external error semantics, explicit clock/random dependencies in tests, and one-time OAuth flow consumption in a transaction-safe statement.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run server tests, typecheck, migration compilation, and commit:
 

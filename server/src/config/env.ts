@@ -6,6 +6,7 @@ const environmentSchema = z.object({
   HOST: z.string().trim().min(1).default('127.0.0.1'),
   DATABASE_URL: z.string().trim().min(1),
   SESSION_SECRET: z.string().min(32),
+  SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
   CORS_ORIGINS: z.string().optional(),
   ADMIN_EMAILS: z.string().default(''),
@@ -21,6 +22,11 @@ export interface AppConfig {
   host: string;
   databaseUrl: string;
   sessionSecret: string;
+  session: {
+    cookieName: string;
+    secure: boolean;
+    ttlHours: number;
+  };
   frontendUrl: string;
   corsOrigins: string[];
   adminEmails: string[];
@@ -59,6 +65,11 @@ export function loadConfig(
     host: env.HOST,
     databaseUrl: env.DATABASE_URL,
     sessionSecret: env.SESSION_SECRET,
+    session: {
+      cookieName: env.NODE_ENV === 'production' ? '__Host-prepify_session' : 'prepify_session',
+      secure: env.NODE_ENV === 'production',
+      ttlHours: env.SESSION_TTL_HOURS,
+    },
     frontendUrl: env.FRONTEND_URL,
     corsOrigins: splitList(env.CORS_ORIGINS ?? env.FRONTEND_URL),
     adminEmails: splitList(env.ADMIN_EMAILS).map((email) => email.toLowerCase()),
