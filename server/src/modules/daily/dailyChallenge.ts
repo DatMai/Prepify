@@ -76,7 +76,14 @@ export function createDailyChallengeCodec(
           throw invalidChallenge();
         }
 
-        const submittedById = new Map(submissions.map((answer) => [answer.questionId, answer]));
+        const sealedIds = new Set(payload.answers.map((answer) => answer.id));
+        const submittedById = new Map<string, DailySubmission>();
+        for (const answer of submissions) {
+          if (!sealedIds.has(answer.questionId) || submittedById.has(answer.questionId)) {
+            throw invalidChallenge();
+          }
+          submittedById.set(answer.questionId, answer);
+        }
         const score = payload.answers.reduce((total, expected) => {
           const actual = submittedById.get(expected.id);
           if (!actual) return total;

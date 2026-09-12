@@ -91,6 +91,33 @@ describe('daily routes', () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  it('rejects duplicate and unknown answer IDs before persisting completion', async () => {
+    const duplicateChallenge = await request(app()).get('/daily').expect(200);
+    await request(app())
+      .post('/daily/complete')
+      .send({
+        date: duplicateChallenge.body.date,
+        challenge: duplicateChallenge.body.challenge,
+        answers: [
+          { questionId: 'fib-1', blanks: ['Hash Table'] },
+          { questionId: 'fib-1', blanks: ['Hash Table'] },
+        ],
+      })
+      .expect(400);
+
+    const unknownChallenge = await request(app()).get('/daily').expect(200);
+    await request(app())
+      .post('/daily/complete')
+      .send({
+        date: unknownChallenge.body.date,
+        challenge: unknownChallenge.body.challenge,
+        answers: [{ questionId: 'unknown', blanks: ['Hash Table'] }],
+      })
+      .expect(400);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
   it('reads the Daily pool from the repository for the requested locale', async () => {
     const challenge = await request(app()).get('/daily').expect(200);
 
