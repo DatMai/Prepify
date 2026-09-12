@@ -22,6 +22,25 @@
 - `npm run check` is the single definition of green.
 - Server is CommonJS. Commit after every task.
 
+## Post-implementation audit
+
+Audit performed on 2026-09-12 against commit `b53f735eecfa67ef0d16716140bccbe787d1b110`. The implementation commits below are reachable through PR #6's merged topology; the listed focused commands were rerun during this audit. A checked audit outcome means only that the commit proves the implementation exists and/or the current command passed. It does not reconstruct the original implementation sequence.
+
+| Task                        | Audit outcome                                                     | Implementation commit(s) | Current matching test file                                             | Verification command                                                              |
+| --------------------------- | ----------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1. Block schema             | [x] Implemented; current regression verified                      | `7345b33`                | `server/src/modules/library/libraryBlocks.test.ts`                     | `npm --prefix server test -- src/modules/library/libraryBlocks.test.ts`           |
+| 2. Four-table migration     | [x] Implemented                                                   | `950cbe8`                | — (migration task)                                                     | `git show --name-only 950cbe8`                                                    |
+| 3. Reader repository        | [x] Implemented; current regression verified                      | `f2929fc`                | `server/src/modules/library/libraryRepository.test.ts`                 | `npm --prefix server test -- src/modules/library/libraryRepository.test.ts`       |
+| 4. Seed plan builder        | [x] Implemented; current regression verified                      | `9153685`                | `server/src/modules/library/librarySeed.test.ts`                       | `npm --prefix server test -- src/modules/library/librarySeed.test.ts`             |
+| 5. Seed application and CLI | [x] Implemented; current regression verified                      | `9153685`                | `server/src/modules/library/librarySeedApply.test.ts`                  | `npm --prefix server test -- src/modules/library/librarySeedApply.test.ts`        |
+| 6. Library reader route     | [x] Implemented; current regression verified                      | `2924036`                | `server/src/routes/library.test.ts`                                    | `npm --prefix server test -- src/routes/library.test.ts`                          |
+| 7. Daily reader route       | [x] Implemented; current regression verified                      | `2924036`                | `server/src/routes/daily.test.ts`                                      | `npm --prefix server test -- src/routes/daily.test.ts`                            |
+| 8. Composition wiring       | [x] Implemented; current route regressions verified               | `2924036`                | `server/src/routes/library.test.ts`, `server/src/routes/daily.test.ts` | `npm --prefix server test -- src/routes/library.test.ts src/routes/daily.test.ts` |
+| 9. Projection fidelity      | [x] Implemented; current regression verified                      | `553699d`                | `server/src/modules/library/libraryFidelity.test.ts`                   | `npm --prefix server test -- src/modules/library/libraryFidelity.test.ts`         |
+| 10. ADR and documentation   | [x] Implemented; [ ] current gate blocked by unrelated formatting | `5945f3d`                | — (documentation task)                                                 | `npm run check`                                                                   |
+
+The original unchecked RED steps mean **not reconstructable**, not implementation missing. Historical RED evidence unavailable; current regression test verified. No saved reviewer artifact was found, so no historical reviewer action is marked complete. Historical database migration, seed/idempotency, row-count, and live-route smoke commands also remain unchecked: no saved artifact proves those historical runs, and this audit did not inspect private corpus content.
+
 ## File Structure
 
 ```text
@@ -100,7 +119,7 @@ describe('libraryBlocks', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryBlocks.test.ts`
 Expected: FAIL — cannot resolve `./libraryBlocks`.
@@ -457,7 +476,7 @@ describe('createLibraryRepository', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryRepository.test.ts`
 Expected: FAIL — cannot resolve `./libraryRepository`.
@@ -838,7 +857,7 @@ describe('buildSeedPlan warnings', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/librarySeed.test.ts`
 Expected: FAIL — cannot resolve `./librarySeed`.
@@ -1247,7 +1266,7 @@ describe('applySeedPlan', () => {
 
 **Note on the fake:** it is an in-memory stand-in for the four tables. Inserts append to arrays and honour `ON CONFLICT ... DO NOTHING` by returning zero rows, which is exactly how the real database reports "already there". A second `applySeedPlan` run therefore reports every topic as skipped without inserting anything, and the same store also answers the question-id lookup the ref resolution needs. Any unexpected SQL throws, so a query drift fails the test loudly.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/librarySeedApply.test.ts`
 Expected: FAIL — `applySeedPlan` is not exported.
@@ -1572,7 +1591,7 @@ describe('library routes', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/routes/library.test.ts`
 Expected: FAIL — `createLibraryRouter` is not exported.
@@ -1782,7 +1801,7 @@ it('builds an MCQ from the referenced question and its siblings', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 2: Run the tests to verify they fail** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/routes/daily.test.ts`
 Expected: FAIL — `createDailyRouter` does not accept `repo` yet.
@@ -2262,7 +2281,7 @@ describe('seed → projection fidelity for the tracked vi corpus', () => {
 
 `jsonb` does not preserve object key order, so this compares values with `toEqual` rather than comparing serialized bytes. That is the honest definition of "the same data".
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryFidelity.test.ts`
 Expected: FAIL until the fake store answers both the seed inserts and the projection selects.

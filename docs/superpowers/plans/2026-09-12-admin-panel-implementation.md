@@ -20,6 +20,21 @@
 - Database changes are append-only; migration `010_add_user_disabled.sql`.
 - `npm run check` is the definition of green. Work happens on branch `feat/admin-panel`.
 
+## Post-implementation audit
+
+Audit performed on 2026-09-12 against commit `b53f735eecfa67ef0d16716140bccbe787d1b110`. The implementation commits below are reachable through the merged feature topology; the listed focused commands were rerun during this audit. A checked audit outcome means only that the commit proves the implementation exists and/or the current command passed. It does not reconstruct the original implementation sequence.
+
+| Task                                  | Audit outcome                                                                         | Implementation commit(s) | Current matching test file                         | Verification command                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1. Migration and repository           | [x] Implemented; current regression verified                                          | `04dd52d`                | `server/src/modules/admin/adminRepository.test.ts` | `npm --prefix server test -- src/modules/admin/adminRepository.test.ts` |
+| 2. Routes and wiring                  | [x] Implemented; current regression verified                                          | `04dd52d`                | `server/src/routes/admin.test.ts`                  | `npm --prefix server test -- src/routes/admin.test.ts`                  |
+| 3. Disabled-login block               | [x] Implemented; current regression verified                                          | `650bb3f`                | `server/src/modules/identity/authService.test.ts`  | `npm --prefix server test -- src/modules/identity/authService.test.ts`  |
+| 4. Admin API client                   | [x] Implemented; current regression verified                                          | `a1155ed`                | `src/api/client.test.ts`                           | `npm test -- src/api/client.test.ts`                                    |
+| 5. Admin view                         | [x] Implemented; current regression verified                                          | `a1155ed`                | `src/admin/adminView.test.ts`                      | `npm test -- src/admin/adminView.test.ts`                               |
+| 6. Documentation and integration gate | [x] README implementation committed; [ ] current gate blocked by unrelated formatting | `de7819a`                | —                                                  | `npm run check`                                                         |
+
+The original unchecked RED steps mean **not reconstructable**, not implementation missing. Historical RED evidence unavailable; current regression test verified. No saved reviewer artifact was found, so no historical reviewer action is marked complete. The original manual smoke checkbox also remains unchecked because there is no saved smoke-test artifact.
+
 ---
 
 ### Task 1: Migration and admin repository
@@ -125,7 +140,7 @@ describe('createAdminRepository', () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify RED** — `npm --prefix server test -- src/modules/admin/adminRepository.test.ts` → FAIL missing module.
+- [ ] **Step 3: Run to verify RED** — `npm --prefix server test -- src/modules/admin/adminRepository.test.ts` → FAIL missing module. Historical RED evidence unavailable; current regression test verified.
 - [ ] **Step 4: Implement `adminRepository.ts`** with parameterized SQL and `Number()` coercion on count columns; `providers` splits a comma-joined aggregate by `,`.
 - [ ] **Step 5: Run to verify GREEN**, then `npm --prefix server run migrate`.
 - [ ] **Step 6: Commit** — `git add server/migrations/010_add_user_disabled.sql server/src/modules/admin && git commit -m "feat: migration và repository admin"`.
@@ -196,7 +211,7 @@ function app(repo, role: 'admin' | 'user' = 'admin') {
 }
 ```
 
-- [ ] **Step 2: Run to verify RED** — `npm --prefix server test -- src/routes/admin.test.ts` → FAIL missing module.
+- [ ] **Step 2: Run to verify RED** — `npm --prefix server test -- src/routes/admin.test.ts` → FAIL missing module. Historical RED evidence unavailable; current regression test verified.
 - [ ] **Step 3: Implement `admin.ts`** — `GET /stats`, `GET /users`, `PATCH /users/:id`; self-modification check compares `req.params.id` to `req.user!.userId`; validate body with Zod (`role` enum optional, `disabled` boolean optional, at least one present).
 - [ ] **Step 4: Run to verify GREEN** and run the full server suite.
 - [ ] **Step 5: Wire `index.ts`** — `createAdminRouter({ repo: createAdminRepository({ query: pool.query.bind(pool) }), requireAuth, requireAdmin })`, mounted `app.use('/api/v1/admin', identity.adminRoutes)`.
@@ -216,7 +231,7 @@ function app(repo, role: 'admin' | 'user' = 'admin') {
 - Produces: login throws `account_disabled` when `user.disabled`; `publicAuthError` maps it to 403 `{ code: 'account_disabled' }`.
 
 - [ ] **Step 1: Add the failing test** in `authService.test.ts` — a `findByEmail` returning `{ ...user, disabled: true }` makes `login` reject with code `account_disabled`.
-- [ ] **Step 2: Run to verify RED.**
+- [ ] **Step 2: Run to verify RED.** Historical RED evidence unavailable; current regression test verified.
 - [ ] **Step 3: Implement** — in `login`, after the user lookup and before `issueSession`: `if (user.disabled) throw codedError('account_disabled');` and add the mapping in `authRoutes.publicAuthError` (403).
 - [ ] **Step 4: Run to verify GREEN** plus server suite.
 - [ ] **Step 5: Commit** — `git commit -m "feat: chặn đăng nhập tài khoản bị khóa"`.
@@ -233,7 +248,7 @@ function app(repo, role: 'admin' | 'user' = 'admin') {
 - Produces `api.admin.stats()`, `api.admin.users(params)`, `api.admin.updateUser(id, patch)` with paths `/admin/stats`, `/admin/users`, `/admin/users/:id`.
 
 - [ ] **Step 1: Add failing client tests** asserting the three request shapes.
-- [ ] **Step 2: Run to verify RED.**
+- [ ] **Step 2: Run to verify RED.** Historical RED evidence unavailable; current regression test verified.
 - [ ] **Step 3: Implement in `client.ts`.**
 - [ ] **Step 4: Run to verify GREEN; commit** — `git commit -m "feat: api client cho admin panel"`.
 
@@ -271,7 +286,7 @@ function app(repo, role: 'admin' | 'user' = 'admin') {
 - `admin.loadError`: `Không tải được dữ liệu quản trị.` / `Could not load admin data.`
 
 - [ ] **Step 1: Write the failing view test** (jsdom + localStorage stub + dynamic import, like `feedView.test.ts`): renders stat cards from injected stats; renders user rows with escaped email; clicking the disable toggle calls the injected `updateUser` and re-renders.
-- [ ] **Step 2: Run to verify RED.**
+- [ ] **Step 2: Run to verify RED.** Historical RED evidence unavailable; current regression test verified.
 - [ ] **Step 3: Implement `adminView.ts`** — tabs, stat cards, user table with role `<select>` and a disable toggle button; `confirm()` before disabling.
 - [ ] **Step 4: Add `#adminBtn` to `index.html` topbar (class `admin-only`, `hidden`), `#adminView` section; wire `openAdminView` in `src/main.ts`; add `admin.css` and import it.
 - [ ] **Step 5: Run frontend suite + typecheck + build; commit** — `git commit -m "feat: giao diện admin panel"`.
