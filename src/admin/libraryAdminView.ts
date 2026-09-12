@@ -36,10 +36,6 @@ export function setContentLocale(next: AdminLocale): void {
   if (body) renderContentTab(body);
 }
 
-export function currentContentLocale(): AdminLocale {
-  return locale;
-}
-
 export function renderContentTab(target: HTMLElement): void {
   body = target;
   body.innerHTML = '';

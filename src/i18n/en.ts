@@ -9,7 +9,6 @@ export const en: Record<string, string> = {
   'topbar.favoriteTitle': 'Favorite questions',
   'topbar.daily': 'Daily',
   'topbar.leaderboard': 'Leaderboard',
-  'nav.home': 'Home',
   'nav.library': 'Library',
   'nav.journey': 'Journey',
   'nav.admin': 'Admin',
@@ -72,7 +71,6 @@ export const en: Record<string, string> = {
   // Journey / Obsidian
   'journey.title': "Today's journey",
   'journey.source': 'Obsidian is the source of truth',
-  'journey.close': 'Close',
   'journey.back': 'Back to library',
   'journey.focusLabel': 'FOCUS PROTOCOL',
   'journey.focusEyebrow': 'DEEP WORK · DAILY EXECUTION',
@@ -209,8 +207,6 @@ export const en: Record<string, string> = {
   // FIB card
   'fib.hint': '💡 Hint',
   'fib.check': 'Check',
-  'fib.correct': '✓ Correct!',
-  'fib.wrong': '✗ Answer: {answer}',
 
   // Leaderboard
   'lb.title': '🏆 Leaderboard',
@@ -324,7 +320,6 @@ export const en: Record<string, string> = {
 
   // Library authoring
   'libAdmin.locale': 'Locale',
-  'libAdmin.topicsTitle': 'Subjects',
   'libAdmin.newTopic': '+ New subject',
   'libAdmin.fieldKey': 'Key (a-z, 0-9, dash)',
   'libAdmin.fieldLabel': 'Label',
@@ -345,7 +340,6 @@ export const en: Record<string, string> = {
   'libAdmin.topicsEmpty': 'No subjects yet.',
   'libAdmin.formInvalid':
     'Key must be a-z, 0-9 and dashes (2-40 chars); label and title are required.',
-  'libAdmin.sectionsTitle': 'Sections',
   'libAdmin.newSection': '+ New section',
   'libAdmin.sectionName': 'Section name',
   'libAdmin.newQuestion': '+ New question',
@@ -368,23 +362,18 @@ export const en: Record<string, string> = {
   'libAdmin.addColumn': '+ Column',
   'libAdmin.removeRow': '− Row',
   'libAdmin.removeColumn': '− Column',
-  'libAdmin.moveUp': 'Move up',
-  'libAdmin.moveDown': 'Move down',
   'libAdmin.remove': 'Remove',
   'libAdmin.reorderWarning':
     'Question order is tied to learned progress. Reordering makes that progress point at different questions. Continue?',
   'libAdmin.deleteWarning':
     'Permanently delete this item? You will get a snapshot you can restore from.',
-  'libAdmin.downloadSnapshot': 'Download snapshot',
   'libAdmin.importTitle': 'Import JSON into this subject',
   'libAdmin.importPaste': 'Paste JSON',
-  'libAdmin.importFile': 'Choose a .json file',
   'libAdmin.importTemplate': 'Insert sample template',
   'libAdmin.importMode': 'Mode',
   'libAdmin.importModeReplace': 'Replace everything',
   'libAdmin.importModeAppend': 'Append',
   'libAdmin.importPreview': 'Parsed {sections} sections · {questions} questions',
-  'libAdmin.importInvalidJson': 'Invalid JSON: {message}',
   'libAdmin.importDone': 'Imported {sections} sections, {questions} questions',
   'libAdmin.saveFailed': 'Could not save the change.',
   'libAdmin.saved': 'Saved.',
