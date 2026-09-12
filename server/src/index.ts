@@ -34,6 +34,8 @@ import { createAdminRouter } from './routes/admin';
 import { createAdminRepository } from './modules/admin/adminRepository';
 import { createFeedService } from './modules/feed/feedService';
 import { DEFAULT_FEED_SOURCES } from './modules/feed/sources';
+import { createReviewRouter } from './routes/review';
+import { createReviewRepository } from './modules/review/reviewRepository';
 import { syncConfiguredAdmins } from './services/adminBootstrap';
 import { createObsidianVault } from './services/obsidianVault';
 import { createMailer } from './utils/email';
@@ -53,6 +55,7 @@ function registerRoutes(
     streakRoutes: ReturnType<typeof createStreakRouter>;
     feedRoutes: ReturnType<typeof createFeedRouter>;
     adminRoutes: ReturnType<typeof createAdminRouter>;
+    reviewRoutes: ReturnType<typeof createReviewRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -62,6 +65,7 @@ function registerRoutes(
   app.use('/api/v1/streak', identity.streakRoutes);
   app.use('/api/v1/feed', identity.feedRoutes);
   app.use('/api/v1/admin', identity.adminRoutes);
+  app.use('/api/v1/review', identity.reviewRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', quizSessionsRouter);
   app.use('/api/v1/daily', identity.dailyRoutes);
@@ -137,6 +141,12 @@ async function main(): Promise<void> {
     requireAuth,
     requireAdmin,
   });
+  const reviewRoutes = createReviewRouter({
+    repo: createReviewRepository({ query: pool.query.bind(pool) }),
+    requireAuth,
+    timeZone: config.timeZone,
+    recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
+  });
   const journeyRoutes = createJourneyRouter({
     requireAuth,
     requireAdmin,
@@ -174,6 +184,7 @@ async function main(): Promise<void> {
           streakRoutes,
           feedRoutes,
           adminRoutes,
+          reviewRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');

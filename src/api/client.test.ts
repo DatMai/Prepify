@@ -97,4 +97,50 @@ describe('API client authentication', () => {
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('PATCH');
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(JSON.stringify({ role: 'admin' }));
   });
+
+  it('fetches the due review queue', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ count: 0, items: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await api.review.due();
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/review/due');
+  });
+
+  it('grades a review card', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          schedule: {
+            topic: 'javascript',
+            sectionIdx: 0,
+            questionIdx: 1,
+            intervalDays: 7,
+            ease: 2.55,
+            reviewCount: 1,
+            dueAt: '2026-09-19T00:00:00.000Z',
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    await api.review.grade('javascript', 0, 1, 'good');
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe('http://localhost:3001/api/v1/review/grade');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual({
+      topic: 'javascript',
+      sectionIdx: 0,
+      questionIdx: 1,
+      quality: 'good',
+    });
+  });
 });
