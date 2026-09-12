@@ -6,6 +6,8 @@ import swaggerUi from 'swagger-ui-express';
 import { createApp } from './app';
 import { loadConfig } from './config/env';
 import { createPool, initializeDatabase } from './db/client';
+import { createLogger } from './platform/logger/createLogger';
+import { startServer } from './platform/server/startServer';
 import authRouter from './routes/auth';
 import dailyRouter from './routes/daily';
 import forgotPasswordRouter from './routes/forgotPassword';
@@ -22,11 +24,6 @@ import { swaggerSpec } from './swagger';
 dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local'), override: true, quiet: true });
 
-const config = loadConfig(process.env);
-const logger = pino({ level: config.nodeEnv === 'development' ? 'debug' : 'info' });
-const pool = createPool(config.databaseUrl, logger);
-initializeDatabase(pool);
-
 function registerRoutes(app: Express): void {
   app.use('/auth', authRouter);
   app.use('/auth', forgotPasswordRouter);
@@ -41,29 +38,46 @@ function registerRoutes(app: Express): void {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
-const app = createApp({ config, logger, registerRoutes });
+async function main(): Promise<void> {
+  const config = loadConfig(process.env);
+  const logger = createLogger(config);
+  const pool = createPool(config.databaseUrl, logger);
+  initializeDatabase(pool);
 
-async function start(): Promise<void> {
-  await syncConfiguredAdmins();
-  const server = app.listen(config.port, config.host, () => {
-    logger.info({ host: config.host, port: config.port }, 'server listening');
-  });
-
-  let stopping = false;
-  const stop = (): void => {
-    if (stopping) return;
-    stopping = true;
-    server.close(() => {
-      void pool.end().finally(() => process.exit(0));
+  try {
+    await syncConfiguredAdmins();
+    const app = createApp({
+      config,
+      logger,
+      registerRoutes,
+      readiness: async () => {
+        await pool.query('SELECT 1');
+      },
     });
-  };
+    const runtime = await startServer({
+      app,
+      host: config.host,
+      port: config.port,
+      logger,
+      closePool: async () => pool.end(),
+    });
 
-  process.once('SIGINT', stop);
-  process.once('SIGTERM', stop);
+    const stop = (): void => {
+      void runtime.stop().catch((error: unknown) => {
+        logger.error({ err: error }, 'graceful shutdown failed');
+        process.exitCode = 1;
+      });
+    };
+
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+  } catch (error) {
+    await pool.end();
+    throw error;
+  }
 }
 
-void start().catch(async (error: unknown) => {
-  logger.fatal({ err: error }, 'server startup failed');
-  await pool.end();
-  process.exit(1);
+void main().catch((error: unknown) => {
+  pino().fatal({ err: error }, 'server startup failed');
+  process.exitCode = 1;
 });

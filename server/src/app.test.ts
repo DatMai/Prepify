@@ -16,6 +16,7 @@ function testDependencies(registerRoutes: (app: Express) => void = () => {}): Ap
     }),
     logger: pino({ level: 'silent' }),
     registerRoutes,
+    readiness: async () => {},
   };
 }
 
@@ -26,6 +27,21 @@ describe('application shell', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: 'ok' });
     expect(response.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('reports unavailable when the readiness dependency fails', async () => {
+    const app = createApp({
+      ...testDependencies(),
+      readiness: async () => {
+        throw new Error('database offline');
+      },
+    });
+
+    const response = await request(app).get('/health/ready');
+
+    expect(response.status).toBe(503);
+    expect(response.body).toEqual({ status: 'unavailable' });
+    expect(JSON.stringify(response.body)).not.toContain('database offline');
   });
 
   it('maps expected errors to the public envelope', async () => {

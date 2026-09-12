@@ -12,9 +12,25 @@ export interface AppDependencies {
   config: AppConfig;
   logger: Logger;
   registerRoutes(app: Express): void;
+  readiness(): Promise<void>;
 }
 
-export function createApp({ config, logger, registerRoutes }: AppDependencies): Express {
+async function settleWithin(operation: Promise<void>, timeoutMs: number): Promise<void> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    await Promise.race([
+      operation,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('Readiness check timed out')), timeoutMs);
+        timer.unref();
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+export function createApp({ config, logger, registerRoutes, readiness }: AppDependencies): Express {
   const app = express();
   const allowedOrigins = new Set(config.corsOrigins);
 
@@ -46,6 +62,15 @@ export function createApp({ config, logger, registerRoutes }: AppDependencies): 
 
   app.get('/health/live', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  app.get('/health/ready', async (_req, res) => {
+    try {
+      await settleWithin(readiness(), 1_000);
+      res.json({ status: 'ok' });
+    } catch {
+      res.status(503).json({ status: 'unavailable' });
+    }
   });
 
   app.use(notFound());
