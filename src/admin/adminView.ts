@@ -2,6 +2,8 @@ import { api, type AdminStats, type AdminUserItem } from '../api/client';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
 
+export type AdminTab = 'dashboard' | 'users' | 'content';
+
 let overlay: HTMLElement | null = null;
 let stats: AdminStats | null = null;
 let users: AdminUserItem[] = [];
@@ -9,7 +11,10 @@ let totalUsers = 0;
 let search = '';
 let offset = 0;
 let loadingUsers = false;
+let loadingStats = false;
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
+let activeTab: AdminTab = 'dashboard';
+let contentTabRenderer: ((body: HTMLElement) => void) | null = null;
 
 const PAGE_SIZE = 25;
 
@@ -22,6 +27,14 @@ function element<K extends keyof HTMLElementTagNameMap>(
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+/**
+ * The content tab lives in its own module and registers here, so the shell does
+ * not have to import the whole authoring UI eagerly.
+ */
+export function setContentTabRenderer(renderer: ((body: HTMLElement) => void) | null): void {
+  contentTabRenderer = renderer;
 }
 
 export function initAdminView(): void {
@@ -51,8 +64,6 @@ export async function openAdmin(updateHistory = true): Promise<void> {
   }
 
   renderShell();
-  await loadStats();
-  await loadUsers(true);
 }
 
 export function closeAdmin(): void {
@@ -65,11 +76,28 @@ function hideAdmin(): void {
   document.body.classList.remove('admin-page-open');
 }
 
+/** Re-renders the shell and the active tab; used after a language switch. */
 export function repaintAdmin(): void {
   if (!overlay || overlay.hidden) return;
   renderShell();
-  renderStats();
-  renderUsers();
+}
+
+export function setAdminTab(tab: AdminTab): void {
+  if (activeTab === tab) return;
+  activeTab = tab;
+  syncTabHighlight();
+  renderActiveTab();
+}
+
+/**
+ * Keeps the nav buttons alive across a tab switch, so focus and node identity
+ * survive. Rebuilding the whole shell here would also restart the stats fetch.
+ */
+function syncTabHighlight(): void {
+  for (const node of document.querySelectorAll('.admin-tab')) {
+    const button = node as HTMLElement;
+    button.classList.toggle('is-active', button.dataset.tab === activeTab);
+  }
 }
 
 function renderShell(): void {
@@ -94,41 +122,64 @@ function renderShell(): void {
   head.append(kicker, title, subtitle);
   panel.appendChild(head);
 
-  const statsRoot = element('div', 'admin-stats');
-  statsRoot.id = 'adminStats';
-  panel.appendChild(statsRoot);
+  panel.appendChild(renderTabs());
 
-  const usersHead = element('div', 'admin-users-head');
-  const usersTitle = element('h2', 'admin-users-title', t('admin.usersTitle'));
-  const searchBox = element('input', 'admin-search') as HTMLInputElement;
-  searchBox.type = 'search';
-  searchBox.placeholder = t('admin.searchPlaceholder');
-  searchBox.value = search;
-  searchBox.addEventListener('input', () => {
-    if (searchTimer) clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      search = searchBox.value.trim();
-      void loadUsers(true);
-    }, 300);
-  });
-  usersHead.append(usersTitle, searchBox);
-  panel.appendChild(usersHead);
-
-  const usersRoot = element('div', 'admin-users');
-  usersRoot.id = 'adminUsers';
-  panel.appendChild(usersRoot);
+  const body = element('div', 'admin-tab-body');
+  body.id = 'adminTabBody';
+  panel.appendChild(body);
 
   overlay.appendChild(panel);
+  renderActiveTab();
+}
+
+function renderTabs(): HTMLElement {
+  const tabs = element('div', 'admin-tabs');
+
+  const entries: Array<[AdminTab, string]> = [
+    ['dashboard', t('admin.tabDashboard')],
+    ['users', t('admin.tabUsers')],
+    ['content', t('admin.tabContent')],
+  ];
+
+  for (const [tab, label] of entries) {
+    const button = element('button', `admin-tab${activeTab === tab ? ' is-active' : ''}`, label);
+    button.type = 'button';
+    button.dataset.tab = tab;
+    button.addEventListener('click', () => setAdminTab(tab));
+    tabs.appendChild(button);
+  }
+
+  return tabs;
+}
+
+function renderActiveTab(): void {
+  const body = document.getElementById('adminTabBody');
+  if (!body) return;
+  body.innerHTML = '';
+
+  if (activeTab === 'dashboard') renderDashboardTab(body);
+  else if (activeTab === 'users') renderUsersTab(body);
+  else contentTabRenderer?.(body);
+}
+
+function renderDashboardTab(body: HTMLElement): void {
+  const statsRoot = element('div', 'admin-stats');
+  statsRoot.id = 'adminStats';
+  body.appendChild(statsRoot);
+  void loadStats();
 }
 
 async function loadStats(): Promise<void> {
+  if (loadingStats) return;
+  loadingStats = true;
   try {
     stats = await api.admin.stats();
-    renderStats();
   } catch {
     stats = null;
-    renderStats();
+  } finally {
+    loadingStats = false;
   }
+  renderStats();
 }
 
 function renderStats(): void {
@@ -153,6 +204,30 @@ function renderStats(): void {
     card.appendChild(element('span', 'admin-stat-label', label));
     root.appendChild(card);
   }
+}
+
+function renderUsersTab(body: HTMLElement): void {
+  const usersHead = element('div', 'admin-users-head');
+  const usersTitle = element('h2', 'admin-users-title', t('admin.usersTitle'));
+  const searchBox = element('input', 'admin-search') as HTMLInputElement;
+  searchBox.type = 'search';
+  searchBox.placeholder = t('admin.searchPlaceholder');
+  searchBox.value = search;
+  searchBox.addEventListener('input', () => {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      search = searchBox.value.trim();
+      void loadUsers(true);
+    }, 300);
+  });
+  usersHead.append(usersTitle, searchBox);
+  body.appendChild(usersHead);
+
+  const usersRoot = element('div', 'admin-users');
+  usersRoot.id = 'adminUsers';
+  body.appendChild(usersRoot);
+
+  void loadUsers(true);
 }
 
 async function loadUsers(reset: boolean): Promise<void> {
