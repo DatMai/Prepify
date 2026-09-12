@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { Router, type RequestHandler } from 'express';
 import { z } from 'zod';
 import {
@@ -8,37 +6,9 @@ import {
   type DailySubmission,
 } from '../modules/daily/dailyChallenge';
 import { computeStreak, dateInTimeZone } from '../modules/learning/streak';
+import { blocksToText, type Block } from '../modules/library/libraryBlocks';
+import type { LibraryRepository, Locale } from '../modules/library/libraryRepository';
 
-interface McqRef {
-  topicKey: string;
-  sectionIdx: number;
-  questionIdx: number;
-}
-interface PoolEntry {
-  id: string;
-  type: 'mcq' | 'fib' | 'match';
-  difficulty: number;
-  ref?: McqRef;
-  topic?: string;
-  prompt?: string;
-  blanks?: string[];
-  hint?: string;
-}
-interface DailyPool {
-  version: number;
-  pool: PoolEntry[];
-}
-interface QuestionBlock {
-  type: string;
-  text?: string;
-}
-interface QuizQuestion {
-  q: string;
-  blocks: QuestionBlock[];
-}
-interface QuizTopic {
-  sections: Array<{ questions: QuizQuestion[] }>;
-}
 interface QueryResult<Row> {
   rows: Row[];
 }
@@ -52,11 +22,11 @@ export interface DailyQuery {
 
 interface DailyRouterDependencies {
   query: DailyQuery;
+  repo: LibraryRepository;
   requireAuth: RequestHandler;
   requireAdmin: RequestHandler;
   secret: string;
   timeZone: string;
-  contentDir: string;
   recordStudyDay: (userId: string) => Promise<void>;
 }
 
@@ -79,7 +49,7 @@ function dailySeed(date: string): number {
   return Math.abs(hash);
 }
 
-function pickDaily(pool: PoolEntry[], date: string, count = 5): PoolEntry[] {
+function pickDaily<T>(pool: T[], date: string, count = 5): T[] {
   const shuffled = [...pool];
   let seed = dailySeed(date);
   for (let index = shuffled.length - 1; index > 0; index--) {
@@ -90,45 +60,18 @@ function pickDaily(pool: PoolEntry[], date: string, count = 5): PoolEntry[] {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-function localizedContentDir(contentDir: string, lang: unknown): string | null {
-  if (lang === undefined || lang === 'vi') return contentDir;
-  if (lang === 'en') return path.join(contentDir, 'en');
+function resolveLocale(value: unknown): Locale | null {
+  if (value === undefined || value === 'vi') return 'vi';
+  if (value === 'en') return 'en';
   return null;
 }
 
-function loadTopic(topicKey: string, root: string): QuizTopic | null {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(root, `${topicKey}.json`), 'utf8')) as QuizTopic;
-  } catch {
-    return null;
-  }
-}
-
-function resolveQuestion(ref: McqRef, root: string): QuizQuestion | null {
-  return (
-    loadTopic(ref.topicKey, root)?.sections[ref.sectionIdx]?.questions[ref.questionIdx] ?? null
-  );
-}
-
-function extractTextFromBlocks(blocks: QuestionBlock[]): string {
-  return blocks
-    .filter((block) => block.type === 'text' && block.text)
-    .map((block) => block.text ?? '')
-    .join(' ');
-}
-
-function generateMcqOptions(correctText: string, topicKey: string, root: string) {
+function generateMcqOptions(correctText: string, siblingBlocks: Block[][]) {
   const distractors: string[] = [];
-  const topic = loadTopic(topicKey, root);
-  if (topic) {
-    for (const section of topic.sections) {
-      for (const question of section.questions) {
-        const text = extractTextFromBlocks(question.blocks);
-        if (text && text !== correctText && text.length >= 20) distractors.push(text.slice(0, 120));
-        if (distractors.length >= 6) break;
-      }
-      if (distractors.length >= 6) break;
-    }
+  for (const blocks of siblingBlocks) {
+    const text = blocksToText(blocks);
+    if (text && text !== correctText && text.length >= 20) distractors.push(text.slice(0, 120));
+    if (distractors.length >= 6) break;
   }
   const candidates = [
     { text: correctText.slice(0, 120), correct: true },
@@ -155,54 +98,46 @@ export function createDailyRouter(deps: DailyRouterDependencies): Router {
   const router = Router();
   const codec = createDailyChallengeCodec(deps.secret);
 
-  router.get('/', deps.requireAuth, deps.requireAdmin, (req, res) => {
+  router.get('/', deps.requireAuth, deps.requireAdmin, async (req, res) => {
     const date = dateInTimeZone(new Date(), deps.timeZone);
-    const localizedDir = localizedContentDir(deps.contentDir, req.query.lang);
-    if (!localizedDir) {
+    const locale = resolveLocale(req.query.lang);
+    if (!locale) {
       res.status(400).json({ error: 'Unsupported language', code: 'unsupported_language' });
       return;
     }
-    let pool: DailyPool;
-    try {
-      pool = JSON.parse(
-        fs.readFileSync(path.join(localizedDir, 'daily.json'), 'utf8'),
-      ) as DailyPool;
-    } catch {
-      res.status(500).json({ error: 'Daily pool not found', code: 'daily_pool_missing' });
-      return;
-    }
 
+    const entries = await deps.repo.listDailyEntries({ locale });
     const answerKeys: DailyAnswerKey[] = [];
-    const questions = pickDaily(
-      pool.pool.filter((entry) => entry.type !== 'match'),
-      date,
-    ).flatMap<PublicDailyQuestion>((entry) => {
-      if (entry.type === 'fib' && entry.prompt && entry.blanks) {
-        answerKeys.push({ id: entry.id, type: 'fib', blanks: entry.blanks });
-        return [
-          {
-            id: entry.id,
-            type: 'fib' as const,
-            prompt: entry.prompt,
-            blankCount: entry.blanks.length,
-            hint: entry.hint,
-            topic: entry.topic,
-          },
-        ];
+    const questions: PublicDailyQuestion[] = [];
+
+    for (const entry of pickDaily(entries, date)) {
+      if (entry.type === 'fib') {
+        if (!entry.prompt || !entry.blanks) continue;
+        answerKeys.push({ id: entry.entryId, type: 'fib', blanks: entry.blanks });
+        questions.push({
+          id: entry.entryId,
+          type: 'fib',
+          prompt: entry.prompt,
+          blankCount: entry.blanks.length,
+          hint: entry.hint ?? undefined,
+          topic: entry.topicKey ?? undefined,
+        });
+        continue;
       }
-      if (entry.type !== 'mcq' || !entry.ref) return [];
-      const question = resolveQuestion(entry.ref, localizedDir);
-      if (!question) return [];
-      const correctText = extractTextFromBlocks(question.blocks);
-      if (!correctText) return [];
-      const { options, correctIdx } = generateMcqOptions(
-        correctText,
-        entry.ref.topicKey,
-        localizedDir,
-      );
-      answerKeys.push({ id: entry.id, type: 'mcq', correctIdx });
-      return [{ id: entry.id, type: 'mcq' as const, q: question.q, options }];
-    });
+      if (!entry.questionId || !entry.topicKey) continue;
+      const question = await deps.repo.getQuestion({ questionId: entry.questionId });
+      if (!question) continue;
+      const correctText = blocksToText(question.blocks);
+      if (!correctText) continue;
+      const siblingBlocks = await deps.repo.listSiblingBlocks({
+        topicKey: entry.topicKey,
+        locale,
+        excludeQuestionId: entry.questionId,
+      });
+      const { options, correctIdx } = generateMcqOptions(correctText, siblingBlocks);
+      answerKeys.push({ id: entry.entryId, type: 'mcq', correctIdx });
+      questions.push({ id: entry.entryId, type: 'mcq', q: question.questionText, options });
+    }
 
     const challenge = codec.seal({ userId: req.user!.userId, date, answers: answerKeys });
     res.json({ date, challenge, questions });
