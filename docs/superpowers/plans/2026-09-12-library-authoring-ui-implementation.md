@@ -12,6 +12,20 @@
 
 **Phase 1 and 2 are merged** (PR #6 and PR #7). The server already exposes every endpoint this phase needs; nothing in this plan changes the server.
 
+**Status: implemented, all steps ticked, PR #8.** Three things ended up different from this
+plan; recorded here so the plan does not mislead a future reader:
+
+- The import validator and the sample document live in `src/admin/importDocument.ts` and are
+  re-exported from `libraryAdminView.ts`, instead of sitting inside `libraryAdminView.ts`.
+  Tests still import them from `./libraryAdminView`.
+- The module layout was split further once the feature worked, because
+  `libraryAdminView.ts` had grown past 400 lines: `topicEditor.ts` (topic editor),
+  `blockOps.ts` (pure block operations), `adminUi.ts` (shared builders and the download
+  seam). `libraryAdminView.ts` is now the subject list only.
+- `src/api/client.ts` had to change even though this plan says the server is untouched:
+  `ApiError` now keeps the server's `message` and `path`, because the import endpoint
+  reports `{ error, code, path, message }` and the client was dropping both.
+
 ## Global Constraints
 
 - No server change in this phase. If something seems to need one, stop and report rather than editing the API.
@@ -157,7 +171,7 @@ api.libraryAdmin = {
 };
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `src/api/client.test.ts`:
 
@@ -217,21 +231,21 @@ it('imports a document with an explicit mode', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/api/client.test.ts`
 Expected: FAIL — `api.libraryAdmin` is undefined.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Add the types and the `libraryAdmin` group to the `api` object in `src/api/client.ts`, next to the existing `admin` group, using `apiRequest` for every call (it already handles credentials, timeouts and error-code translation). `createTopic` and `importTopic` send JSON bodies; `updateQuestion`/`updateSection`/`updateTopic` send `PATCH`; delete calls return the `{ snapshot }` body.
 
-- [ ] **Step 4: Run to verify GREEN**
+- [x] **Step 4: Run to verify GREEN**
 
 Run: `npm test -- src/api/client.test.ts && npm run typecheck`
 Expected: PASS and no type errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/api/client.ts src/api/client.test.ts
@@ -253,7 +267,7 @@ git commit -m "feat(client): API soạn nội dung Library"
 - Consumes: nothing new.
 - Produces: `type AdminTab = 'dashboard' | 'users' | 'content'`; `setAdminTab(tab: AdminTab): void` (used by tests and by the content tab to come back); `renderShell()` now draws a tab bar and one `#adminTabBody` container that holds the active tab. `repaintAdmin()` re-renders the active tab only, so a language switch does not reset the shell's scroll or the content tab's state.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Replace the body of `src/admin/adminView.test.ts` with tests that cover the tabs:
 
@@ -315,12 +329,12 @@ it('keeps the dashboard as the tab that opens by default after a repaint', async
 
 Keep the existing fixture constants (`stats`, `user`) and the `memoryStorage`/`settled` helpers; add `import { t } from '../i18n';` for the tab-label assertion. The `loadUsers` call must move out of `openAdmin` — that is the behaviour change these tests pin.
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/admin/adminView.test.ts`
 Expected: FAIL — `.admin-tab` does not exist and `setAdminTab` is not exported.
 
-- [ ] **Step 3: Implement the shell**
+- [x] **Step 3: Implement the shell**
 
 In `src/admin/adminView.ts`:
 
@@ -392,16 +406,16 @@ renderShell();
 
 `repaintAdmin()` becomes `renderShell()`, which already re-renders the active tab.
 
-- [ ] **Step 4: Run to verify GREEN**
+- [x] **Step 4: Run to verify GREEN**
 
 Run: `npm test -- src/admin/adminView.test.ts && npm run typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Add the copy table keys**
+- [x] **Step 5: Add the copy table keys**
 
 Add every key from the copy table to both i18n files. Run `npm run typecheck` afterwards; a missing key in one locale is not a type error, so also run the check in Step 6.
 
-- [ ] **Step 6: Verify the key sets match**
+- [x] **Step 6: Verify the key sets match**
 
 Add this test to `src/i18n/index.test.ts` (create the file if it does not exist):
 
@@ -424,7 +438,7 @@ describe('i18n dictionaries', () => {
 Run: `npm test -- src/i18n/index.test.ts`
 Expected: PASS. This test is the guard that stops a future key landing in only one locale.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/admin/adminView.ts src/admin/adminView.test.ts src/i18n src/i18n/index.test.ts
@@ -455,7 +469,7 @@ export function closeTopicEditor(): void;
 
 **Behaviour:** the list shows one row per subject: label, key, question count, an "archived" badge, and the actions Edit, Export, Archive/Restore. A locale switch (vi/en) reloads the list. `+ New subject` opens an inline form with key, label, title, subtitle and colour, and does **not** send `key` anywhere else. Archive asks for confirmation, then downloads the snapshot via `downloadJson` and reloads.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `src/admin/libraryAdminView.test.ts`:
 
@@ -638,12 +652,12 @@ describe('content tab', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts`
 Expected: FAIL — cannot resolve `./libraryAdminView`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/admin/libraryAdminView.ts` with:
 
@@ -656,12 +670,12 @@ Create `src/admin/libraryAdminView.ts` with:
 - Archive: `if (!window.confirm(t('libAdmin.deleteWarning'))) return;` → `const { snapshot } = await api.libraryAdmin.archiveTopic(id)` → `snapshotDownloader(\`${topic.key}.json\`, snapshot)`→`reloadTopics()`. Show `showToast(t('libAdmin.saveFailed'), 'error')` on a thrown error.
 - Any thrown API error is caught and reported with `showToast`; never let a rejection escape as an unhandled promise.
 
-- [ ] **Step 4: Run to verify GREEN**
+- [x] **Step 4: Run to verify GREEN**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts && npm run typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Register the tab**
+- [x] **Step 5: Register the tab**
 
 In `src/admin/adminView.ts`'s `initAdminView`, wire the content tab once:
 
@@ -671,7 +685,7 @@ setContentTabRenderer(renderContentTab);
 
 with `import { renderContentTab } from './libraryAdminView';`. Add a test in `adminView.test.ts` asserting that switching to the content tab calls `api.libraryAdmin.listTopics` once.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/admin/libraryAdminView.ts src/admin/libraryAdminView.test.ts src/admin/adminView.ts src/admin/adminView.test.ts
@@ -694,7 +708,7 @@ git commit -m "feat(admin): tab Nội dung — danh sách môn, tạo môn, arch
 
 **Behaviour:** each question row shows `code`, a level `<select>` (unclassified / basic / intermediate / advanced), the prompt, and buttons: Edit (opens the question editor), up, down, delete. Each section row shows its name, a rename input, a move up/down pair, and delete. Moving or deleting asks for confirmation with `t('libAdmin.reorderWarning')` / `t('libAdmin.deleteWarning')` first; deletes download the returned snapshot.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `src/admin/libraryAdminView.test.ts`:
 
@@ -861,12 +875,12 @@ it('adds a section through the API and reloads the editor', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts`
 Expected: FAIL — `.la-section-name` and the editor actions do not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 - `openTopicEditor(topicId)`: set `editorTopicId`, `renderEditor()`, then `await reloadTopicDetail()`.
 - `reloadTopicDetail()`: `detail = await api.libraryAdmin.getTopic(editorTopicId)`; `renderEditor()`.
@@ -876,12 +890,12 @@ Expected: FAIL — `.la-section-name` and the editor actions do not exist.
 - Level select options come from a single helper `renderLevelSelect(value, onChange)` shared with Task 5, with `t('libAdmin.levelNone')` for the empty option.
 - The move-up button is disabled on the first row and move-down on the last, so the UI cannot send a no-op move.
 
-- [ ] **Step 4: Run to verify GREEN**
+- [x] **Step 4: Run to verify GREEN**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts && npm run typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/admin/libraryAdminView.ts src/admin/libraryAdminView.test.ts
@@ -937,7 +951,7 @@ export function openQuestionEditor(input: {
 
 **Rules:** a table is always at least 1×1 and at most 50×10 — the remove buttons disable at the floor and the add buttons at the ceiling, matching the server's `MAX_TABLE_ROWS`/`MAX_TABLE_COLUMNS`. Every operation returns a **new** array (no in-place mutation), because the caller keeps the previous value for cancel.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `src/admin/questionEditor.test.ts`:
 
@@ -1053,21 +1067,21 @@ describe('block operations', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/admin/questionEditor.test.ts`
 Expected: FAIL — cannot resolve `./questionEditor`.
 
-- [ ] **Step 3: Implement the pure operations**
+- [x] **Step 3: Implement the pure operations**
 
 Implement each function with immutable updates (`blocks.map((block, i) => i === index ? { ...block, ... } : block)`), a `replaceAt` helper, and `MAX_TABLE_ROWS = 50` / `MAX_TABLE_COLUMNS = 10` constants that mirror the server's ceilings. Guard every table operation with a type check so a wrong index or a non-table block is a no-op rather than a crash. A new table starts with `rows: [['', '']]` and `headerDone: true`, matching the corpus shape.
 
-- [ ] **Step 4: Run to verify GREEN**
+- [x] **Step 4: Run to verify GREEN**
 
 Run: `npm test -- src/admin/questionEditor.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Write the failing DOM test**
+- [x] **Step 5: Write the failing DOM test**
 
 Append to `src/admin/questionEditor.test.ts`:
 
@@ -1114,11 +1128,11 @@ it('adds a table block through the toolbar', async () => {
 });
 ```
 
-- [ ] **Step 6: Run to verify RED, then implement the DOM layer**
+- [x] **Step 6: Run to verify RED, then implement the DOM layer**
 
 Implement `openQuestionEditor` as an overlay panel rendered into `document.body` (class `qe-panel`), with `.qe-close` → `onCancel`, a `.qe-save` button, `[name="prompt"]`, `[name="code"]`, `.qe-level`, the block list, and the add-block toolbar (`.qe-add-block` select + `.qe-add-block-button`). Save builds the payload (`{ code: code || null, prompt, level: level || null, blocks }`) and calls `api.libraryAdmin.createQuestion` or `updateQuestion`, then `await onSaved()` and closes; errors show `showToast(t('libAdmin.saveFailed'), 'error')` and keep the panel open so nothing the author typed is lost.
 
-- [ ] **Step 7: Run to verify GREEN and commit**
+- [x] **Step 7: Run to verify GREEN and commit**
 
 Run: `npm test -- src/admin/questionEditor.test.ts && npm run typecheck`
 
@@ -1143,7 +1157,7 @@ git commit -m "feat(admin): editor câu hỏi và block"
 
 **Behaviour:** the dialog has a textarea, a file input, a "insert sample template" button, a mode select (`replace` / `append`), a live preview line, and an Import button. Typing or choosing a file re-parses; a parse failure or a structurally invalid document shows the reason and disables Import. **Nothing is written until Import is pressed**, and if the server rejects the document the returned `path` is shown — no write happens on a rejection, so showing the server error still satisfies "validate before writing".
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `src/admin/libraryAdminView.test.ts`:
 
@@ -1263,20 +1277,20 @@ Add `parseImportDocument` and `SAMPLE_DOCUMENT` to the import block at the top o
 import { parseImportDocument, SAMPLE_DOCUMENT } from './libraryAdminView';
 ```
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts`
 Expected: FAIL — `parseImportDocument` is not exported.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `parseImportDocument` validates the shape the server accepts — `title` and `label` non-empty strings, `color` matching `/^#[0-9a-fA-F]{6}$/`, `sections` a non-empty array, each section with a non-empty `name` and a non-empty `questions` array, each question with a non-empty `q`, an optional `code`/`level`, and `blocks` where every entry has a `type` of `text`, `note`, `code` or `table` with the fields that type needs. It returns counts on success and a human-readable message on failure. Keep it a small hand-written validator rather than pulling Zod into the frontend bundle; the server remains the authority, this is only to avoid a pointless round trip.
 
-- [ ] **Step 4: Run to verify GREEN, then add the dialog**
+- [x] **Step 4: Run to verify GREEN, then add the dialog**
 
 The dialog renders into the editor body: `.la-import-text` (textarea), `.la-import-file` (file input, reads with `file.text()`), `.la-import-template` (fills the textarea with `JSON.stringify(SAMPLE_DOCUMENT, null, 2)`), `.la-import-mode` (select), `.la-import-preview`, `.la-import-error`, `.la-import-submit`, `.la-import-cancel`. Import calls `api.libraryAdmin.importTopic(topicId, mode, document)`, toasts `t('libAdmin.importDone', { sections, questions })` and reloads the detail; a thrown `ApiError` with `code === 'library_invalid_document'` shows its `message` and any `path` in `.la-import-error` and keeps the dialog open.
 
-- [ ] **Step 5: Run to verify GREEN and commit**
+- [x] **Step 5: Run to verify GREEN and commit**
 
 Run: `npm test -- src/admin/libraryAdminView.test.ts && npm run typecheck`
 
@@ -1296,16 +1310,16 @@ git commit -m "feat(admin): nhập và xuất JSON cho môn học"
 
 **Interfaces:** none new.
 
-- [ ] **Step 1: Style the new surface**
+- [x] **Step 1: Style the new surface**
 
 Extend `src/styles/admin.css` using the existing tokens (`--bg`, `--txt`, `--muted`, `--border`, `--accent2`, `--font` stacks already in use). Add: `.admin-tabs`/`.admin-tab`/`.is-active`, `.admin-tab-body`, `.la-toolbar`, `.la-topic` grid with label/key/count/badge/actions, `.la-badge-archived`, `.la-form` field grid, `.la-section`/`.la-question` rows, `.la-level`, `.la-move-up`/`.la-move-down` (dimmed when `disabled`), `.qe-panel`, `.qe-block`, `.qe-cell`, `.qe-table-toolbar`, `.la-import-*`. Add a `@media (max-width: 720px)` block collapsing the rows to one column, matching the existing responsive block in that file.
 
-- [ ] **Step 2: Run the whole gate**
+- [x] **Step 2: Run the whole gate**
 
 Run: `npm run check`
 Expected: green, including the new i18n key-parity test.
 
-- [ ] **Step 3: Live smoke in the browser**
+- [x] **Step 3: Live smoke in the browser**
 
 With `npm run dev` running, open the admin panel and walk the whole surface. Record each result:
 
@@ -1324,11 +1338,11 @@ With `npm run dev` running, open the admin panel and walk the whole surface. Rec
 13. Delete the throwaway subject's sections and remove the subject row from the database directly, because the API deliberately has no topic delete.
 14. Confirm `content/*.json` is untouched (`git status` clean for `content/`) and the Library page still renders 9 subjects with questions and tables intact.
 
-- [ ] **Step 4: Document it**
+- [x] **Step 4: Document it**
 
 Add a short paragraph under the existing "Library authoring endpoints" section in `README.md`: the Content tab is where authoring happens, it is admin-only, it warns before reordering or deleting because progress is positional, and it can import/export the JSON format the seed uses.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/styles/admin.css README.md
@@ -1341,15 +1355,15 @@ git commit -m "feat(admin): style và docs cho tab Nội dung"
 
 Phase 3 is done when all of the following hold:
 
-- [ ] `npm run check` is green.
-- [ ] The admin panel has three working tabs and the Dashboard/Users behaviour is unchanged.
-- [ ] A subject can be created, edited (metadata, sections, questions, levels, blocks), archived, restored, exported and imported entirely from the UI.
-- [ ] A table block and a code block survive a full round trip through the editor, the export, and the import.
-- [ ] An invalid import never reaches the API.
-- [ ] Reordering or deleting always asks first, and a declined confirmation sends nothing.
-- [ ] Every mutation failure surfaces as a toast and never as an unhandled rejection.
-- [ ] `npm test` counts increase for the new files and the i18n parity test passes.
-- [ ] The Library reader page still renders correctly after all the authoring.
+- [x] `npm run check` is green.
+- [x] The admin panel has three working tabs and the Dashboard/Users behaviour is unchanged.
+- [x] A subject can be created, edited (metadata, sections, questions, levels, blocks), archived, restored, exported and imported entirely from the UI.
+- [x] A table block and a code block survive a full round trip through the editor, the export, and the import.
+- [x] An invalid import never reaches the API.
+- [x] Reordering or deleting always asks first, and a declined confirmation sends nothing.
+- [x] Every mutation failure surfaces as a toast and never as an unhandled rejection.
+- [x] `npm test` counts increase for the new files and the i18n parity test passes.
+- [x] The Library reader page still renders correctly after all the authoring.
 
 ## Notes for the executor
 
