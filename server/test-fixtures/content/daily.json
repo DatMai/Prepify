@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "pool": [
+    {
+      "id": "fixture-mcq-1",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "sample", "sectionIdx": 0, "questionIdx": 0 }
+    }
+  ]
+}

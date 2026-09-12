@@ -7,6 +7,7 @@ const environmentSchema = z
     HOST: z.string().trim().min(1).default('127.0.0.1'),
     DATABASE_URL: z.string().trim().min(1),
     SESSION_SECRET: z.string().min(32),
+    CONTENT_ROOT: z.string().trim().min(1).optional(),
     SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
     FRONTEND_URL: z.string().url().default('http://localhost:5173'),
     PUBLIC_API_URL: z.string().url().default('http://localhost:3001'),
@@ -55,6 +56,7 @@ export interface AppConfig {
   host: string;
   databaseUrl: string;
   sessionSecret: string;
+  contentRoot?: string;
   session: {
     cookieName: string;
     secure: boolean;
@@ -125,6 +127,7 @@ export function loadConfig(
     host: env.HOST,
     databaseUrl: env.DATABASE_URL,
     sessionSecret: env.SESSION_SECRET,
+    contentRoot: env.CONTENT_ROOT,
     session: {
       cookieName: env.NODE_ENV === 'production' ? '__Host-prepify_session' : 'prepify_session',
       secure: env.NODE_ENV === 'production',

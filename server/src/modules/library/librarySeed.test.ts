@@ -4,49 +4,36 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildSeedPlan } from './librarySeed';
 
-const REPO_CORPUS = path.resolve(__dirname, '../../../../content');
+const CORPUS = path.resolve(__dirname, '../../../../server/test-fixtures/content');
 
-describe('buildSeedPlan against the real corpus', () => {
+describe('buildSeedPlan against the synthetic fixture corpus', () => {
   it('reads every indexed topic with sections and questions in file order', () => {
-    const plan = buildSeedPlan(REPO_CORPUS, 'vi');
+    const plan = buildSeedPlan(CORPUS, 'vi');
 
-    expect(plan.topics.map((topic) => topic.key)).toEqual([
-      'javascript',
-      'typescript',
-      'nodejs',
-      'dsa',
-      'oop',
-      'os',
-      'networking',
-      'dbms',
-      'system',
-    ]);
-    const dsa = plan.topics.find((topic) => topic.key === 'dsa');
-    expect(dsa?.label).toBe('DSA');
-    expect(dsa?.color).toBe('#B71C1C');
-    expect(dsa?.position).toBe(3);
-    expect(dsa?.sections.reduce((sum, section) => sum + section.questions.length, 0)).toBe(58);
-    expect(dsa?.sections[0]?.questions[0]?.code).toBe('Q1');
-    expect(dsa?.sections[0]?.questions[0]?.prompt).toBe('Array là gì? Ưu và nhược điểm?');
+    expect(plan.topics.map((topic) => topic.key)).toEqual(['sample']);
+    const sample = plan.topics[0];
+    expect(sample?.label).toBe('Sample');
+    expect(sample?.color).toBe('#123456');
+    expect(sample?.position).toBe(0);
+    expect(sample?.sections.reduce((sum, section) => sum + section.questions.length, 0)).toBe(1);
+    expect(sample?.sections[0]?.questions[0]?.code).toBe('Q1');
+    expect(sample?.sections[0]?.questions[0]?.prompt).toBe('What is this fixture?');
     expect(plan.warnings).toEqual([]);
   });
 
   it('carries the Daily pool with positional refs and no level guessing', () => {
-    const plan = buildSeedPlan(REPO_CORPUS, 'vi');
+    const plan = buildSeedPlan(CORPUS, 'vi');
 
     expect(plan.locale).toBe('vi');
-    expect(plan.daily).toHaveLength(35);
-    expect(plan.daily.filter((entry) => entry.type === 'mcq')).toHaveLength(20);
-    expect(plan.daily.filter((entry) => entry.type === 'fib')).toHaveLength(15);
-    const first = plan.daily.find((entry) => entry.entryId === 'd-mcq-001');
-    expect(first?.ref).toEqual({ topicKey: 'javascript', sectionIdx: 0, questionIdx: 0 });
-    const fib = plan.daily.find((entry) => entry.type === 'fib');
-    expect(fib?.prompt).toBeTruthy();
-    expect(fib?.blanks?.length).toBeGreaterThan(0);
+    expect(plan.daily).toHaveLength(1);
+    expect(plan.daily.filter((entry) => entry.type === 'mcq')).toHaveLength(1);
+    expect(plan.daily.filter((entry) => entry.type === 'fib')).toHaveLength(0);
+    const first = plan.daily.find((entry) => entry.entryId === 'fixture-mcq-1');
+    expect(first?.ref).toEqual({ topicKey: 'sample', sectionIdx: 0, questionIdx: 0 });
     // Questions never carry a level: the corpus has none, and the seed must not guess.
     expect(
       plan.topics.flatMap((topic) => topic.sections).flatMap((section) => section.questions),
-    ).toHaveLength(524);
+    ).toHaveLength(1);
   });
 
   it('fails loudly when a topic file breaks the block schema', () => {

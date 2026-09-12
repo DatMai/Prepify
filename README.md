@@ -54,8 +54,10 @@ Database migrations remain append-only:
 npm --prefix server run migrate
 ```
 
-The Library corpus and the Daily pool live in PostgreSQL. `content/*.json` is now
-the seed snapshot, so a fresh database needs the seed after migrating:
+The Library corpus and the Daily pool live in PostgreSQL. The seed corpus is in
+an ignored, owner-controlled directory configured by `CONTENT_ROOT` (for local
+development, `CONTENT_ROOT=../content`), so a fresh database needs the seed after
+migrating:
 
 ```bash
 npm --prefix server run seed:library

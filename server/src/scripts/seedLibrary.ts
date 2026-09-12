@@ -16,7 +16,10 @@ async function seed(): Promise<void> {
   const config = loadConfig(process.env);
   const logger = pino({ level: config.nodeEnv === 'development' ? 'debug' : 'info' });
   const pool = createPool(config.databaseUrl, logger);
-  const corpusDir = path.resolve(__dirname, '../../../content');
+  if (!config.contentRoot) {
+    throw new Error('CONTENT_ROOT is required to seed the Library corpus');
+  }
+  const corpusDir = path.resolve(config.contentRoot);
   try {
     for (const locale of LOCALES) {
       const dir = locale === 'vi' ? corpusDir : path.join(corpusDir, 'en');

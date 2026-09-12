@@ -47,6 +47,16 @@ describe('loadConfig', () => {
     expect(config.email.password).toBeUndefined();
   });
 
+  it('normalizes an explicit content root', () => {
+    expect(loadConfig({ ...valid, CONTENT_ROOT: '/tmp/prepify-content' }).contentRoot).toBe(
+      '/tmp/prepify-content',
+    );
+  });
+
+  it('treats a blank content root as unset', () => {
+    expect(loadConfig({ ...valid, CONTENT_ROOT: '' }).contentRoot).toBeUndefined();
+  });
+
   it('rejects session lifetimes outside one hour to thirty days', () => {
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '0' })).toThrow(/SESSION_TTL_HOURS/);
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '721' })).toThrow(/SESSION_TTL_HOURS/);
