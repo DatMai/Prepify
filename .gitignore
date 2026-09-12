@@ -11,3 +11,5 @@ dist
 coverage/
 server/coverage/
 /content/en/
+.continue/
+deepseek-config.yaml
