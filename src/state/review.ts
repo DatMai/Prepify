@@ -33,8 +33,7 @@ export async function loadReviewState(): Promise<void> {
       const { items } = await api.review.due();
       reviewState.schedules = {};
       for (const item of items) {
-        reviewState.schedules[keyOfReview(item.topic, item.sectionIdx, item.questionIdx)] =
-          item;
+        reviewState.schedules[keyOfReview(item.topic, item.sectionIdx, item.questionIdx)] = item;
       }
       return;
     }
@@ -47,8 +46,7 @@ export async function loadReviewState(): Promise<void> {
 
 export function dueCount(): number {
   const nowMs = Date.now();
-  return Object.values(reviewState.schedules).filter((s) => Date.parse(s.dueAt) <= nowMs)
-    .length;
+  return Object.values(reviewState.schedules).filter((s) => Date.parse(s.dueAt) <= nowMs).length;
 }
 
 export async function gradeQuestion(

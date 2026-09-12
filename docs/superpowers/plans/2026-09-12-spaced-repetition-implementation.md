@@ -26,10 +26,12 @@
 ### Task 1: Server scheduler (pure SM-2)
 
 **Files:**
+
 - Create: `server/src/modules/review/scheduler.ts`
 - Test: `server/src/modules/review/scheduler.test.ts`
 
 **Interfaces:**
+
 - Produces: `type ReviewQuality = 'again' | 'hard' | 'good'`, `interface ReviewSchedule { topic, sectionIdx, questionIdx, intervalDays, ease, reviewCount, dueAt }` and `applyGrade(current: ReviewSchedule | null, quality: ReviewQuality, dueAtIso: string): ReviewSchedule`. `dueAtIso` is passed in so the unit stays pure (the route computes it with `dateInTimeZone`).
 
 - [ ] **Step 1: Write the failing test**
@@ -41,27 +43,40 @@ import { describe, expect, it } from 'vitest';
 import { applyGrade, type ReviewSchedule } from './scheduler';
 
 const base: ReviewSchedule = {
-  topic: 'javascript', sectionIdx: 0, questionIdx: 0,
-  intervalDays: 1, ease: 2.5, reviewCount: 0, dueAt: '2026-09-12T10:00:00.000Z',
+  topic: 'javascript',
+  sectionIdx: 0,
+  questionIdx: 0,
+  intervalDays: 1,
+  ease: 2.5,
+  reviewCount: 0,
+  dueAt: '2026-09-12T10:00:00.000Z',
 };
 
 describe('applyGrade', () => {
   it('schedules a new card with again/hard/good', () => {
     expect(applyGrade(base, 'again', '2026-09-13T00:00:00.000Z')).toMatchObject({
-      intervalDays: 1, ease: 2.3, reviewCount: 1, dueAt: '2026-09-13T00:00:00.000Z',
+      intervalDays: 1,
+      ease: 2.3,
+      reviewCount: 1,
+      dueAt: '2026-09-13T00:00:00.000Z',
     });
     expect(applyGrade(base, 'hard', '2026-09-16T00:00:00.000Z')).toMatchObject({
-      intervalDays: 3, ease: 2.35, reviewCount: 1,
+      intervalDays: 3,
+      ease: 2.35,
+      reviewCount: 1,
     });
     expect(applyGrade(base, 'good', '2026-09-20T00:00:00.000Z')).toMatchObject({
-      intervalDays: 7, ease: 2.55, reviewCount: 1,
+      intervalDays: 7,
+      ease: 2.55,
+      reviewCount: 1,
     });
   });
 
   it('grows a known card with the ease factor and caps the interval at 180 days', () => {
     const known = { ...base, intervalDays: 10, ease: 2.5, reviewCount: 2 };
     expect(applyGrade(known, 'good', '2026-10-05T00:00:00.000Z')).toMatchObject({
-      intervalDays: 25, reviewCount: 3,
+      intervalDays: 25,
+      reviewCount: 3,
     });
     const huge = { ...base, intervalDays: 150, ease: 2.0, reviewCount: 2 };
     expect(applyGrade(huge, 'good', 'x')).toMatchObject({ intervalDays: 180 });
@@ -70,7 +85,9 @@ describe('applyGrade', () => {
   it('resets to one day on again and clamps ease at 1.3', () => {
     const known = { ...base, intervalDays: 40, ease: 1.4, reviewCount: 5 };
     expect(applyGrade(known, 'again', 'x')).toMatchObject({
-      intervalDays: 1, ease: 1.3, reviewCount: 6,
+      intervalDays: 1,
+      ease: 1.3,
+      reviewCount: 6,
     });
   });
 });
@@ -103,7 +120,9 @@ const MIN_EASE = 1.3;
 const MAX_EASE = 3.0;
 
 const EASE_DELTA: Record<ReviewQuality, number> = {
-  again: -0.2, hard: -0.15, good: 0.05,
+  again: -0.2,
+  hard: -0.15,
+  good: 0.05,
 };
 
 export function applyGrade(
@@ -112,8 +131,13 @@ export function applyGrade(
   dueAtIso: string,
 ): ReviewSchedule {
   const prev = current ?? {
-    topic: '', sectionIdx: 0, questionIdx: 0,
-    intervalDays: 1, ease: 2.5, reviewCount: 0, dueAt: dueAtIso,
+    topic: '',
+    sectionIdx: 0,
+    questionIdx: 0,
+    intervalDays: 1,
+    ease: 2.5,
+    reviewCount: 0,
+    dueAt: dueAtIso,
   };
   const isNew = prev.reviewCount === 0;
   let interval: number;
@@ -151,10 +175,12 @@ git commit -m "feat: thuật toán lịch ôn tập SM-2 phía server"
 ### Task 2: Frontend scheduler mirror (for guests)
 
 **Files:**
+
 - Create: `src/review/scheduler.ts`
 - Test: `src/review/scheduler.test.ts`
 
 **Interfaces:**
+
 - Produces: `type ReviewQuality`, `interface ReviewSchedule`, `applyGrade(current, quality, dueAtIso)` — same names and math as Task 1 so both sides stay compatible.
 
 - [ ] **Step 1: Copy Task 1's failing test into `src/review/scheduler.test.ts`** (same assertions; frontend suite runs jsdom but this unit is pure).
@@ -166,11 +192,13 @@ git commit -m "feat: thuật toán lịch ôn tập SM-2 phía server"
 ### Task 3: Migration and review repository
 
 **Files:**
+
 - Create: `server/migrations/009_add_review_schedules.sql`
 - Create: `server/src/modules/review/reviewRepository.ts`
 - Test: `server/src/modules/review/reviewRepository.test.ts`
 
 **Interfaces:**
+
 - Produces: `createReviewRepository(query: QueryLike)` with:
   - `find(userId, topic, sectionIdx, questionIdx): Promise<ReviewScheduleRow | null>`
   - `upsert(schedule: ReviewScheduleRow): Promise<ReviewScheduleRow>` — `INSERT ... ON CONFLICT (user_id, topic, section_idx, question_idx) DO UPDATE ... RETURNING *`
@@ -210,8 +238,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { createReviewRepository } from './reviewRepository';
 
 const row = {
-  topic: 'javascript', section_idx: 0, question_idx: 1,
-  interval_days: 3, ease: 2.5, review_count: 1, due_at: '2026-09-15T00:00:00.000Z',
+  topic: 'javascript',
+  section_idx: 0,
+  question_idx: 1,
+  interval_days: 3,
+  ease: 2.5,
+  review_count: 1,
+  due_at: '2026-09-15T00:00:00.000Z',
 };
 
 describe('createReviewRepository', () => {
@@ -220,8 +253,14 @@ describe('createReviewRepository', () => {
     const repo = createReviewRepository({ query });
 
     const result = await repo.upsert({
-      userId: 'u1', topic: 'javascript', sectionIdx: 0, questionIdx: 1,
-      intervalDays: 3, ease: 2.5, reviewCount: 1, dueAt: '2026-09-15T00:00:00.000Z',
+      userId: 'u1',
+      topic: 'javascript',
+      sectionIdx: 0,
+      questionIdx: 1,
+      intervalDays: 3,
+      ease: 2.5,
+      reviewCount: 1,
+      dueAt: '2026-09-15T00:00:00.000Z',
     });
 
     expect(query).toHaveBeenCalledWith(expect.stringContaining('ON CONFLICT'), expect.any(Array));
@@ -251,11 +290,13 @@ describe('createReviewRepository', () => {
 ### Task 4: Review routes and composition wiring
 
 **Files:**
+
 - Create: `server/src/routes/review.ts`
 - Test: `server/src/routes/review.test.ts`
 - Modify: `server/src/index.ts`
 
 **Interfaces:**
+
 - Consumes: `ReviewRepository` from Task 3, `applyGrade` from Task 1, `dateInTimeZone` from `../modules/learning/streak`, `requireAuth`, a `recordStudyDay(userId)` callback.
 - Produces: `createReviewRouter({ repo, requireAuth, timeZone, recordStudyDay })` mounted at `/api/v1/review`.
 
@@ -277,13 +318,28 @@ const auth: RequestHandler = (req, _res, next) => {
 function app(repo: Parameters<typeof createReviewRouter>[0]['repo'], recordStudyDay = vi.fn()) {
   const instance = express();
   instance.use(express.json());
-  instance.use('/review', createReviewRouter({ repo, requireAuth: auth, timeZone: 'UTC', recordStudyDay }));
+  instance.use(
+    '/review',
+    createReviewRouter({ repo, requireAuth: auth, timeZone: 'UTC', recordStudyDay }),
+  );
   return instance;
 }
 
 describe('review routes', () => {
   it('requires auth and returns due schedules', async () => {
-    const repo = { listDue: vi.fn().mockResolvedValue([{ topic: 'javascript', sectionIdx: 0, questionIdx: 0, intervalDays: 3, ease: 2.5, reviewCount: 1, dueAt: '2026-09-15T00:00:00.000Z' }]) };
+    const repo = {
+      listDue: vi.fn().mockResolvedValue([
+        {
+          topic: 'javascript',
+          sectionIdx: 0,
+          questionIdx: 0,
+          intervalDays: 3,
+          ease: 2.5,
+          reviewCount: 1,
+          dueAt: '2026-09-15T00:00:00.000Z',
+        },
+      ]),
+    };
     const res = await request(app(repo)).get('/review/due').expect(200);
     expect(res.body).toEqual({ count: 1, items: expect.any(Array) });
   });
@@ -292,11 +348,21 @@ describe('review routes', () => {
     const repo = {
       listDue: vi.fn(),
       find: vi.fn().mockResolvedValue(null),
-      upsert: vi.fn().mockResolvedValue({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, intervalDays: 7, ease: 2.55, reviewCount: 1, dueAt: '2026-09-19T00:00:00.000Z' }),
+      upsert: vi.fn().mockResolvedValue({
+        topic: 'javascript',
+        sectionIdx: 0,
+        questionIdx: 0,
+        intervalDays: 7,
+        ease: 2.55,
+        reviewCount: 1,
+        dueAt: '2026-09-19T00:00:00.000Z',
+      }),
     };
     const recordStudyDay = vi.fn().mockResolvedValue(undefined);
-    const res = await request(app(repo, recordStudyDay)).post('/review/grade')
-      .send({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, quality: 'good' }).expect(200);
+    const res = await request(app(repo, recordStudyDay))
+      .post('/review/grade')
+      .send({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, quality: 'good' })
+      .expect(200);
 
     expect(repo.upsert).toHaveBeenCalledWith(expect.objectContaining({ intervalDays: 7 }));
     expect(recordStudyDay).toHaveBeenCalledWith('user-1');
@@ -305,8 +371,10 @@ describe('review routes', () => {
 
   it('rejects invalid quality values', async () => {
     const repo = { listDue: vi.fn(), find: vi.fn(), upsert: vi.fn() };
-    await request(app(repo)).post('/review/grade')
-      .send({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, quality: 'nope' }).expect(400);
+    await request(app(repo))
+      .post('/review/grade')
+      .send({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, quality: 'nope' })
+      .expect(400);
   });
 });
 ```
@@ -333,12 +401,14 @@ function addDaysIso(todayIso: string, days: number): string {
 ### Task 5: Frontend review state and API client
 
 **Files:**
+
 - Create: `src/state/review.ts`
 - Test: `src/state/review.test.ts`
 - Modify: `src/api/client.ts`, `src/api/client.test.ts`
 - Modify: `src/types/quiz.ts` if `ReviewSchedule` is shared there; otherwise import from `src/review/scheduler`.
 
 **Interfaces:**
+
 - Consumes: `applyGrade` from Task 2, `api.review.due()`, `api.review.grade(...)`.
 - Produces:
   - `api.review.due(): Promise<{ count: number; items: ReviewSchedule[] }>` → `GET /review/due`
@@ -355,10 +425,12 @@ function addDaysIso(todayIso: string, days: number): string {
 ### Task 6: Hook grading into the existing quiz flow
 
 **Files:**
+
 - Modify: `src/quiz/quizView.ts`
 - Test: `src/quiz/quizView.test.ts` (new, jsdom) — only if the hook is a small exported helper; otherwise cover via Task 5 tests.
 
 **Interfaces:**
+
 - Consumes: `gradeQuestion` from Task 5.
 - Produces: no new public API.
 
@@ -369,6 +441,7 @@ function addDaysIso(todayIso: string, days: number): string {
 ### Task 7: Review UI — topbar button, overlay, copy, styles
 
 **Files:**
+
 - Create: `src/review/reviewView.ts`
 - Test: `src/review/reviewView.test.ts`
 - Create: `src/styles/review.css`
@@ -376,10 +449,12 @@ function addDaysIso(todayIso: string, days: number): string {
 - Modify: `src/i18n/vi.ts`, `src/i18n/en.ts`
 
 **Interfaces:**
+
 - Consumes: `loadReviewState`, `dueCount`, `gradeQuestion` from Task 5; `esc` from `src/render/escape`.
 - Produces: `initReviewButton(onOpen)` — renders `#reviewBtn` badge; `openReviewOverlay(): Promise<void>` — shows one card at a time, reveal → 3 grade buttons, final summary.
 
 **Copy (verbatim):**
+
 - `review.title`: `Ôn tập` / `Review`
 - `review.badge`: `{n}` (used as badge text)
 - `review.empty`: `Không có câu nào đến hạn hôm nay.` / `No cards are due today.`
@@ -399,6 +474,7 @@ function addDaysIso(todayIso: string, days: number): string {
 ### Task 8: Integration verification and documentation
 
 **Files:**
+
 - Modify: `README.md` (commands/architecture note about `/api/v1/review`), `docs/superpowers/specs/2026-09-12-spaced-repetition-design.md` if verification differs.
 - Test: none new.
 

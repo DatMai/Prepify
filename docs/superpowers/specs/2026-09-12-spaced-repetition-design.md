@@ -19,13 +19,13 @@ review activity feeds the existing streak.
 
 ## Approved decisions
 
-| Question | Decision |
-| --- | --- |
-| How is a review session graded? | Self-graded after revealing the answer, with three levels: **Again / Hard / Good** (Anki style). |
-| What feeds the scheduler while studying normally? | MCQ in quiz mode: correct → Good, wrong → Again. Flashcards: existing grades 1/2/3 map to Again/Hard/Good. |
-| Scheduling algorithm | Simplified SM-2 (exact values below). |
-| Where is schedule state stored? | Server table `review_schedules` for logged-in users (new append-only migration); `localStorage` for guests, mirroring the existing `progress` pattern. |
-| Does reviewing count toward the streak? | Yes — each grade records a study day with the configured time zone, reusing the existing `study_days` insert. |
+| Question                                          | Decision                                                                                                                                               |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| How is a review session graded?                   | Self-graded after revealing the answer, with three levels: **Again / Hard / Good** (Anki style).                                                       |
+| What feeds the scheduler while studying normally? | MCQ in quiz mode: correct → Good, wrong → Again. Flashcards: existing grades 1/2/3 map to Again/Hard/Good.                                             |
+| Scheduling algorithm                              | Simplified SM-2 (exact values below).                                                                                                                  |
+| Where is schedule state stored?                   | Server table `review_schedules` for logged-in users (new append-only migration); `localStorage` for guests, mirroring the existing `progress` pattern. |
+| Does reviewing count toward the streak?           | Yes — each grade records a study day with the configured time zone, reusing the existing `study_days` insert.                                          |
 
 ## Algorithm (simplified SM-2)
 
@@ -35,11 +35,11 @@ State per (user, topic, sectionIdx, questionIdx): `intervalDays` (start 1),
 
 Grades and their effect:
 
-| Grade | New card | Known card | Ease change |
-| --- | --- | --- | --- |
-| Again | interval = 1 | interval = 1 | ease − 0.2 |
-| Hard | interval = 3 | interval = interval × 1.5 | ease − 0.15 |
-| Good | interval = 7 | interval = interval × ease | ease + 0.05 |
+| Grade | New card     | Known card                 | Ease change |
+| ----- | ------------ | -------------------------- | ----------- |
+| Again | interval = 1 | interval = 1               | ease − 0.2  |
+| Hard  | interval = 3 | interval = interval × 1.5  | ease − 0.15 |
+| Good  | interval = 7 | interval = interval × ease | ease + 0.05 |
 
 Rules applied after computing the interval and ease:
 

@@ -26,6 +26,8 @@ import { getLang, setLang, t, type Lang } from './i18n';
 import { clearLibrary, loadLibrary } from './data/loader';
 import { api } from './api/client';
 import { initFeed, repaintFeed } from './feed/feedView';
+import { openReviewOverlay, renderReviewBadge } from './review/reviewView';
+import { loadReviewState } from './state/review';
 
 function isAdmin(): boolean {
   return auth.user?.role === 'admin';
@@ -76,6 +78,8 @@ function applyLang(): void {
   if (favorite) favorite.title = t('topbar.favoriteTitle');
   const daily = document.getElementById('dailyBtn');
   if (daily?.firstChild) daily.firstChild.textContent = `${t('topbar.daily')} `;
+  const review = document.getElementById('reviewBtn');
+  if (review?.firstChild) review.firstChild.textContent = `${t('review.title')} `;
   const leaderboard = document.getElementById('lbBtn');
   if (leaderboard) leaderboard.textContent = t('topbar.leaderboard');
   const sidebarHint = document.getElementById('sidebarHint');
@@ -197,6 +201,10 @@ async function init(): Promise<void> {
     void openLeaderboard();
   });
 
+  document.getElementById('reviewBtn')?.addEventListener('click', () => {
+    void loadReviewState().then(() => openReviewOverlay());
+  });
+
   applyLang();
   const feedRoot = document.getElementById('feedRoot');
   if (feedRoot) {
@@ -212,6 +220,7 @@ async function init(): Promise<void> {
   await loadProgress();
   loadFavorites();
   bindEvents();
+  if (isAdmin()) void loadReviewState().then(renderReviewBadge);
   if (window.location.hash === '#library') await showLibrary(false);
   else showHome(false);
 
