@@ -1,6 +1,7 @@
 import type { JourneyJournal, JourneySnapshot } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
 import type { FeedArticle } from '../feed/types';
+import type { ReviewQuality, ReviewSchedule } from '../review/scheduler';
 import { t, type Lang } from '../i18n';
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
@@ -174,5 +175,20 @@ export const api = {
 
   feed: {
     list: (limit = 30) => apiRequest<{ items: FeedArticle[] }>(`/feed?limit=${limit}`),
+  },
+
+  review: {
+    due: () => apiRequest<{ count: number; items: ReviewSchedule[] }>('/review/due'),
+
+    grade: (
+      topic: string,
+      sectionIdx: number,
+      questionIdx: number,
+      quality: ReviewQuality,
+    ) =>
+      apiRequest<{ schedule: ReviewSchedule }>('/review/grade', {
+        method: 'POST',
+        body: JSON.stringify({ topic, sectionIdx, questionIdx, quality }),
+      }),
   },
 };
