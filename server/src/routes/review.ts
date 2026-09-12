@@ -1,11 +1,7 @@
 import { Router, type RequestHandler } from 'express';
 import { z } from 'zod';
 import { dateInTimeZone } from '../modules/learning/streak';
-import {
-  applyGrade,
-  type ReviewQuality,
-  type ReviewSchedule,
-} from '../modules/review/scheduler';
+import { applyGrade, type ReviewQuality, type ReviewSchedule } from '../modules/review/scheduler';
 import type { ReviewRepository } from '../modules/review/reviewRepository';
 
 interface ReviewRouterDeps {
@@ -86,7 +82,14 @@ export function createReviewRouter(deps: ReviewRouterDeps): Router {
       const today = dateInTimeZone(now(), deps.timeZone);
       const next = applyGrade(current, quality, today);
       const dueAt = localMidnightUtc(addDaysIso(today, next.intervalDays), deps.timeZone);
-      const saved = await deps.repo.upsert({ userId, ...next, dueAt });
+      const saved = await deps.repo.upsert({
+        userId,
+        ...next,
+        topic,
+        sectionIdx,
+        questionIdx,
+        dueAt,
+      });
       await deps.recordStudyDay(userId);
 
       res.json({ schedule: saved });

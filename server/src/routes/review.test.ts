@@ -10,11 +10,7 @@ const auth: RequestHandler = (req, _res, next) => {
 
 type Repo = Parameters<typeof createReviewRouter>[0]['repo'];
 
-function app(
-  repo: Repo,
-  recordStudyDay = vi.fn().mockResolvedValue(undefined),
-  timeZone = 'UTC',
-) {
+function app(repo: Repo, recordStudyDay = vi.fn().mockResolvedValue(undefined), timeZone = 'UTC') {
   const instance = express();
   instance.use(express.json());
   instance.use(
@@ -71,7 +67,14 @@ describe('review routes', () => {
       .send({ topic: 'javascript', sectionIdx: 0, questionIdx: 0, quality: 'good' })
       .expect(200);
 
-    expect(repo.upsert).toHaveBeenCalledWith(expect.objectContaining({ intervalDays: 7 }));
+    expect(repo.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        topic: 'javascript',
+        sectionIdx: 0,
+        questionIdx: 0,
+        intervalDays: 7,
+      }),
+    );
     expect(recordStudyDay).toHaveBeenCalledWith('user-1');
     expect(res.body.schedule).toMatchObject({ intervalDays: 7, reviewCount: 1 });
   });
@@ -86,7 +89,11 @@ describe('review routes', () => {
       reviewCount: 1,
       dueAt: '2026-09-18T17:00:00.000Z',
     });
-    const repo = { listDue: vi.fn(), find: vi.fn().mockResolvedValue(null), upsert } as unknown as Repo;
+    const repo = {
+      listDue: vi.fn(),
+      find: vi.fn().mockResolvedValue(null),
+      upsert,
+    } as unknown as Repo;
 
     await request(app(repo, vi.fn().mockResolvedValue(undefined), 'Asia/Ho_Chi_Minh'))
       .post('/review/grade')
