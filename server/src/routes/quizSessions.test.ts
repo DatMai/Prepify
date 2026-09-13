@@ -17,6 +17,8 @@ function app(query: QuizSessionQuery) {
 
 describe('quiz session routes', () => {
   const query = vi.fn();
+  // quiz_sessions.total is PostgreSQL INT (migration 002), so its signed maximum is 2_147_483_647.
+  const postgresIntMax = 2_147_483_647;
 
   beforeEach(() => {
     query.mockReset().mockResolvedValue({
@@ -58,6 +60,53 @@ describe('quiz session routes', () => {
     ]);
   });
 
+  it.each([
+    ['a fractional total', 1.5],
+    ['an unsafe total', Number.MAX_SAFE_INTEGER],
+  ])('rejects %s before querying', async (_description, total) => {
+    const response = await request(app(query as QuizSessionQuery))
+      .post('/quiz-sessions')
+      .send({ topicKey: 'javascript', mode: 'flashcard', total })
+      .expect(400);
+
+    expect(response.body.error).toBe('topicKey, mode (flashcard), total là bắt buộc và hợp lệ');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('rejects a topic key longer than the VARCHAR(50) storage bound before querying', async () => {
+    const response = await request(app(query as QuizSessionQuery))
+      .post('/quiz-sessions')
+      .send({ topicKey: 'a'.repeat(51), mode: 'flashcard', total: 1 })
+      .expect(400);
+
+    expect(response.body.error).toBe('topicKey, mode (flashcard), total là bắt buộc và hợp lệ');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('rejects a blank topic key before querying', async () => {
+    const response = await request(app(query as QuizSessionQuery))
+      .post('/quiz-sessions')
+      .send({ topicKey: '   ', mode: 'flashcard', total: 1 })
+      .expect(400);
+
+    expect(response.body.error).toBe('topicKey, mode (flashcard), total là bắt buộc và hợp lệ');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('accepts the PostgreSQL INT maximum as a flashcard total', async () => {
+    await request(app(query as QuizSessionQuery))
+      .post('/quiz-sessions')
+      .send({ topicKey: 'javascript', mode: 'flashcard', total: postgresIntMax })
+      .expect(201);
+
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO quiz_sessions'), [
+      'user-1',
+      'javascript',
+      'flashcard',
+      postgresIntMax,
+    ]);
+  });
+
   it('returns nullable scores from session history', async () => {
     query.mockResolvedValueOnce({
       rows: [
@@ -85,6 +134,47 @@ describe('quiz session routes', () => {
         score: null,
         completedAt: '2026-09-12T10:00:00.000Z',
       },
+    ]);
+  });
+
+  it('does not expose legacy scored MCQ sessions in history', async () => {
+    query.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 'legacy-mcq',
+          topic_key: 'javascript',
+          mode: 'mcq',
+          total: 5,
+          score: 5,
+          completed_at: '2026-09-12T11:00:00.000Z',
+        },
+        {
+          id: 'flashcard-1',
+          topic_key: 'typescript',
+          mode: 'flashcard',
+          total: 3,
+          score: null,
+          completed_at: '2026-09-12T10:00:00.000Z',
+        },
+      ],
+    });
+
+    const response = await request(app(query as QuizSessionQuery))
+      .get('/quiz-sessions/my')
+      .expect(200);
+
+    expect(response.body.sessions).toEqual([
+      {
+        id: 'flashcard-1',
+        topicKey: 'typescript',
+        mode: 'flashcard',
+        total: 3,
+        score: null,
+        completedAt: '2026-09-12T10:00:00.000Z',
+      },
+    ]);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining("AND mode = 'flashcard'"), [
+      'user-1',
     ]);
   });
 });

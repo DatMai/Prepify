@@ -1,5 +1,8 @@
 import { type RequestHandler, Router } from 'express';
 
+const QUIZ_SESSION_TOPIC_KEY_MAX_LENGTH = 50; // quiz_sessions.topic_key is VARCHAR(50) in migration 002.
+const QUIZ_SESSION_TOTAL_MAX = 2_147_483_647; // quiz_sessions.total is PostgreSQL INT in migration 002.
+
 export type QuizSessionQuery = <T>(
   text: string,
   values: readonly unknown[],
@@ -23,7 +26,15 @@ export function createQuizSessionsRouter(deps: {
       return;
     }
 
-    if (typeof topicKey !== 'string' || !topicKey || typeof total !== 'number' || total < 1) {
+    if (
+      typeof topicKey !== 'string' ||
+      !topicKey.trim() ||
+      topicKey.length > QUIZ_SESSION_TOPIC_KEY_MAX_LENGTH ||
+      typeof total !== 'number' ||
+      !Number.isSafeInteger(total) ||
+      total < 1 ||
+      total > QUIZ_SESSION_TOTAL_MAX
+    ) {
       res.status(400).json({ error: 'topicKey, mode (flashcard), total là bắt buộc và hợp lệ' });
       return;
     }
@@ -51,20 +62,23 @@ export function createQuizSessionsRouter(deps: {
       `SELECT id, topic_key, mode, total, score, completed_at
        FROM quiz_sessions
        WHERE user_id = $1
+         AND mode = 'flashcard'
        ORDER BY completed_at DESC
        LIMIT 10`,
       [req.user!.userId],
     );
 
     res.json({
-      sessions: result.rows.map((row) => ({
-        id: row.id,
-        topicKey: row.topic_key,
-        mode: row.mode,
-        total: row.total,
-        score: row.score,
-        completedAt: row.completed_at,
-      })),
+      sessions: result.rows
+        .filter((row) => row.mode === 'flashcard')
+        .map((row) => ({
+          id: row.id,
+          topicKey: row.topic_key,
+          mode: row.mode,
+          total: row.total,
+          score: row.score,
+          completedAt: row.completed_at,
+        })),
     });
   });
 
