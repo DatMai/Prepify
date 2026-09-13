@@ -285,19 +285,25 @@ async function saveProjection(
     ? ''
     : `
        WHERE journey_projections.revision IS NOT DISTINCT FROM $5`;
+  // The parameter list must track the guard exactly: the unguarded statement
+  // declares $1..$4, so binding five values makes PostgreSQL reject the call
+  // with 08P01 at execution time — something a mocked query cannot detect.
+  const values = options.unguarded
+    ? [input.ownerId, input.vaultId, input.revision, JSON.stringify(input.projection)]
+    : [
+        input.ownerId,
+        input.vaultId,
+        input.revision,
+        JSON.stringify(input.projection),
+        input.expectedRevision,
+      ];
   const { rows } = await query<{ revision: string }>(
     `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
      VALUES ($1, $2, $3, $4::jsonb)
      ON CONFLICT (owner_id, vault_id)
      DO UPDATE SET revision = EXCLUDED.revision, projection = EXCLUDED.projection, updated_at = NOW()${guard}
      RETURNING revision`,
-    [
-      input.ownerId,
-      input.vaultId,
-      input.revision,
-      JSON.stringify(input.projection),
-      input.expectedRevision,
-    ],
+    values,
   );
   return rows.length > 0;
 }

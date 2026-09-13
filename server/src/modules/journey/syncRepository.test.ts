@@ -241,12 +241,17 @@ describe('createSyncRepository', () => {
     const savedProjection = calls.find((call) =>
       call.text.includes('INSERT INTO journey_projections'),
     );
+    // This job records no expectation, so the statement is the unguarded upsert
+    // and declares only $1..$4. The previous expectation pinned a trailing
+    // `null` here, which bound five values to a four-placeholder statement and
+    // made PostgreSQL reject the completion with 08P01 in production while every
+    // mocked assertion stayed green.
+    expect(savedProjection?.text).not.toContain('IS NOT DISTINCT FROM $5');
     expect(savedProjection?.values).toEqual([
       'owner-1',
       'vault-main',
       sha,
       JSON.stringify(projection),
-      null,
     ]);
     expect(
       calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values,
@@ -749,6 +754,44 @@ describe('createSyncRepository', () => {
       calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text,
     ).not.toContain('IS NOT DISTINCT FROM $5');
     expect(calls.some((call) => call.text.includes("SET state = 'conflict'"))).toBe(false);
+  });
+
+  it('binds exactly one parameter per placeholder in every statement it issues', async () => {
+    // Mocked queries never execute SQL, so a statement that declares $1..$4 but
+    // receives five values passes every behavioural assertion here and then
+    // fails against PostgreSQL with 08P01. Assert the invariant itself.
+    const jobWithNullExpectation = {
+      ...pendingJob,
+      job_type: 'mutation',
+      state: 'claimed',
+      lease_id: 'lease-1',
+      expected_revision: null,
+    };
+    const { repo, calls } = harness((text) => {
+      if (text.includes('FOR UPDATE')) return { rows: [jobWithNullExpectation] };
+      if (text.includes('INSERT INTO journey_projections')) return { rows: [{ revision: sha }] };
+      if (text.includes("SET state = 'synced'")) {
+        return { rows: [{ ...jobWithNullExpectation, state: 'synced' }] };
+      }
+      return undefined;
+    });
+
+    await repo.complete({
+      ownerId: 'owner-1',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) {
+      const placeholders = new Set(call.text.match(/\$\d+/g) ?? []);
+      expect(
+        call.values.length,
+        `${call.text.trim().slice(0, 60)} declares ${placeholders.size} placeholders`,
+      ).toBe(placeholders.size);
+    }
   });
 
   it('still reports a real conflict when an outbound mutation records a stale expectation', async () => {
