@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Client } from 'pg';
 import { afterEach, describe, expect, it } from 'vitest';
+import { parseDaily } from '../../services/obsidianMarkdown';
 
 const databaseUrl = process.env.PREPIFY_MIGRATION_TEST_DATABASE_URL;
 const databaseIt = databaseUrl ? it : it.skip;
@@ -43,6 +44,64 @@ async function migrationClient(): Promise<Client> {
 }
 
 describe('journey sync migration constraints', () => {
+  databaseIt.each([
+    'file:///Users/lisan/Daily/private.md',
+    'obsidian://open?vault=private&file=Daily%2Fprivate.md',
+    'Daily%2Fprivate.md',
+    'Daily%252fprivate.md',
+    'file%3A%2F%2F%2FUsers%2Flisan%2FDaily%2Fprivate.md',
+  ])('rejects vault URI or encoded path %s in projection and mutation plaintext', async (unsafeText) => {
+    const db = await migrationClient();
+    await expect(
+      db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [ownerId, 'vault-main', revision, JSON.stringify({ daily: {
+          date: '2026-09-12', stage: unsafeText, tasks: [], evidence: [],
+          journal: { done: '', blocked: '', next: '' },
+        } })],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+    await expect(
+      db.query(
+        `INSERT INTO journey_sync_jobs (id, owner_id, vault_id, job_type, payload, idempotency_key)
+         VALUES ($1, $2, $3, 'mutation', $4::jsonb, $5)`,
+        [jobId, ownerId, 'vault-main', JSON.stringify({
+          operation: 'journey_mutation',
+          payload: { kind: 'journal', date: '2026-09-12', done: unsafeText, blocked: '', next: '' },
+        }), 'event_12345678'],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+  });
+
+  databaseIt.each(['#az104', '#mạng', '#网络', '#１２', '#_recall', '#-recall']) (
+    'persists actual Daily parser task and evidence text with tag %s', async (tag) => {
+      const db = await migrationClient();
+      const daily = parseDaily(`---
+stage: AZ-104
+---
+## Study
+- [ ] ${tag} 21:00 — recall Unit 2
+## Bằng chứng từ Prepify
+- ${tag} Completed recall
+## Journal (English only)
+- **Done:** Finished recall.
+- **Blocked:**
+- **Next:** Practice tomorrow.
+`);
+      expect(daily.tasks[0].tags).toEqual([tag]);
+      const result = await db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb) RETURNING projection`,
+        [ownerId, 'vault-main', revision, JSON.stringify({ daily: { date: '2026-09-12', ...daily } })],
+      );
+      expect(result.rowCount).toBe(1);
+      expect(result.rows[0].projection.daily.tasks[0].text).toBe(`${tag} 21:00 — recall Unit 2`);
+      expect(result.rows[0].projection.daily.tasks[0].tags).toEqual([tag]);
+      expect(result.rows[0].projection.daily.evidence).toEqual([`${tag} Completed recall`]);
+    },
+  );
+
   databaseIt('rejects forbidden nested vault body keys in projections, mutations, and audit details', async () => {
     const db = await migrationClient();
     const baseProjection = {

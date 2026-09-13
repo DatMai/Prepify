@@ -33,10 +33,13 @@ AS $$
   SELECT jsonb_typeof(value) = 'string'
      AND length(value #>> '{}') <= maximum_length
      AND value #>> '{}' !~ E'[\r\n]'
-     AND value #>> '{}' !~ E'[`\\[\\]#*_<>]'
+     AND value #>> '{}' !~ E'[`\\[\\]*<>]'
      AND value #>> '{}' !~ E'(^|[[:space:]])[-+][[:space:]]'
      AND value #>> '{}' !~ E'(^|[[:space:]])[0-9]+\\.[[:space:]]'
+     AND value #>> '{}' !~ E'(^|[[:space:]])#{1,6}[[:space:]]'
      AND value #>> '{}' !~ E'(^|[[:space:]])/?[[:alnum:]_.-]+(/[[:alnum:]_.-]+)+($|[[:space:]])'
+     AND value #>> '{}' !~ E'%[0-9a-fA-F]{2}'
+     AND value #>> '{}' !~* E'^[a-z][a-z0-9+.-]*://'
      AND value #>> '{}' !~ E'\\\\';
 $$;
 
@@ -47,7 +50,7 @@ IMMUTABLE
 STRICT
 AS $$
   SELECT jsonb_typeof(value) = 'string'
-     AND value #>> '{}' ~ '^#[A-Za-z0-9][A-Za-z0-9_-]{0,79}$';
+     AND value #>> '{}' ~ E'^#[^#/\\\\*`<>[:space:]]{1,80}$';
 $$;
 
 CREATE OR REPLACE FUNCTION journey_json_is_identifier(value JSONB)
