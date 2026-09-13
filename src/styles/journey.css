@@ -280,6 +280,73 @@
   color: var(--bad);
 }
 
+.journey-sync-control,
+.daily-sync {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(21, 26, 34, 0.72);
+}
+
+.journey-sync-meta,
+.daily-sync-meta,
+.daily-sync-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.journey-sync-state,
+.daily-sync-state {
+  color: var(--txt);
+  font-weight: 600;
+}
+
+.journey-sync-last,
+.daily-sync-last {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.journey-sync-hint,
+.daily-sync-hint {
+  margin: 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.journey-sync-btn,
+.daily-sync-btn,
+.journey-sync-retry,
+.daily-sync-retry {
+  padding: 7px 11px;
+  border: 1px solid var(--accent2);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--txt);
+  cursor: pointer;
+  font:
+    600 12px 'Outfit',
+    sans-serif;
+}
+
+.journey-sync-btn:hover:not(:disabled),
+.daily-sync-btn:hover:not(:disabled),
+.journey-sync-retry:hover:not(:disabled),
+.daily-sync-retry:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.journey-sync-btn:disabled,
+.daily-sync-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .journey-view-bar {
   display: flex;
   align-items: center;

@@ -1,11 +1,69 @@
-import { api, ApiError } from '../api/client';
+import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
-import type { JourneyJournal, JourneySnapshot, JourneyTask } from './types';
+import type { JourneyJournal, JourneyTask } from './types';
+import {
+  SYNC_HINT_KEYS,
+  SYNC_STATE_KEYS,
+  canMutate,
+  readLastSyncedAt,
+  runSyncJob,
+  writeLastSyncedAt,
+  type SyncUiState,
+  type SyncUiStatus,
+} from './syncState';
 
 type StatusTone = 'info' | 'ok' | 'error';
 type JourneyMode = 'focus' | 'review';
+
+/**
+ * The Journey surface after normalizing either transport: the local vault
+ * `JourneySnapshot` or the hosted PostgreSQL projection. Hosted mode has no
+ * Obsidian URI and no file mtime, so those are nullable.
+ */
+export interface JourneyViewModel {
+  date: string;
+  revision: string;
+  stage: string;
+  tasks: JourneyTask[];
+  evidence: string[];
+  journal: JourneyJournal;
+  obsidianUri: string | null;
+  mtimeMs: number | null;
+  /** True when the data came from the hosted projection rather than the local vault. */
+  hosted: boolean;
+}
+
+export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyViewModel | null {
+  if ('synced' in response) {
+    if (!response.synced) return null;
+    const daily = response.projection.daily;
+    return {
+      date: daily.date || response.date,
+      revision: response.revision,
+      stage: daily.stage,
+      tasks: daily.tasks,
+      evidence: daily.evidence,
+      journal: daily.journal,
+      obsidianUri: null,
+      mtimeMs: null,
+      hosted: true,
+    };
+  }
+
+  return {
+    date: response.date,
+    revision: response.revision,
+    stage: response.stage,
+    tasks: response.tasks,
+    evidence: response.evidence,
+    journal: response.journal,
+    obsidianUri: response.obsidianUri,
+    mtimeMs: response.mtimeMs,
+    hosted: false,
+  };
+}
 
 interface JourneyDrafts {
   taskEvidence: Record<string, string>;
@@ -14,11 +72,14 @@ interface JourneyDrafts {
 }
 
 let overlay: HTMLDivElement | null = null;
-let current: JourneySnapshot | null = null;
+let current: JourneyViewModel | null = null;
 let lastError: ApiError | null = null;
 let loading = false;
 let viewMode: JourneyMode = 'focus';
 let expandedTaskId: string | null = null;
+let syncStatus: SyncUiStatus = { state: 'pending', jobId: null, lastSyncedAt: null };
+let syncing = false;
+let syncTimedOut = false;
 let drafts: JourneyDrafts = {
   taskEvidence: {},
   quickEvidence: '',
@@ -59,6 +120,13 @@ function finishEvent(key: string): void {
   pendingEventIds.delete(key);
 }
 
+/** A fresh key for one explicit Sync Obsidian request (never reused). */
+function newSyncEventId(): string {
+  return typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}_${crypto.getRandomValues(new Uint32Array(2)).join('_')}`;
+}
+
 export function initJourneyView(): void {
   if (overlay) return;
 
@@ -81,6 +149,7 @@ export async function openJourney(updateHistory = true): Promise<void> {
   captureDrafts();
   overlay!.hidden = false;
   document.body.classList.add('journey-page-open');
+  syncStatus = { ...syncStatus, lastSyncedAt: readLastSyncedAt(window.localStorage) };
 
   if (updateHistory && window.location.hash !== '#journey') {
     window.history.pushState({ journey: true }, '', '#journey');
@@ -115,6 +184,7 @@ export function repaintJourney(): void {
   else if (loading) renderLoading();
   else if (current) renderJourney(current);
   else if (lastError) renderError(lastError);
+  else renderEmpty();
 }
 
 async function loadJourney(): Promise<void> {
@@ -124,7 +194,16 @@ async function loadJourney(): Promise<void> {
 
   try {
     const previousDate = current?.date;
-    const loaded = await api.journey.today();
+    const loaded = normalizeJourneyToday(await api.journey.today());
+    if (!loaded) {
+      current = null;
+      expandedTaskId = null;
+      syncTimedOut = false;
+      syncStatus = { state: 'pending', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
+      setAvailability('idle');
+      renderEmpty();
+      return;
+    }
     if (previousDate && previousDate !== loaded.date) {
       drafts = { taskEvidence: {}, quickEvidence: '', journal: null };
       pendingEventIds.clear();
@@ -136,6 +215,8 @@ async function loadJourney(): Promise<void> {
     ) {
       expandedTaskId = loaded.tasks.find((task) => !task.checked)?.id ?? null;
     }
+    syncTimedOut = false;
+    syncStatus = { state: 'synced', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
     setAvailability('ok');
     renderJourney(current);
   } catch (error: unknown) {
@@ -222,7 +303,124 @@ function renderError(error: ApiError): void {
   body.appendChild(state);
 }
 
-function renderJourney(data: JourneySnapshot): void {
+/**
+ * Nothing has been synchronized into PostgreSQL yet. Entering Journey never
+ * scans the vault; the user starts the first synchronization explicitly.
+ */
+function renderEmpty(): void {
+  const { body } = shell(t('journey.title'));
+  const state = element('div', 'journey-state journey-empty-state');
+  state.appendChild(element('div', 'journey-state-icon', '☁'));
+  state.appendChild(element('h3', '', t('journey.emptyTitle')));
+  state.appendChild(element('p', '', t('journey.emptyBody')));
+  state.appendChild(renderSyncControl());
+  body.appendChild(state);
+  applySyncGating();
+}
+
+function isRetryable(state: SyncUiState): boolean {
+  return state === 'failed' || state === 'bridge_offline';
+}
+
+function lastSyncedLabel(): string {
+  if (!syncStatus.lastSyncedAt) return t('sync.lastNever');
+  const time = new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(syncStatus.lastSyncedAt));
+  return t('sync.lastAt', { time });
+}
+
+function syncHintLabel(): string {
+  if (syncTimedOut && syncStatus.state === 'pending') return t('sync.timeout');
+  return t(SYNC_HINT_KEYS[syncStatus.state]);
+}
+
+function renderSyncControl(): HTMLElement {
+  const control = element('div', 'journey-sync-control');
+  control.dataset.state = syncStatus.state;
+
+  const button = actionButton(t('sync.button'), 'journey-sync-btn');
+  button.id = 'journeySyncBtn';
+  button.addEventListener('click', () => void runSync());
+
+  const meta = element('div', 'journey-sync-meta');
+  const state = element('span', 'journey-sync-state', t(SYNC_STATE_KEYS[syncStatus.state]));
+  state.id = 'journeySyncState';
+  state.setAttribute('role', 'status');
+  state.setAttribute('aria-live', 'polite');
+  meta.append(state, element('span', 'journey-sync-last', lastSyncedLabel()));
+
+  const retry = actionButton(t('sync.retry'), 'journey-sync-retry');
+  retry.id = 'journeySyncRetry';
+  retry.hidden = !isRetryable(syncStatus.state);
+  retry.addEventListener('click', () => void runSync());
+
+  const hint = element('p', 'journey-sync-hint', syncHintLabel());
+  control.append(button, meta, retry, hint);
+  return control;
+}
+
+function updateSyncControl(): void {
+  const control = overlay?.querySelector<HTMLElement>('.journey-sync-control');
+  if (!control) return;
+  control.dataset.state = syncStatus.state;
+
+  const state = control.querySelector<HTMLElement>('.journey-sync-state');
+  if (state) state.textContent = t(SYNC_STATE_KEYS[syncStatus.state]);
+  const last = control.querySelector<HTMLElement>('.journey-sync-last');
+  if (last) last.textContent = lastSyncedLabel();
+  const hint = control.querySelector<HTMLElement>('.journey-sync-hint');
+  if (hint) hint.textContent = syncHintLabel();
+  const retry = control.querySelector<HTMLButtonElement>('#journeySyncRetry');
+  if (retry) retry.hidden = !isRetryable(syncStatus.state);
+  const button = control.querySelector<HTMLButtonElement>('#journeySyncBtn');
+  if (button) button.disabled = syncing;
+
+  applySyncGating();
+}
+
+/** Vault-backed mutations are the only thing gated; projected content stays readable. */
+function applySyncGating(): void {
+  const disabled = !canMutate(syncStatus);
+  overlay?.querySelectorAll<HTMLButtonElement>('[data-requires-sync]').forEach((node) => {
+    node.disabled = disabled;
+  });
+}
+
+async function runSync(): Promise<void> {
+  if (syncing) return;
+  syncing = true;
+  syncTimedOut = false;
+  syncStatus = { state: 'pending', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
+  updateSyncControl();
+
+  try {
+    const result = await runSyncJob({
+      requestSync: () => api.journey.requestSync(newSyncEventId()),
+      fetchStatus: (jobId) => api.journey.syncStatus(jobId),
+      onStatus: (status) => {
+        syncStatus = status;
+        updateSyncControl();
+      },
+      now: () => Date.now(),
+      sleep: (ms) => new Promise((resolve) => window.setTimeout(resolve, ms)),
+      lastSyncedAt: syncStatus.lastSyncedAt,
+    });
+
+    syncTimedOut = result.state === 'pending' && result.jobId !== null;
+    syncStatus = result;
+    if (result.state === 'synced') {
+      if (result.lastSyncedAt) writeLastSyncedAt(window.localStorage, result.lastSyncedAt);
+      await loadJourney();
+    }
+  } finally {
+    syncing = false;
+    updateSyncControl();
+  }
+}
+
+function renderJourney(data: JourneyViewModel): void {
   const { panel, body } = shell(t('journey.title'), formatDate(data.date));
 
   const summary = element('section', 'journey-summary');
@@ -234,9 +432,11 @@ function renderJourney(data: JourneySnapshot): void {
   progress.appendChild(
     element('strong', '', t('journey.progress', { done: completed, total: data.tasks.length })),
   );
-  progress.appendChild(
-    element('span', '', t('journey.savedAt', { time: formatTime(data.mtimeMs) })),
-  );
+  if (data.mtimeMs !== null) {
+    progress.appendChild(
+      element('span', '', t('journey.savedAt', { time: formatTime(data.mtimeMs) })),
+    );
+  }
   summary.appendChild(progress);
 
   const reload = actionButton(t('journey.reload'), 'journey-icon-btn journey-reload-btn');
@@ -254,6 +454,7 @@ function renderJourney(data: JourneySnapshot): void {
   track.appendChild(fill);
   body.appendChild(track);
   body.appendChild(renderViewBar(data));
+  body.appendChild(renderSyncControl());
 
   const status = element('div', 'journey-status');
   status.id = 'journeyStatus';
@@ -263,6 +464,7 @@ function renderJourney(data: JourneySnapshot): void {
   if (viewMode === 'review') {
     body.appendChild(renderReview(data));
     panel.classList.remove('is-saving');
+    applySyncGating();
     return;
   }
 
@@ -280,9 +482,10 @@ function renderJourney(data: JourneySnapshot): void {
   body.appendChild(renderJournal(data));
 
   panel.classList.remove('is-saving');
+  applySyncGating();
 }
 
-function renderViewBar(data: JourneySnapshot): HTMLElement {
+function renderViewBar(data: JourneyViewModel): HTMLElement {
   const bar = element('div', 'journey-view-bar');
   const switcher = element('div', 'journey-view-switch');
   switcher.setAttribute('aria-label', t('journey.viewLabel'));
@@ -300,10 +503,13 @@ function renderViewBar(data: JourneySnapshot): HTMLElement {
   switcher.append(focus, review);
   bar.appendChild(switcher);
 
-  const open = element('a', 'journey-obsidian-link', t('journey.openObsidian'));
-  open.href = data.obsidianUri;
-  open.setAttribute('aria-label', t('journey.openObsidian'));
-  bar.appendChild(open);
+  // Hosted mode has no vault path, so there is nothing to deep-link to.
+  if (data.obsidianUri) {
+    const open = element('a', 'journey-obsidian-link', t('journey.openObsidian'));
+    open.href = data.obsidianUri;
+    open.setAttribute('aria-label', t('journey.openObsidian'));
+    bar.appendChild(open);
+  }
   return bar;
 }
 
@@ -401,6 +607,7 @@ function renderTask(task: JourneyTask, index: number): HTMLElement {
 
   if (task.checked) {
     const reopen = actionButton(t('journey.reopen'), 'journey-link-btn');
+    reopen.dataset.requiresSync = 'true';
     reopen.addEventListener('click', () => void reopenTask(task));
     const actions = element('div', 'journey-actions');
     actions.appendChild(reopen);
@@ -420,8 +627,10 @@ function renderTask(task: JourneyTask, index: number): HTMLElement {
 
   const actions = element('div', 'journey-actions');
   const partial = actionButton(t('journey.partial'));
+  partial.dataset.requiresSync = 'true';
   partial.addEventListener('click', () => void recordTask(task, evidence, true));
   const complete = actionButton(t('journey.complete'), 'journey-btn-primary');
+  complete.dataset.requiresSync = 'true';
   complete.addEventListener('click', () => void recordTask(task, evidence, false));
   actions.append(partial, complete);
   taskBody.appendChild(actions);
@@ -485,7 +694,7 @@ function appendInlineContent(target: HTMLElement, value: string): void {
   if (cursor < value.length) target.appendChild(document.createTextNode(value.slice(cursor)));
 }
 
-function renderReview(data: JourneySnapshot): HTMLElement {
+function renderReview(data: JourneyViewModel): HTMLElement {
   const review = element('div', 'journey-review');
   const intro = element('header', 'journey-review-intro');
   intro.appendChild(element('p', 'journey-review-kicker', t('journey.reviewKicker')));
@@ -559,15 +768,17 @@ function renderReview(data: JourneySnapshot): HTMLElement {
   journalSection.appendChild(journal);
   review.appendChild(journalSection);
 
-  const footer = element('footer', 'journey-review-footer');
-  const open = element(
-    'a',
-    'journey-btn-primary journey-review-open',
-    t('journey.openObsidianCta'),
-  );
-  open.href = data.obsidianUri;
-  footer.appendChild(open);
-  review.appendChild(footer);
+  if (data.obsidianUri) {
+    const footer = element('footer', 'journey-review-footer');
+    const open = element(
+      'a',
+      'journey-btn-primary journey-review-open',
+      t('journey.openObsidianCta'),
+    );
+    open.href = data.obsidianUri;
+    footer.appendChild(open);
+    review.appendChild(footer);
+  }
   return review;
 }
 
@@ -577,7 +788,7 @@ function reviewSection(title: string): HTMLElement {
   return section;
 }
 
-function renderEvidence(data: JourneySnapshot): HTMLElement {
+function renderEvidence(data: JourneyViewModel): HTMLElement {
   const wrapper = element('div', 'journey-evidence');
   const list = element('div', 'journey-evidence-list');
 
@@ -611,7 +822,7 @@ function renderEvidence(data: JourneySnapshot): HTMLElement {
   return wrapper;
 }
 
-function renderJournal(data: JourneySnapshot): HTMLElement {
+function renderJournal(data: JourneyViewModel): HTMLElement {
   const journal = drafts.journal ?? data.journal;
   const form = element('div', 'journey-journal');
 
@@ -655,7 +866,7 @@ async function recordTask(
       const updated = partial
         ? await api.journey.addEvidence(evidence, current.revision, nextEventId(key))
         : await api.journey.updateTask(task.id, true, evidence, current.revision, nextEventId(key));
-      current = updated;
+      current = { ...updated, hosted: false };
       delete drafts.taskEvidence[task.id];
       finishEvent(key);
     },
@@ -667,13 +878,16 @@ async function reopenTask(task: JourneyTask): Promise<void> {
   const key = `reopen:${task.id}`;
   await runMutation(async () => {
     if (!current) return;
-    current = await api.journey.updateTask(
-      task.id,
-      false,
-      undefined,
-      current.revision,
-      nextEventId(key),
-    );
+    current = {
+      ...(await api.journey.updateTask(
+        task.id,
+        false,
+        undefined,
+        current.revision,
+        nextEventId(key),
+      )),
+      hosted: false,
+    };
     finishEvent(key);
   }, t('journey.taskReopened'));
 }
@@ -689,7 +903,10 @@ async function addQuickEvidence(input: HTMLTextAreaElement): Promise<void> {
   const key = 'quick-evidence';
   await runMutation(async () => {
     if (!current) return;
-    current = await api.journey.addEvidence(evidence, current.revision, nextEventId(key));
+    current = {
+      ...(await api.journey.addEvidence(evidence, current.revision, nextEventId(key))),
+      hosted: false,
+    };
     drafts.quickEvidence = '';
     finishEvent(key);
   }, t('journey.evidenceSaved'));
@@ -704,7 +921,10 @@ async function saveJournal(): Promise<void> {
 
   await runMutation(async () => {
     if (!current) return;
-    current = await api.journey.saveJournal(journal, current.revision);
+    current = {
+      ...(await api.journey.saveJournal(journal, current.revision)),
+      hosted: false,
+    };
     drafts.journal = null;
   }, t('journey.journalSaved'));
 }

@@ -139,6 +139,29 @@ export const vi: Record<string, string> = {
   'journey.loadErrorTitle': 'Không đọc được hành trình',
   'journey.loadError': 'Không thể tải dữ liệu từ Obsidian.',
   'journey.sessionExpired': 'Phiên đăng nhập đã hết hạn. Đăng nhập lại rồi thử tiếp.',
+  'journey.emptyTitle': 'Chưa có dữ liệu đồng bộ',
+  'journey.emptyBody': 'Bấm Đồng bộ Obsidian để đọc Daily từ vault. App không tự quét vault.',
+
+  // Sync Obsidian (Journey + Daily)
+  'sync.button': 'Đồng bộ Obsidian',
+  'sync.retry': 'Thử lại',
+  'sync.lastNever': 'Chưa đồng bộ lần nào',
+  'sync.lastAt': 'Đồng bộ lần cuối: {time}',
+  'sync.state.synced': 'Đã đồng bộ',
+  'sync.state.pending': 'Đang chờ cầu nối',
+  'sync.state.syncing': 'Đang đồng bộ…',
+  'sync.state.conflict': 'Xung đột nội dung',
+  'sync.state.failed': 'Đồng bộ thất bại',
+  'sync.state.bridge_offline': 'Cầu nối Obsidian offline',
+  'sync.hint.synced': 'Nội dung đã đồng bộ; có thể chỉnh sửa Daily.',
+  'sync.hint.pending': 'Yêu cầu đã được lưu; cầu nối sẽ xử lý ngay khi online.',
+  'sync.hint.syncing': 'Cầu nối đang đọc vault…',
+  'sync.hint.conflict': 'Daily đã đổi ở nơi khác. Mở Obsidian xử lý rồi đồng bộ lại.',
+  'sync.hint.failed': 'Lần đồng bộ trước thất bại. Bấm Thử lại.',
+  'sync.hint.bridge_offline':
+    'Cầu nối chưa kết nối. Nội dung đã lưu vẫn đọc được; tạm khoá chỉnh sửa.',
+  'sync.timeout': 'Quá 30 giây chưa có phản hồi. Yêu cầu vẫn được giữ để thử lại.',
+  'sync.required': 'Đang chờ đồng bộ Obsidian nên chưa thể ghi thay đổi.',
 
   // Quiz launcher
   'ql.title': '🎯 Quiz Mode',
