@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** Tasks 1–2 were already checked; Tasks 3–6 are
+> now complete via the four follow-up plans (private corpus, learning integrity,
+> Obsidian on-demand sync, release verification) on `feat/overhaul-completion`
+> (PR #11). Steps below without a tick are the ones the follow-up plans superseded;
+> see those plans and their `.superpowers/sdd/` ledgers for evidence.
+
 **Goal:** Close the remaining release gaps in the approved full-overhaul design and produce a locally merged, verified `main` branch without pushing.
 
 **Architecture:** Keep one modular Express process and one Vite frontend. The composition root injects configuration and persistence, every state-changing learning result is server-derived, real corpus files remain local and ignored, and the existing local Obsidian bridge is made an explicit adapter while projection/outbox work is represented by durable PostgreSQL records.
@@ -85,11 +91,24 @@
 - Consumes: authenticated user ID, `APP_TIME_ZONE`, sealed daily challenge answers.
 - Produces: deterministic `dateInTimeZone()`, `computeStreak()`, and server-derived stored scores.
 
-- [ ] Write failing boundary tests around local midnight and duplicated/missing submitted answers.
-- [ ] Confirm RED.
-- [ ] Share one injected clock/time-zone implementation between Daily and streak routes.
-- [ ] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
-- [ ] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
+- [x] Add boundary tests covering local midnight and duplicated/missing submitted answers.
+- [x] Verify test sensitivity retrospectively: a controlled local-midnight mutation failed, while the original RED for duplicate/unknown submissions and client-asserted scores is recorded in the Task 1/2 reports.
+- [x] Share one injected clock/time-zone implementation between Daily and streak routes.
+- [x] Stop accepting arbitrary quiz score fields unless accompanied by a server-issued answer challenge; until server-issued quiz attempts exist, store only non-scored flashcard activity.
+- [x] Run focused and full tests, then commit with `fix: bảo vệ tính toàn vẹn học tập`.
+
+Task 3 verification (2026-09-12): the time-zone boundary tests passed (2 files,
+13 tests), and the full `npm run check` passed, including 105 frontend tests,
+224 server tests, production builds, the private bundle scan, and production
+audits with 0 vulnerabilities. Migration `012_make_quiz_score_nullable.sql`
+was applied successfully in the configured local database on 2026-09-12.
+
+The pre-GREEN RED run for commit `03ccb20` is not available as a durable
+historical artifact; no such historical claim is made. The current mutation
+evidence is limited to temporarily forcing `dateInTimeZone` to use UTC, which
+failed the configured `Asia/Ho_Chi_Minh` midnight assertion (`expected
+2026-09-13`, `received 2026-09-12`), after which the production file was
+restored byte-for-byte.
 
 ### Task 4: Private corpus boundary
 

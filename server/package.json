@@ -10,6 +10,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "bridge:dev": "tsx watch src/bridge/index.ts",
+    "bridge:start": "node dist/bridge/index.js",
     "migrate": "tsx src/db/migrate.ts",
     "seed:library": "tsx src/scripts/seedLibrary.ts",
     "test": "vitest run",
@@ -31,6 +33,7 @@
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "rss-parser": "^3.13.0",
+    "ws": "^8.21.3",
     "zod": "^4.6.2"
   },
   "devDependencies": {
@@ -44,6 +47,7 @@
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/pg": "^8.11.10",
     "@types/supertest": "^7.2.1",
+    "@types/ws": "^8.18.1",
     "supertest": "^7.2.2",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",

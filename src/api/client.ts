@@ -1,4 +1,4 @@
-import type { JourneyJournal, JourneySnapshot } from '../journey/types';
+import type { JourneyJournal, JourneySnapshot, JourneyTask } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
 import type { FeedArticle } from '../feed/types';
 import type { ReviewQuality, ReviewSchedule } from '../review/scheduler';
@@ -79,6 +79,46 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
+/** The server's durable sync-job states; the UI adds `bridge_offline` on top. */
+export type SyncJobState = 'pending' | 'claimed' | 'synced' | 'conflict' | 'failed';
+
+export interface JourneySyncRequest {
+  jobId: string;
+  state: SyncJobState;
+}
+
+export interface JourneySyncStatus {
+  jobId: string;
+  state: SyncJobState;
+  requestedAt: string;
+  completedAt: string | null;
+  bridgeConnected: boolean;
+}
+
+/** The structured Daily projection PostgreSQL owns; never raw Markdown. */
+export interface JourneyProjectionDaily {
+  date: string;
+  stage: string;
+  tasks: JourneyTask[];
+  evidence: string[];
+  journal: JourneyJournal;
+}
+
+/**
+ * `GET /journey/today` answers differently per mode. Local vault mode returns
+ * the `JourneySnapshot`; hosted mode returns the stored projection, or
+ * `{ synced: false }` before the first successful synchronization.
+ */
+export type JourneyTodayResponse =
+  | JourneySnapshot
+  | { synced: false }
+  | {
+      synced: true;
+      date: string;
+      revision: string;
+      projection: { daily: JourneyProjectionDaily };
+    };
+
 export const api = {
   auth: {
     register: (email: string, password: string, displayName?: string) =>
@@ -139,7 +179,22 @@ export const api = {
   },
 
   journey: {
-    today: () => apiRequest<JourneySnapshot>('/journey/today'),
+    today: () => apiRequest<JourneyTodayResponse>('/journey/today'),
+
+    /**
+     * Explicitly asks the local HeheVault bridge to reconcile the vault with
+     * PostgreSQL. Durable on the server, so it survives an offline bridge.
+     */
+    requestSync: (eventId: string) =>
+      apiRequest<JourneySyncRequest>('/journey/sync', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': eventId },
+        body: JSON.stringify({}),
+      }),
+
+    /** Status of a job this client explicitly requested. Never polls a job it did not ask for. */
+    syncStatus: (jobId: string) =>
+      apiRequest<JourneySyncStatus>(`/journey/sync/${encodeURIComponent(jobId)}`),
 
     updateTask: (
       taskId: string,

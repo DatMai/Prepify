@@ -54,8 +54,10 @@ Database migrations remain append-only:
 npm --prefix server run migrate
 ```
 
-The Library corpus and the Daily pool live in PostgreSQL. `content/*.json` is now
-the seed snapshot, so a fresh database needs the seed after migrating:
+The Library corpus and the Daily pool live in PostgreSQL. The seed corpus is in
+an ignored, owner-controlled directory configured by `CONTENT_ROOT` (for local
+development, `CONTENT_ROOT=../content`), so a fresh database needs the seed after
+migrating:
 
 ```bash
 npm --prefix server run seed:library
@@ -190,6 +192,17 @@ due count and opens the review overlay.
 - Design: `docs/superpowers/specs/2026-09-12-spaced-repetition-design.md`;
   plan: `docs/superpowers/plans/2026-09-12-spaced-repetition-implementation.md`.
 
+## Learning result integrity
+
+Quiz-session recording currently supports flashcard activity only:
+`POST /api/v1/quiz-sessions` accepts `{ topicKey, mode: "flashcard", total }`
+and stores a session without a score. Client-submitted scores and `mode: "mcq"`
+are rejected with `scored_attempt_required`. Scored MCQ history is intentionally
+unavailable until the server issues quiz attempts and can grade their answers.
+
+Daily answers are graded from a sealed, server-issued challenge, and streak
+dates use the configured application time zone.
+
 ## Privacy and authorization
 
 - Library and Journey authorization is checked by the server.
@@ -219,6 +232,66 @@ The current bridge may read and update only its allowlisted Daily surface. It
 uses revision checks and atomic writes so a stale browser cannot overwrite a
 newer Obsidian note. See [ADR-001](docs/ADR-001-obsidian-journey-sync.md) and
 [ADR-002](docs/ADR-002-private-library-and-obsidian-projection.md).
+
+## HeheVault bridge (on-demand sync)
+
+The deployed API never touches the vault. A local `HeheVault` bridge runs on the
+owner's Mac, holds one authenticated outbound WebSocket, claims sync jobs, and
+applies allowlisted Daily/Journey changes atomically. It is the only component
+permitted to read or write a vault path.
+
+Run it from the repository on the machine that owns the vault:
+
+```bash
+npm --prefix server run bridge:dev     # watch mode for development
+npm --prefix server run bridge:start   # built server/dist/bridge/index.js
+```
+
+Secrets live in an owner-only file `server/.env.bridge.local` (mode `0600`) —
+never in Git and never in the generated launchd plist:
+
+```dotenv
+PREPIFY_API_URL=https://prepify.example.com
+OBSIDIAN_BRIDGE_TOKEN=…   # min 32 chars, same value as the server
+OBSIDIAN_VAULT_PATH=/absolute/path/to/second-brain
+OBSIDIAN_VAULT_ID=vault-main
+```
+
+```bash
+touch server/.env.bridge.local && chmod 600 server/.env.bridge.local
+```
+
+To run it as a macOS background service, install the launchd agent. This is an
+explicit human setup step: the installer only writes
+`~/Library/LaunchAgents/com.prepify.hehevault-bridge.plist` from the resolved
+repository and Node paths, and never embeds the bridge token or the vault path.
+
+```bash
+node scripts/installHehevaultBridge.mjs
+launchctl load ~/Library/LaunchAgents/com.prepify.hehevault-bridge.plist
+```
+
+The bridge resolves only `Daily/YYYY-MM-DD.md` beneath the real vault root,
+rejects symlink escapes and traversal, compares SHA-256 revisions, and writes by
+atomically renaming a sibling temporary file.
+
+**Run exactly one bridge per vault.** The server notifies _every_ bridge
+connection it holds for the owner, so a second bridge pointed at a different
+vault will claim the same jobs and write its own vault's revision into the
+projection. The deployed assumption is one owner, one vault, one bridge.
+
+While the bridge is offline the UI reports that state and vault-backed Journey
+mutations stay disabled; the database-owned Daily quiz keeps working and queues a
+summary for the next sync. There is deliberately no hosted cloud mirror of the
+vault — that is a non-goal, not a gap.
+
+## Release checks
+
+```bash
+npm run check                     # the single green gate
+npm run check:bundle              # private corpus must not reach the browser bundle
+npm run check:release-boundaries  # tracked corpus, .env files, migration order, required docs
+```
 
 ## Agent workflow
 

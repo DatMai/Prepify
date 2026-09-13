@@ -46,6 +46,8 @@ npm run typecheck
 npm run lint
 npm run build
 npm run check
+npm run check:bundle
+npm run check:release-boundaries
 npm --prefix server run migrate
 npm --prefix server run seed:library
 npm --prefix server run typecheck

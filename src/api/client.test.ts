@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { FlashcardActivityPayload } from './streak';
 
 function memoryStorage(): Storage {
   const values = new Map<string, string>();
@@ -142,5 +143,71 @@ describe('API client authentication', () => {
       questionIdx: 1,
       quality: 'good',
     });
+  });
+
+  it('requests an on-demand Obsidian sync with an idempotency key', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ jobId: 'job-1', state: 'pending' }), {
+        status: 202,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    const result = await api.journey.requestSync('event-12345678');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/journey/sync'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe('http://localhost:3001/api/v1/journey/sync');
+    expect(new Headers(init?.headers).get('Idempotency-Key')).toBe('event-12345678');
+    expect(result).toEqual({ jobId: 'job-1', state: 'pending' });
+  });
+
+  it('reads the status of a user-requested sync job', async () => {
+    const { api } = await import('./client');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          jobId: 'job-1',
+          state: 'synced',
+          requestedAt: '2026-09-13T00:00:00.000Z',
+          completedAt: '2026-09-13T00:01:00.000Z',
+          bridgeConnected: true,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const status = await api.journey.syncStatus('job-1');
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3001/api/v1/journey/sync/job-1');
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBeUndefined();
+    expect(status.state).toBe('synced');
+    expect(status.bridgeConnected).toBe(true);
+  });
+
+  it('saves flashcard activity without a score', async () => {
+    const payload: FlashcardActivityPayload = {
+      topicKey: 'javascript',
+      mode: 'flashcard',
+      total: 5,
+    };
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'session-1', completedAt: '2026-09-12T10:00:00.000Z' }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const { saveQuizSession } = await import('./streak');
+
+    await saveQuizSession(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe('http://localhost:3001/api/v1/quiz-sessions');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual(payload);
   });
 });

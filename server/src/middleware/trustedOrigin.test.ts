@@ -36,4 +36,35 @@ describe('trusted origin middleware', () => {
 
     expect(response.status).toBe(200);
   });
+
+  it('exempts bearer-authenticated bridge routes without weakening other routes', async () => {
+    const app = express();
+    app.use(
+      trustedOrigin(['http://localhost:5173'], {
+        exemptPrefixes: ['/api/v1/journey/bridge'],
+      }),
+    );
+    app.post('/api/v1/journey/bridge/jobs/:id/claim', (_req, res) => res.json({ ok: true }));
+    app.post('/resource', (_req, res) => res.json({ ok: true }));
+
+    const bridge = await request(app).post('/api/v1/journey/bridge/jobs/job-1/claim');
+    const other = await request(app).post('/resource');
+
+    expect(bridge.status).toBe(200);
+    expect(other.status).toBe(403);
+  });
+
+  it('does not exempt a route that only shares the prefix string', async () => {
+    const app = express();
+    app.use(
+      trustedOrigin(['http://localhost:5173'], {
+        exemptPrefixes: ['/api/v1/journey/bridge'],
+      }),
+    );
+    app.post('/api/v1/journey/bridging', (_req, res) => res.json({ ok: true }));
+
+    const response = await request(app).post('/api/v1/journey/bridging');
+
+    expect(response.status).toBe(403);
+  });
 });

@@ -21,8 +21,9 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
     "check:bundle": "node scripts/privateBundleScan.mjs",
+    "check:release-boundaries": "node scripts/releaseBoundaryScan.mjs",
     "audit:production": "npm audit --omit=dev --audit-level=high && npm --prefix server audit --omit=dev --audit-level=high",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm --prefix server run typecheck && npm test && npm --prefix server test && npm run build && npm --prefix server run build && npm run check:bundle && npm run audit:production"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm --prefix server run typecheck && npm test && npm --prefix server test && npm run build && npm --prefix server run build && npm run check:bundle && npm run check:release-boundaries && npm run audit:production"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

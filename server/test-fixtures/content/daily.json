@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "pool": [
+    {
+      "id": "fixture-mcq-1",
+      "type": "mcq",
+      "difficulty": 1,
+      "ref": { "topicKey": "sample", "sectionIdx": 0, "questionIdx": 0 }
+    },
+    {
+      "id": "fixture-fib-1",
+      "type": "fib",
+      "difficulty": 2,
+      "prompt": "A test-only ___ exercises fill-in-the-blank seeding.",
+      "blanks": ["fixture"],
+      "hint": "Synthetic data"
+    }
+  ]
+}

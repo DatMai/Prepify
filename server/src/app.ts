@@ -8,6 +8,7 @@ import type { AppConfig } from './config/env';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { requestId } from './middleware/requestId';
 import { trustedOrigin } from './middleware/trustedOrigin';
+import { BRIDGE_PATH } from './bridge/config';
 
 export interface AppDependencies {
   config: AppConfig;
@@ -66,7 +67,7 @@ export function createApp({ config, logger, registerRoutes, readiness }: AppDepe
   );
   app.use(express.json({ limit: '256kb' }));
   app.use(passport.initialize());
-  app.use(trustedOrigin(config.corsOrigins));
+  app.use(trustedOrigin(config.corsOrigins, { exemptPrefixes: [BRIDGE_PATH] }));
 
   registerRoutes(app);
 

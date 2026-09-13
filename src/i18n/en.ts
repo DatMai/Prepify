@@ -138,6 +138,30 @@ export const en: Record<string, string> = {
   'journey.loadErrorTitle': 'Could not load the journey',
   'journey.loadError': 'Could not load data from Obsidian.',
   'journey.sessionExpired': 'Your session expired. Log in again and retry.',
+  'journey.emptyTitle': 'No synchronized content yet',
+  'journey.emptyBody':
+    'Press Sync Obsidian to read the Daily note from the vault. The app never scans the vault by itself.',
+
+  // Sync Obsidian (Journey + Daily)
+  'sync.button': 'Sync Obsidian',
+  'sync.retry': 'Retry',
+  'sync.lastNever': 'Not synced yet',
+  'sync.lastAt': 'Last synced: {time}',
+  'sync.state.synced': 'Synced',
+  'sync.state.pending': 'Waiting for the bridge',
+  'sync.state.syncing': 'Syncing…',
+  'sync.state.conflict': 'Content conflict',
+  'sync.state.failed': 'Sync failed',
+  'sync.state.bridge_offline': 'Obsidian bridge offline',
+  'sync.hint.synced': 'Content is synced; the Daily note is editable.',
+  'sync.hint.pending': 'The request is stored; the bridge will process it when online.',
+  'sync.hint.syncing': 'The bridge is reading the vault…',
+  'sync.hint.conflict':
+    'The Daily note changed elsewhere. Resolve it in Obsidian, then sync again.',
+  'sync.hint.failed': 'The last sync failed. Press Retry.',
+  'sync.hint.bridge_offline':
+    'The bridge is not connected. Saved content stays readable; editing is paused.',
+  'sync.timeout': 'No response after 30 seconds. The request is kept so you can retry.',
 
   // Quiz launcher
   'ql.title': '🎯 Quiz Mode',

@@ -24,13 +24,21 @@ import { createOAuthFlowStore } from './modules/identity/oauthFlowStore';
 import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
+import { createJourneyBridgeRouter } from './routes/journeyBridge';
+import {
+  createBridgeAuthenticator,
+  createBridgeHub,
+  type BridgeAuthenticate,
+} from './modules/journey/bridgeHub';
+import { createSyncRepository } from './modules/journey/syncRepository';
+import type { JourneyQuery, JourneyTransaction } from './modules/journey/syncTypes';
 import leaderboardRouter from './routes/leaderboard';
 import { createLibraryRouter } from './routes/library';
 import { createLibraryAdminRouter } from './routes/libraryAdmin';
 import { createLibraryRepository, type LibraryQuery } from './modules/library/libraryRepository';
 import { createLibraryAuthoring } from './modules/library/libraryAuthoring';
 import progressRouter from './routes/progress';
-import quizSessionsRouter from './routes/quizSessions';
+import { createQuizSessionsRouter, type QuizSessionQuery } from './routes/quizSessions';
 import { createStreakRouter, recordStudyDay } from './routes/streak';
 import { createFeedRouter } from './routes/feed';
 import { createAdminRouter } from './routes/admin';
@@ -55,12 +63,14 @@ function registerRoutes(
     optionalAuth: RequestHandler;
     dailyRoutes: ReturnType<typeof createDailyRouter>;
     journeyRoutes: ReturnType<typeof createJourneyRouter>;
+    bridgeRoutes: ReturnType<typeof createJourneyBridgeRouter>;
     streakRoutes: ReturnType<typeof createStreakRouter>;
     feedRoutes: ReturnType<typeof createFeedRouter>;
     adminRoutes: ReturnType<typeof createAdminRouter>;
     reviewRoutes: ReturnType<typeof createReviewRouter>;
     libraryRoutes: ReturnType<typeof createLibraryRouter>;
     libraryAdminRoutes: ReturnType<typeof createLibraryAdminRouter>;
+    quizSessionsRoutes: ReturnType<typeof createQuizSessionsRouter>;
   },
 ): void {
   app.use('/api/v1/auth', identity.authRoutes);
@@ -72,8 +82,12 @@ function registerRoutes(
   app.use('/api/v1/admin', identity.adminRoutes);
   app.use('/api/v1/review', identity.reviewRoutes);
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
-  app.use('/api/v1/quiz-sessions', quizSessionsRouter);
+  app.use('/api/v1/quiz-sessions', identity.quizSessionsRoutes);
   app.use('/api/v1/daily', identity.dailyRoutes);
+  // Registered before the Journey reader router: that router applies session
+  // and vault-owner middleware to every path beneath it, which a bearer-only
+  // bridge request must never traverse.
+  app.use('/api/v1/journey/bridge/jobs', identity.bridgeRoutes);
   app.use('/api/v1/journey', identity.journeyRoutes);
   // The admin prefix is registered first so it wins over the reader router.
   app.use('/api/v1/library/admin', identity.libraryAdminRoutes);
@@ -153,6 +167,52 @@ async function main(): Promise<void> {
     requireAuth,
     requireAdmin,
   });
+  const withJourneyTransaction: JourneyTransaction = async (fn) => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client.query.bind(client) as unknown as JourneyQuery);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
+  const syncRepository = createSyncRepository({
+    query: pool.query.bind(pool) as unknown as JourneyQuery,
+    withTransaction: withJourneyTransaction,
+  });
+  // The hub is built before the routers so they can close over its notifier and
+  // connectivity seams; it is attached to the HTTP server only after listening.
+  const bridgeToken = config.obsidian.bridge.enabled ? config.obsidian.bridge.token : undefined;
+  // One authenticator instance is shared by the WebSocket hub and the bridge
+  // HTTP contract, so the bearer parsing and constant-time comparison exist in
+  // exactly one place. When the bridge is disabled nobody can authenticate.
+  const bridgeAuthenticate: BridgeAuthenticate = bridgeToken
+    ? createBridgeAuthenticator({
+        token: bridgeToken,
+        resolveOwnerId: async () => {
+          const ownerEmail = config.obsidian.ownerEmail;
+          if (!ownerEmail) return null;
+          const owner = await userRepository.findByEmail(ownerEmail);
+          return owner?.id ?? null;
+        },
+      })
+    : () => null;
+  const bridgeHub = createBridgeHub({
+    authenticate: bridgeAuthenticate,
+    loadPending: async (ownerId) => {
+      const jobs = await syncRepository.listPending({
+        ownerId,
+        vaultId: config.obsidian.vaultId,
+      });
+      return jobs.map((job) => job.jobId);
+    },
+    logger,
+  });
   const dailyRoutes = createDailyRouter({
     query: pool.query.bind(pool) as unknown as DailyQuery,
     repo: libraryRepository,
@@ -161,6 +221,26 @@ async function main(): Promise<void> {
     secret: config.sessionSecret,
     timeZone: config.timeZone,
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
+    withTransaction: withJourneyTransaction,
+    enqueueDailySummary: async (input, tx) => {
+      // Reuse the repository against the Daily transaction so the completion
+      // row and its outbox job commit together.
+      const scoped = createSyncRepository({
+        query: tx as unknown as JourneyQuery,
+        withTransaction: (fn) => fn(tx as unknown as JourneyQuery),
+      });
+      await scoped.enqueueMutation({
+        ownerId: input.ownerId,
+        vaultId: config.obsidian.vaultId,
+        idempotencyKey: input.idempotencyKey,
+        operation: 'daily_summary',
+        payload: { date: input.date, score: input.score, total: input.total },
+      });
+    },
+  });
+  const quizSessionsRoutes = createQuizSessionsRouter({
+    query: pool.query.bind(pool) as unknown as QuizSessionQuery,
+    requireAuth,
   });
   const streakRoutes = createStreakRouter({ pool, timeZone: config.timeZone });
   const feedRoutes = createFeedRouter({
@@ -181,11 +261,32 @@ async function main(): Promise<void> {
     timeZone: config.timeZone,
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
-  const journeyRoutes = createJourneyRouter({
-    requireAuth,
-    requireAdmin,
-    ownerEmail: config.obsidian.ownerEmail,
-    vault: createObsidianVault(config.obsidian),
+  const journeyRoutes = createJourneyRouter(
+    config.obsidian.enabled
+      ? {
+          mode: 'local',
+          requireAuth,
+          requireAdmin,
+          ownerEmail: config.obsidian.ownerEmail,
+          vault: createObsidianVault(config.obsidian),
+        }
+      : {
+          mode: 'hosted',
+          requireAuth,
+          requireAdmin,
+          ownerEmail: config.obsidian.ownerEmail,
+          sync: syncRepository,
+          query: pool.query.bind(pool) as unknown as JourneyQuery,
+          vaultId: config.obsidian.vaultId,
+          timeZone: config.obsidian.timeZone,
+          notifyOwner: (ownerId) => bridgeHub.notifyOwner(ownerId),
+          isBridgeConnected: (ownerId) => bridgeHub.isConnected(ownerId),
+        },
+  );
+  const bridgeRoutes = createJourneyBridgeRouter({
+    authenticate: bridgeAuthenticate,
+    sync: syncRepository,
+    vaultId: config.obsidian.vaultId,
   });
   initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
 
@@ -215,12 +316,14 @@ async function main(): Promise<void> {
           optionalAuth: createOptionalSessionAuth(sessionRepository, config.session.cookieName),
           dailyRoutes,
           journeyRoutes,
+          bridgeRoutes,
           streakRoutes,
           feedRoutes,
           adminRoutes,
           reviewRoutes,
           libraryRoutes,
           libraryAdminRoutes,
+          quizSessionsRoutes,
         }),
       readiness: async () => {
         await pool.query('SELECT 1');
@@ -231,8 +334,12 @@ async function main(): Promise<void> {
       host: config.host,
       port: config.port,
       logger,
+      beforeClose: () => bridgeHub.close(),
       closePool: async () => pool.end(),
     });
+    // Attach only once the server is listening so upgrade handling starts after
+    // the routers already hold the hub's notifier and connectivity seams.
+    bridgeHub.attach(runtime.server);
 
     const stop = (): void => {
       void runtime.stop().catch((error: unknown) => {

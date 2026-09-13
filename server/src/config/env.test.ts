@@ -47,6 +47,16 @@ describe('loadConfig', () => {
     expect(config.email.password).toBeUndefined();
   });
 
+  it('normalizes an explicit content root', () => {
+    expect(loadConfig({ ...valid, CONTENT_ROOT: '/tmp/prepify-content' }).contentRoot).toBe(
+      '/tmp/prepify-content',
+    );
+  });
+
+  it('treats a blank content root as unset', () => {
+    expect(loadConfig({ ...valid, CONTENT_ROOT: '' }).contentRoot).toBeUndefined();
+  });
+
   it('rejects session lifetimes outside one hour to thirty days', () => {
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '0' })).toThrow(/SESSION_TTL_HOURS/);
     expect(() => loadConfig({ ...valid, SESSION_TTL_HOURS: '721' })).toThrow(/SESSION_TTL_HOURS/);
@@ -68,5 +78,60 @@ describe('loadConfig', () => {
         HOST: '0.0.0.0',
       }),
     ).toThrow(/Obsidian sync requires a loopback HOST/);
+  });
+
+  it('leaves the hosted bridge disabled without a credential by default', () => {
+    const config = loadConfig(valid);
+
+    expect(config.obsidian.bridge.enabled).toBe(false);
+    expect(config.obsidian.bridge.token).toBeUndefined();
+    expect(config.obsidian.vaultId).toBe('vault-main');
+  });
+
+  it('requires a bridge credential when hosted sync is enabled', () => {
+    expect(() => loadConfig({ ...valid, OBSIDIAN_BRIDGE_ENABLED: 'true' })).toThrow(
+      /OBSIDIAN_BRIDGE_TOKEN/,
+    );
+  });
+
+  it('rejects a bridge credential shorter than 32 characters', () => {
+    expect(() =>
+      loadConfig({
+        ...valid,
+        OBSIDIAN_BRIDGE_ENABLED: 'true',
+        OBSIDIAN_BRIDGE_TOKEN: 'short-bridge-credential',
+      }),
+    ).toThrow(/OBSIDIAN_BRIDGE_TOKEN/);
+  });
+
+  it('requires an owner identity when hosted sync is enabled', () => {
+    // Without it the server boots and then rejects every bridge authentication
+    // and Journey request, so the failure belongs at startup.
+    expect(() =>
+      loadConfig({
+        ...valid,
+        OBSIDIAN_BRIDGE_ENABLED: 'true',
+        OBSIDIAN_BRIDGE_TOKEN: 'c'.repeat(48),
+      }),
+    ).toThrow(/OBSIDIAN_OWNER_EMAIL/);
+  });
+
+  it('accepts an explicit bridge credential and vault identity', () => {
+    const config = loadConfig({
+      ...valid,
+      OBSIDIAN_BRIDGE_ENABLED: 'true',
+      OBSIDIAN_BRIDGE_TOKEN: 'c'.repeat(48),
+      OBSIDIAN_OWNER_EMAIL: 'owner@example.test',
+      OBSIDIAN_VAULT_ID: 'hehe-vault',
+    });
+
+    expect(config.obsidian.bridge).toEqual({ enabled: true, token: 'c'.repeat(48) });
+    expect(config.obsidian.vaultId).toBe('hehe-vault');
+  });
+
+  it('rejects an unsafe vault identity', () => {
+    expect(() => loadConfig({ ...valid, OBSIDIAN_VAULT_ID: '../vault' })).toThrow(
+      /OBSIDIAN_VAULT_ID/,
+    );
   });
 });

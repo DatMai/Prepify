@@ -1,0 +1,1 @@
+ALTER TABLE quiz_sessions ALTER COLUMN score DROP NOT NULL;

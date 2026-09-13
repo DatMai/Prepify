@@ -1,0 +1,17 @@
+{
+  "label": "Sample",
+  "title": "Synthetic Topic",
+  "color": "#123456",
+  "sections": [
+    {
+      "name": "Synthetic Section",
+      "questions": [
+        {
+          "id": "Q1",
+          "q": "What is this fixture?",
+          "blocks": [{ "type": "text", "text": "Test-only content." }]
+        }
+      ]
+    }
+  ]
+}

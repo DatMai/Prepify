@@ -22,6 +22,21 @@
 - `npm run check` is the single definition of green. Commit after every task.
 - Server is CommonJS. Follow the existing `createX({ deps })` factory style with an injected `query`.
 
+## Post-implementation audit
+
+Audit performed on 2026-09-12 against commit `b53f735eecfa67ef0d16716140bccbe787d1b110`. The implementation commits below are reachable through PR #7's merged topology; the listed focused commands were rerun during this audit. A checked audit outcome means only that the commit proves the implementation exists and/or the current command passed. It does not reconstruct the original implementation sequence.
+
+| Task                                     | Audit outcome                                                    | Implementation commit(s) | Current matching test file                                    | Verification command                                                               |
+| ---------------------------------------- | ---------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1. Validation/import contract            | [x] Implemented; current regression verified                     | `c84cb40`, `c023d4c`     | `server/src/modules/library/libraryValidation.test.ts`        | `npm --prefix server test -- src/modules/library/libraryValidation.test.ts`        |
+| 2. Topic authoring repository            | [x] Implemented; current regression verified                     | `80759a7`                | `server/src/modules/library/libraryAuthoring.test.ts`         | `npm --prefix server test -- src/modules/library/libraryAuthoring.test.ts`         |
+| 3. Section/question authoring and guards | [x] Implemented; current regression verified                     | `a912ddf`                | `server/src/modules/library/libraryAuthoringSections.test.ts` | `npm --prefix server test -- src/modules/library/libraryAuthoringSections.test.ts` |
+| 4. Import and Daily pool                 | [x] Implemented; current regression verified                     | `75a10a3`, `c023d4c`     | `server/src/modules/library/libraryAuthoringImport.test.ts`   | `npm --prefix server test -- src/modules/library/libraryAuthoringImport.test.ts`   |
+| 5. Admin router                          | [x] Implemented; current regression verified                     | `4270d68`, `c023d4c`     | `server/src/routes/libraryAdmin.test.ts`                      | `npm --prefix server test -- src/routes/libraryAdmin.test.ts`                      |
+| 6. Wiring and documentation              | [x] Implemented; [x] current gate passed in post-audit follow-up | `869c539`                | — (wiring/documentation task)                                 | `npm run check`                                                                    |
+
+The original unchecked RED steps mean **not reconstructable**, not implementation missing. Historical RED evidence unavailable; current regression test verified. No saved reviewer artifact was found, so no historical reviewer action is marked complete. The original live smoke-test checkbox remains unchecked because there is no saved smoke-test artifact.
+
 ## Error contract
 
 | HTTP | Code                       | When                                                                                                 |
@@ -256,7 +271,7 @@ describe('import document', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryValidation.test.ts`
 Expected: FAIL — cannot resolve `./libraryValidation`.
@@ -607,7 +622,7 @@ describe('authoring repository — topics', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryAuthoring.test.ts`
 Expected: FAIL — cannot resolve `./libraryAuthoring`.
@@ -1125,7 +1140,7 @@ describe('authoring repository — sections and questions', () => {
 
 The two reorder tests pin the exact renumber sequence: the helper reads the stored order, moves one id, and writes `position = index` for every id, so the list can never drift out of sync with `position`.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryAuthoring.test.ts`
 Expected: FAIL — the new methods are not exported.
@@ -1408,7 +1423,7 @@ describe('authoring repository — daily pool', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/modules/library/libraryAuthoring.test.ts`
 Expected: FAIL — `importTopic` and the Daily methods are not exported.
@@ -1817,7 +1832,7 @@ describe('library admin routes', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 2: Run the test to verify it fails** — Historical RED evidence unavailable; current regression test verified.
 
 Run: `npm --prefix server test -- src/routes/libraryAdmin.test.ts`
 Expected: FAIL — cannot resolve `./libraryAdmin`.

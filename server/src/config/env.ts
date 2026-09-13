@@ -7,6 +7,7 @@ const environmentSchema = z
     HOST: z.string().trim().min(1).default('127.0.0.1'),
     DATABASE_URL: z.string().trim().min(1),
     SESSION_SECRET: z.string().min(32),
+    CONTENT_ROOT: z.string().trim().min(1).optional(),
     SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
     FRONTEND_URL: z.string().url().default('http://localhost:5173'),
     PUBLIC_API_URL: z.string().url().default('http://localhost:3001'),
@@ -29,6 +30,13 @@ const environmentSchema = z
     OBSIDIAN_VAULT_PATH: z.string().trim().min(1).optional(),
     OBSIDIAN_TIME_ZONE: z.string().trim().min(1).default('Asia/Ho_Chi_Minh'),
     OBSIDIAN_OWNER_EMAIL: z.string().email().optional(),
+    OBSIDIAN_VAULT_ID: z
+      .string()
+      .trim()
+      .regex(/^[a-z][a-z0-9_-]{2,63}$/, 'OBSIDIAN_VAULT_ID must be a lowercase identifier')
+      .optional(),
+    OBSIDIAN_BRIDGE_ENABLED: z.enum(['true', 'false']).default('false'),
+    OBSIDIAN_BRIDGE_TOKEN: z.string().min(32).optional(),
     GOOGLE_CLIENT_ID: z.string().trim().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().trim().min(1).optional(),
     FACEBOOK_APP_ID: z.string().trim().min(1).optional(),
@@ -55,6 +63,7 @@ export interface AppConfig {
   host: string;
   databaseUrl: string;
   sessionSecret: string;
+  contentRoot?: string;
   session: {
     cookieName: string;
     secure: boolean;
@@ -70,6 +79,11 @@ export interface AppConfig {
     vaultPath?: string;
     timeZone: string;
     ownerEmail?: string;
+    vaultId: string;
+    bridge: {
+      enabled: boolean;
+      token?: string;
+    };
   };
   oauth: {
     google?: { clientId: string; clientSecret: string };
@@ -93,6 +107,12 @@ function splitList(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Identity of the single hosted vault. The server never learns its filesystem
+ * path, which exists only on the owner's machine.
+ */
+const DEFAULT_VAULT_ID = 'vault-main';
+
 export function loadConfig(
   source: NodeJS.ProcessEnv | Record<string, string | undefined>,
 ): AppConfig {
@@ -103,6 +123,7 @@ export function loadConfig(
   );
   const env = environmentSchema.parse(normalized);
   const obsidianEnabled = env.OBSIDIAN_SYNC_ENABLED === 'true';
+  const bridgeEnabled = env.OBSIDIAN_BRIDGE_ENABLED === 'true';
 
   if (obsidianEnabled && env.HOST !== '127.0.0.1' && env.HOST !== '::1') {
     throw new Error('Obsidian sync requires a loopback HOST');
@@ -110,6 +131,16 @@ export function loadConfig(
 
   if (obsidianEnabled && !env.OBSIDIAN_VAULT_PATH) {
     throw new Error('OBSIDIAN_VAULT_PATH is required when Obsidian sync is enabled');
+  }
+
+  if (bridgeEnabled && !env.OBSIDIAN_BRIDGE_TOKEN) {
+    throw new Error('OBSIDIAN_BRIDGE_TOKEN is required when the hosted bridge is enabled');
+  }
+
+  // Without an owner identity the server starts happily and then rejects every
+  // bridge authentication and Journey request, so fail at startup instead.
+  if (bridgeEnabled && !env.OBSIDIAN_OWNER_EMAIL) {
+    throw new Error('OBSIDIAN_OWNER_EMAIL is required when the hosted bridge is enabled');
   }
 
   if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
@@ -125,6 +156,7 @@ export function loadConfig(
     host: env.HOST,
     databaseUrl: env.DATABASE_URL,
     sessionSecret: env.SESSION_SECRET,
+    contentRoot: env.CONTENT_ROOT,
     session: {
       cookieName: env.NODE_ENV === 'production' ? '__Host-prepify_session' : 'prepify_session',
       secure: env.NODE_ENV === 'production',
@@ -140,6 +172,11 @@ export function loadConfig(
       vaultPath: env.OBSIDIAN_VAULT_PATH,
       timeZone: env.OBSIDIAN_TIME_ZONE,
       ownerEmail: env.OBSIDIAN_OWNER_EMAIL?.toLowerCase(),
+      vaultId: env.OBSIDIAN_VAULT_ID ?? DEFAULT_VAULT_ID,
+      bridge: {
+        enabled: bridgeEnabled,
+        ...(env.OBSIDIAN_BRIDGE_TOKEN ? { token: env.OBSIDIAN_BRIDGE_TOKEN } : {}),
+      },
     },
     oauth: {
       ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET

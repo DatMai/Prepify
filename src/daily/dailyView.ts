@@ -6,9 +6,24 @@ import { isLoggedIn } from '../state/auth';
 import { streakState } from '../state/streak';
 import { renderStreakBadge } from '../ui/streakBadge';
 import { getLang, t } from '../i18n';
+import { api } from '../api/client';
+import {
+  SYNC_STATE_KEYS,
+  isRetryable,
+  lastSyncedLabel,
+  newSyncEventId,
+  readLastSyncedAt,
+  runSyncJob,
+  syncHintLabel,
+  writeLastSyncedAt,
+  type SyncUiStatus,
+} from '../journey/syncState';
 
 let overlay: HTMLElement | null = null;
 let session: DailySession | null = null;
+let syncStatus: SyncUiStatus = { state: 'pending', jobId: null, lastSyncedAt: null };
+let syncing = false;
+let syncTimedOut = false;
 
 export function initDailyView(): void {
   overlay = document.createElement('div');
@@ -24,6 +39,7 @@ export function initDailyView(): void {
 
 export async function openDaily(): Promise<void> {
   if (!overlay) initDailyView();
+  syncStatus = { ...syncStatus, lastSyncedAt: readLastSyncedAt(window.localStorage) };
 
   if (isLoggedIn()) {
     try {
@@ -82,6 +98,7 @@ function renderQuestion(): void {
       <div class="daily-progress-bar">
         <div class="daily-progress-fill" style="width:${progress}%"></div>
       </div>
+      ${renderSyncControlHtml()}
       <div class="daily-card-area" id="dailyCardArea"></div>
       <div class="daily-footer">
         <button class="daily-next-btn" id="dailyNext" disabled>${t('daily.next')}</button>
@@ -122,6 +139,81 @@ function renderQuestion(): void {
       renderQuestion();
     }
   });
+
+  bindSyncControl();
+}
+
+function renderSyncControlHtml(): string {
+  return `
+    <div class="daily-sync" data-state="${syncStatus.state}">
+      <div class="daily-sync-actions">
+        <button class="daily-sync-btn" id="dailySyncBtn" type="button">${t('sync.button')}</button>
+        <button class="daily-sync-retry" id="dailySyncRetry" type="button" hidden>${t('sync.retry')}</button>
+      </div>
+      <div class="daily-sync-meta">
+        <span class="daily-sync-state" role="status" aria-live="polite">${t(SYNC_STATE_KEYS[syncStatus.state])}</span>
+        <span class="daily-sync-last">${lastSyncedLabel(syncStatus.lastSyncedAt, t)}</span>
+      </div>
+      <p class="daily-sync-hint">${syncHintLabel(syncStatus, syncTimedOut, t)}</p>
+    </div>
+  `;
+}
+
+function updateSyncControl(): void {
+  const control = overlay?.querySelector<HTMLElement>('.daily-sync');
+  if (!control) return;
+  control.dataset.state = syncStatus.state;
+  const state = control.querySelector<HTMLElement>('.daily-sync-state');
+  if (state) state.textContent = t(SYNC_STATE_KEYS[syncStatus.state]);
+  const last = control.querySelector<HTMLElement>('.daily-sync-last');
+  if (last) last.textContent = lastSyncedLabel(syncStatus.lastSyncedAt, t);
+  const hint = control.querySelector<HTMLElement>('.daily-sync-hint');
+  if (hint) hint.textContent = syncHintLabel(syncStatus, syncTimedOut, t);
+  const button = control.querySelector<HTMLButtonElement>('#dailySyncBtn');
+  if (button) button.disabled = syncing;
+  const retry = control.querySelector<HTMLButtonElement>('#dailySyncRetry');
+  if (retry) retry.hidden = !isRetryable(syncStatus.state);
+}
+
+function bindSyncControl(): void {
+  overlay?.querySelector<HTMLButtonElement>('#dailySyncBtn')?.addEventListener('click', () => {
+    void runDailySync();
+  });
+  overlay?.querySelector<HTMLButtonElement>('#dailySyncRetry')?.addEventListener('click', () => {
+    void runDailySync();
+  });
+  const retry = overlay?.querySelector<HTMLButtonElement>('#dailySyncRetry');
+  if (retry) retry.hidden = !isRetryable(syncStatus.state);
+}
+
+async function runDailySync(): Promise<void> {
+  if (syncing) return;
+  syncing = true;
+  syncTimedOut = false;
+  syncStatus = { state: 'pending', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
+  updateSyncControl();
+
+  try {
+    const result = await runSyncJob({
+      requestSync: () => api.journey.requestSync(newSyncEventId()),
+      fetchStatus: (jobId) => api.journey.syncStatus(jobId),
+      onStatus: (status) => {
+        syncStatus = status;
+        updateSyncControl();
+      },
+      now: () => Date.now(),
+      sleep: (ms) => new Promise((resolve) => window.setTimeout(resolve, ms)),
+      lastSyncedAt: syncStatus.lastSyncedAt,
+    });
+    syncTimedOut = result.state === 'pending' && result.jobId !== null;
+    syncStatus = result;
+    if (result.state === 'synced' && result.lastSyncedAt) {
+      writeLastSyncedAt(window.localStorage, result.lastSyncedAt);
+    }
+  } finally {
+    syncing = false;
+    updateSyncControl();
+  }
 }
 
 async function showSummary(): Promise<void> {
@@ -196,6 +288,7 @@ function showAlreadyDone(score: number, total: number, streak: number): void {
   overlay.innerHTML = `
     <div class="daily-panel daily-summary">
       <div class="daily-summary-title">⚡ Daily Challenge</div>
+      ${renderSyncControlHtml()}
       <div class="daily-score">${t('daily.completedToday')}</div>
       <div class="daily-score-sub">${t('daily.scoreCorrect', { n: score, total })}</div>
       <div class="daily-streak-info">
@@ -207,6 +300,7 @@ function showAlreadyDone(score: number, total: number, streak: number): void {
     </div>
   `;
   overlay.querySelector('#dailyDoneClose')?.addEventListener('click', closeDaily);
+  bindSyncControl();
 }
 
 function formatDate(dateStr: string): string {
