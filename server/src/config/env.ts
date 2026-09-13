@@ -137,6 +137,12 @@ export function loadConfig(
     throw new Error('OBSIDIAN_BRIDGE_TOKEN is required when the hosted bridge is enabled');
   }
 
+  // Without an owner identity the server starts happily and then rejects every
+  // bridge authentication and Journey request, so fail at startup instead.
+  if (bridgeEnabled && !env.OBSIDIAN_OWNER_EMAIL) {
+    throw new Error('OBSIDIAN_OWNER_EMAIL is required when the hosted bridge is enabled');
+  }
+
   if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
     throw new Error('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together');
   }

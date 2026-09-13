@@ -614,11 +614,16 @@ describe('createSyncRepository', () => {
         return { rows: [{ ...pendingJob, state: 'claimed', lease_id: 'lease-1' }] };
       }
       if (text.includes('INSERT INTO journey_projections')) return { rows: [{ revision: sha }] };
+      if (text.includes("SET state = 'synced'")) {
+        return {
+          rows: [{ ...pendingJob, state: 'synced', completed_at: '2026-09-12T00:01:00.000Z' }],
+        };
+      }
       return undefined;
     });
     const projection = validProjection();
 
-    await repo.recordInboundProjection({
+    const result = await repo.recordInboundProjection({
       ownerId: 'owner-1',
       vaultId: 'vault-main',
       jobId: 'job-1',
@@ -639,6 +644,11 @@ describe('createSyncRepository', () => {
       JSON.stringify({ jobId: 'job-1', vaultId: 'vault-main', revision: sha }),
     ]);
     expect(JSON.stringify(audit?.values)).not.toContain('Review virtual networks');
+    // The job now finishes inside the same transaction. Returning it still
+    // `claimed` with its lease held made the endpoint impossible to follow with a
+    // completion: the revision just saved fails that completion's
+    // compare-and-swap, so the only outcome was a spurious conflict.
+    expect(result).toMatchObject({ jobId: 'job-1', state: 'synced' });
   });
 
   it('captures the current projection revision when a mutation has no explicit expectation', async () => {

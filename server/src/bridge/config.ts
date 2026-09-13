@@ -14,10 +14,17 @@ export interface BridgeConfig {
   vaultPath: string;
   /** The single hosted vault identity the bridge synchronizes. */
   vaultId: string;
+  /**
+   * The time zone that decides which `Daily/YYYY-MM-DD.md` the bridge reads and
+   * writes. It must match the server's `APP_TIME_ZONE`, or a deployment in
+   * another zone syncs the wrong day's note.
+   */
+  timeZone: string;
 }
 
 const SAFE_VAULT_ID = /^[a-z][a-z0-9_-]{2,63}$/;
 export const DEFAULT_VAULT_ID = 'vault-main';
+export const DEFAULT_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 export const BRIDGE_PATH = '/api/v1/journey/bridge';
 
 /** The WebSocket endpoint the bridge holds open; the token travels only in headers. */
@@ -71,5 +78,8 @@ export function loadBridgeConfig(
     token,
     vaultPath,
     vaultId,
+    // Deliberately the same variable the server reads for Daily, so one name
+    // means one concept across both processes.
+    timeZone: value('APP_TIME_ZONE') ?? DEFAULT_TIME_ZONE,
   };
 }

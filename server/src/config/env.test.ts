@@ -104,11 +104,24 @@ describe('loadConfig', () => {
     ).toThrow(/OBSIDIAN_BRIDGE_TOKEN/);
   });
 
+  it('requires an owner identity when hosted sync is enabled', () => {
+    // Without it the server boots and then rejects every bridge authentication
+    // and Journey request, so the failure belongs at startup.
+    expect(() =>
+      loadConfig({
+        ...valid,
+        OBSIDIAN_BRIDGE_ENABLED: 'true',
+        OBSIDIAN_BRIDGE_TOKEN: 'c'.repeat(48),
+      }),
+    ).toThrow(/OBSIDIAN_OWNER_EMAIL/);
+  });
+
   it('accepts an explicit bridge credential and vault identity', () => {
     const config = loadConfig({
       ...valid,
       OBSIDIAN_BRIDGE_ENABLED: 'true',
       OBSIDIAN_BRIDGE_TOKEN: 'c'.repeat(48),
+      OBSIDIAN_OWNER_EMAIL: 'owner@example.test',
       OBSIDIAN_VAULT_ID: 'hehe-vault',
     });
 

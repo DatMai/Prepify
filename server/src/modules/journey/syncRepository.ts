@@ -682,13 +682,32 @@ export function createSyncRepository(deps: {
             actualRevision,
           });
         }
+        // Recording an inbound projection finishes the job in the same
+        // transaction. A job returned while still `claimed` with its lease held
+        // cannot be followed by a completion: the freshly saved revision fails
+        // that completion's compare-and-swap, so the only way out was a spurious
+        // conflict. `/complete` remains the canonical path the bridge uses; this
+        // one is now consistent for any other caller.
+        const { rows } = await tx<JobRow>(
+          `UPDATE journey_sync_jobs
+              SET state = 'synced', result_revision = $4, completed_at = NOW(),
+                  lease_expires_at = NULL, updated_at = NOW()
+            WHERE owner_id = $1 AND id = $2 AND state = 'claimed' AND lease_id = $3
+          RETURNING ${JOB_COLUMNS}`,
+          [input.ownerId, input.jobId, input.leaseId, input.revision],
+        );
+        const completedRow = rows[0];
+        if (!completedRow) {
+          throw new Error('claimed sync job disappeared during projection recording');
+        }
+        const completed = mapJob(completedRow);
         await insertAudit(tx, {
           ownerId: input.ownerId,
           jobId: input.jobId,
           eventType: 'projection_recorded',
           details: { jobId: input.jobId, vaultId: input.vaultId, revision: input.revision },
         });
-        return job;
+        return completed;
       });
     },
   };

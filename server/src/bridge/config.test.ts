@@ -9,7 +9,7 @@ describe('loadBridgeConfig', () => {
     OBSIDIAN_VAULT_ID: 'vault-main',
   };
 
-  it('parses the four bridge environment variables', () => {
+  it('parses the bridge environment variables', () => {
     const config = loadBridgeConfig(base);
 
     expect(config).toEqual({
@@ -17,7 +17,18 @@ describe('loadBridgeConfig', () => {
       token: 'bridge-token-0123456789abcdef0123456789',
       vaultPath: '/Users/owner/second-brain',
       vaultId: 'vault-main',
+      timeZone: 'Asia/Ho_Chi_Minh',
     });
+  });
+
+  it('takes the Daily time zone from the same variable the server reads', () => {
+    // The bridge decides which Daily/YYYY-MM-DD.md it touches, so it must follow
+    // the server's APP_TIME_ZONE. Hardcoding one zone silently syncs the wrong
+    // day's note in any other deployment.
+    expect(loadBridgeConfig({ ...base, APP_TIME_ZONE: 'Europe/Paris' }).timeZone).toBe(
+      'Europe/Paris',
+    );
+    expect(loadBridgeConfig({ ...base, APP_TIME_ZONE: '   ' }).timeZone).toBe('Asia/Ho_Chi_Minh');
   });
 
   it('strips a trailing slash from the API URL', () => {

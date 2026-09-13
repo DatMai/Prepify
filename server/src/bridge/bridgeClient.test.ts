@@ -155,6 +155,7 @@ async function setup(
     token: TOKEN,
     vaultPath: root,
     vaultId: 'vault-main',
+    timeZone: 'Asia/Ho_Chi_Minh',
   };
   const handle = runBridge(config, {
     http,
@@ -529,6 +530,7 @@ describe('bridge lifecycle', () => {
       token: TOKEN,
       vaultPath: '/tmp/irrelevant',
       vaultId: 'vault-main',
+      timeZone: 'Asia/Ho_Chi_Minh',
     };
     const noopVault: BridgeVault = {
       getJourney: async () => {

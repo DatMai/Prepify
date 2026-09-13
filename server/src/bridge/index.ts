@@ -5,8 +5,6 @@ import { loadBridgeConfig } from './config';
 import { runBridge, type BridgeHttp, type BridgeWebSocket } from './bridgeClient';
 import { createObsidianVault } from '../services/obsidianVault';
 
-const BRIDGE_TIME_ZONE = 'Asia/Ho_Chi_Minh';
-
 // This entry compiles to server/dist/bridge/index.js (server/src/bridge in
 // dev), so the vault-owned secret files live two directories up in server/.
 // Secrets are only read from disk; they are never printed or embedded.
@@ -35,7 +33,7 @@ async function main(): Promise<void> {
   const vault = createObsidianVault({
     enabled: true,
     vaultPath: config.vaultPath,
-    timeZone: BRIDGE_TIME_ZONE,
+    timeZone: config.timeZone,
   });
 
   const http: BridgeHttp = {
