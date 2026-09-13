@@ -12,6 +12,11 @@ export interface StartServerDependencies {
   host: string;
   port: number;
   logger: Logger;
+  /**
+   * Closes protocols attached to the HTTP server (for example WebSocket
+   * sockets) before the server stops accepting connections.
+   */
+  beforeClose?: () => Promise<void> | void;
   closePool(): Promise<void>;
 }
 
@@ -38,6 +43,7 @@ export async function startServer({
   host,
   port,
   logger,
+  beforeClose,
   closePool,
 }: StartServerDependencies): Promise<ServerRuntime> {
   const server = await new Promise<Server>((resolve, reject) => {
@@ -56,6 +62,7 @@ export async function startServer({
     server,
     stop() {
       stopPromise ??= (async () => {
+        await beforeClose?.();
         await closeHttpServer(server);
         await closePool();
       })();

@@ -24,6 +24,7 @@ import { createOAuthFlowStore } from './modules/identity/oauthFlowStore';
 import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
+import { createBridgeAuthenticator, createBridgeHub } from './modules/journey/bridgeHub';
 import { createSyncRepository } from './modules/journey/syncRepository';
 import type { JourneyQuery, JourneyTransaction } from './modules/journey/syncTypes';
 import leaderboardRouter from './routes/leaderboard';
@@ -47,12 +48,6 @@ import { createMailer } from './utils/email';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local'), override: true, quiet: true });
-
-/**
- * Interim identity for the single hosted vault. The bridge task replaces this
- * with the configured bridge owner/vault identity.
- */
-const JOURNEY_VAULT_ID = 'vault-main';
 
 function registerRoutes(
   app: Express,
@@ -180,6 +175,30 @@ async function main(): Promise<void> {
     query: pool.query.bind(pool) as unknown as JourneyQuery,
     withTransaction: withJourneyTransaction,
   });
+  // The hub is built before the routers so they can close over its notifier and
+  // connectivity seams; it is attached to the HTTP server only after listening.
+  const bridgeToken = config.obsidian.bridge.enabled ? config.obsidian.bridge.token : undefined;
+  const bridgeHub = createBridgeHub({
+    authenticate: bridgeToken
+      ? createBridgeAuthenticator({
+          token: bridgeToken,
+          resolveOwnerId: async () => {
+            const ownerEmail = config.obsidian.ownerEmail;
+            if (!ownerEmail) return null;
+            const owner = await userRepository.findByEmail(ownerEmail);
+            return owner?.id ?? null;
+          },
+        })
+      : () => null,
+    loadPending: async (ownerId) => {
+      const jobs = await syncRepository.listPending({
+        ownerId,
+        vaultId: config.obsidian.vaultId,
+      });
+      return jobs.map((job) => job.jobId);
+    },
+    logger,
+  });
   const dailyRoutes = createDailyRouter({
     query: pool.query.bind(pool) as unknown as DailyQuery,
     repo: libraryRepository,
@@ -198,7 +217,7 @@ async function main(): Promise<void> {
       });
       await scoped.enqueueMutation({
         ownerId: input.ownerId,
-        vaultId: JOURNEY_VAULT_ID,
+        vaultId: config.obsidian.vaultId,
         idempotencyKey: input.idempotencyKey,
         operation: 'daily_summary',
         payload: { date: input.date, score: input.score, total: input.total },
@@ -244,8 +263,10 @@ async function main(): Promise<void> {
           ownerEmail: config.obsidian.ownerEmail,
           sync: syncRepository,
           query: pool.query.bind(pool) as unknown as JourneyQuery,
-          vaultId: JOURNEY_VAULT_ID,
+          vaultId: config.obsidian.vaultId,
           timeZone: config.obsidian.timeZone,
+          notifyOwner: (ownerId) => bridgeHub.notifyOwner(ownerId),
+          isBridgeConnected: (ownerId) => bridgeHub.isConnected(ownerId),
         },
   );
   initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
@@ -293,8 +314,12 @@ async function main(): Promise<void> {
       host: config.host,
       port: config.port,
       logger,
+      beforeClose: () => bridgeHub.close(),
       closePool: async () => pool.end(),
     });
+    // Attach only once the server is listening so upgrade handling starts after
+    // the routers already hold the hub's notifier and connectivity seams.
+    bridgeHub.attach(runtime.server);
 
     const stop = (): void => {
       void runtime.stop().catch((error: unknown) => {

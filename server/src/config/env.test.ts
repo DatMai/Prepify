@@ -79,4 +79,46 @@ describe('loadConfig', () => {
       }),
     ).toThrow(/Obsidian sync requires a loopback HOST/);
   });
+
+  it('leaves the hosted bridge disabled without a credential by default', () => {
+    const config = loadConfig(valid);
+
+    expect(config.obsidian.bridge.enabled).toBe(false);
+    expect(config.obsidian.bridge.token).toBeUndefined();
+    expect(config.obsidian.vaultId).toBe('vault-main');
+  });
+
+  it('requires a bridge credential when hosted sync is enabled', () => {
+    expect(() => loadConfig({ ...valid, OBSIDIAN_BRIDGE_ENABLED: 'true' })).toThrow(
+      /OBSIDIAN_BRIDGE_TOKEN/,
+    );
+  });
+
+  it('rejects a bridge credential shorter than 32 characters', () => {
+    expect(() =>
+      loadConfig({
+        ...valid,
+        OBSIDIAN_BRIDGE_ENABLED: 'true',
+        OBSIDIAN_BRIDGE_TOKEN: 'short-bridge-credential',
+      }),
+    ).toThrow(/OBSIDIAN_BRIDGE_TOKEN/);
+  });
+
+  it('accepts an explicit bridge credential and vault identity', () => {
+    const config = loadConfig({
+      ...valid,
+      OBSIDIAN_BRIDGE_ENABLED: 'true',
+      OBSIDIAN_BRIDGE_TOKEN: 'c'.repeat(48),
+      OBSIDIAN_VAULT_ID: 'hehe-vault',
+    });
+
+    expect(config.obsidian.bridge).toEqual({ enabled: true, token: 'c'.repeat(48) });
+    expect(config.obsidian.vaultId).toBe('hehe-vault');
+  });
+
+  it('rejects an unsafe vault identity', () => {
+    expect(() => loadConfig({ ...valid, OBSIDIAN_VAULT_ID: '../vault' })).toThrow(
+      /OBSIDIAN_VAULT_ID/,
+    );
+  });
 });
