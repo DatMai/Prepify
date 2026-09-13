@@ -112,11 +112,6 @@ export const en: Record<string, string> = {
   'journey.addEvidence': 'Write to Daily',
   'journey.journalTitle': 'End-of-day journal',
   'journey.journalHint': 'Write in English; grammar can be corrected later in Obsidian.',
-  'journey.noteTitle': "The day's full note",
-  'journey.noteHint':
-    'Exactly as in Obsidian, read-only — including sub-sections and recall blocks.',
-  'journey.noNote': "Today's note has no content yet.",
-  'journey.noteToggle': 'Expand or collapse this block',
   'journey.journal.done': 'What did I actually finish?',
   'journey.journal.blocked': 'What blocked me?',
   'journey.journal.next': 'What is the next concrete action?',
