@@ -1,6 +1,7 @@
 import type {
   ClaimSyncJobInput,
   CompleteSyncJobInput,
+  DailyBlockProjection,
   EnqueueMutationInput,
   FailSyncJobInput,
   JourneyProjection,
@@ -139,6 +140,82 @@ function isStringArray(value: unknown, maxItems: number, maxLength: number): val
   );
 }
 
+/**
+ * Block text is display-only, so it only has to be single-line and bounded; the
+ * stricter `isSafeText` rules exist for values spliced back into the note.
+ */
+function isDisplayText(value: unknown, maxLength: number): value is string {
+  return typeof value === 'string' && value.length <= maxLength && !/[\r\n]/.test(value);
+}
+
+const MAX_BLOCKS = 500;
+const MAX_BLOCK_ITEMS = 200;
+
+function isBlock(value: unknown): value is DailyBlockProjection {
+  if (!isRecord(value)) return false;
+
+  if (value.kind === 'heading') {
+    return (
+      hasKeys(value, ['kind', 'level', 'text']) &&
+      hasOnlyKeys(value, ['kind', 'level', 'text']) &&
+      Number.isInteger(value.level) &&
+      (value.level as number) >= 1 &&
+      (value.level as number) <= 6 &&
+      isDisplayText(value.text, 500)
+    );
+  }
+
+  if (value.kind === 'paragraph') {
+    return (
+      hasKeys(value, ['kind', 'text']) &&
+      hasOnlyKeys(value, ['kind', 'text']) &&
+      isDisplayText(value.text, 5000)
+    );
+  }
+
+  if (value.kind === 'list') {
+    if (
+      !hasKeys(value, ['kind', 'ordered', 'items']) ||
+      !hasOnlyKeys(value, ['kind', 'ordered', 'items']) ||
+      typeof value.ordered !== 'boolean' ||
+      !Array.isArray(value.items) ||
+      value.items.length > MAX_BLOCK_ITEMS
+    ) {
+      return false;
+    }
+    return value.items.every(
+      (item) =>
+        isRecord(item) &&
+        hasKeys(item, ['text', 'checked']) &&
+        hasOnlyKeys(item, ['text', 'checked']) &&
+        isDisplayText(item.text, 2000) &&
+        (typeof item.checked === 'boolean' || item.checked === null),
+    );
+  }
+
+  if (value.kind === 'quote') {
+    if (
+      !hasKeys(value, ['kind', 'label', 'title', 'lines', 'collapsed']) ||
+      !hasOnlyKeys(value, ['kind', 'label', 'title', 'lines', 'collapsed']) ||
+      typeof value.label !== 'string' ||
+      typeof value.collapsed !== 'boolean' ||
+      !isDisplayText(value.title, 500) ||
+      !Array.isArray(value.lines) ||
+      value.lines.length > MAX_BLOCK_ITEMS
+    ) {
+      return false;
+    }
+    if (value.label !== '' && !/^[a-z][a-z0-9-]{0,31}$/.test(value.label)) return false;
+    return value.lines.every((line) => isDisplayText(line, 5000));
+  }
+
+  return false;
+}
+
+function isBlockArray(value: unknown): value is DailyBlockProjection[] {
+  return Array.isArray(value) && value.length <= MAX_BLOCKS && value.every(isBlock);
+}
+
 function assertProjection(projection: unknown): asserts projection is JourneyProjectionData {
   const invalid = (): never => {
     throw new Error('projection must match the allowlisted schema');
@@ -152,8 +229,8 @@ function assertProjection(projection: unknown): asserts projection is JourneyPro
   const daily = (projection as Record<string, unknown>).daily;
   if (
     !isRecord(daily) ||
-    !hasKeys(daily, ['date', 'stage', 'tasks', 'evidence', 'journal']) ||
-    !hasOnlyKeys(daily, ['date', 'stage', 'tasks', 'evidence', 'journal']) ||
+    !hasKeys(daily, ['date', 'stage', 'tasks', 'evidence', 'journal', 'blocks']) ||
+    !hasOnlyKeys(daily, ['date', 'stage', 'tasks', 'evidence', 'journal', 'blocks']) ||
     !isDate(daily.date) ||
     !isSafeText(daily.stage, 160) ||
     !isStringArray(daily.evidence, 100, 1000) ||
@@ -164,7 +241,8 @@ function assertProjection(projection: unknown): asserts projection is JourneyPro
     !isSafeText(daily.journal.blocked, 5000) ||
     !isSafeText(daily.journal.next, 5000) ||
     !Array.isArray(daily.tasks) ||
-    daily.tasks.length > 200
+    daily.tasks.length > 200 ||
+    !isBlockArray(daily.blocks)
   ) {
     invalid();
   }
@@ -175,7 +253,7 @@ function assertProjection(projection: unknown): asserts projection is JourneyPro
       !hasOnlyKeys(task, ['id', 'checked', 'text', 'tags']) ||
       !isIdentifier(task.id) ||
       typeof task.checked !== 'boolean' ||
-      !isSafeText(task.text, 1000) ||
+      !isDisplayText(task.text, 2000) ||
       !isStringArray(task.tags, 32, 80)
     ) {
       invalid();

@@ -1,8 +1,11 @@
+import { AlertTriangle, ArrowLeft, ChevronDown, Cloud, LockKeyhole, RefreshCw } from 'lucide';
 import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
-import type { JourneyJournal, JourneyTask } from './types';
+import { icon } from '../ui/icon';
+import { groupTaskNotes } from './noteGroups';
+import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from './types';
 import {
   SYNC_STATE_KEYS,
   canMutate,
@@ -31,10 +34,19 @@ export interface JourneyViewModel {
   tasks: JourneyTask[];
   evidence: string[];
   journal: JourneyJournal;
+  blocks: JourneyBlock[];
   obsidianUri: string | null;
   mtimeMs: number | null;
   /** True when the data came from the hosted projection rather than the local vault. */
   hosted: boolean;
+  /**
+   * Whether vault-backed writes can land. Hosted mode depends on the bridge
+   * being online; local mode writes to the vault directly, so it is always
+   * writable and has no sync concept at all.
+   */
+  writable: boolean;
+  /** ISO timestamp the hosted projection was last refreshed, when known. */
+  projectionUpdatedAt: string | null;
 }
 
 export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyViewModel | null {
@@ -48,9 +60,12 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
       tasks: daily.tasks,
       evidence: daily.evidence,
       journal: daily.journal,
+      blocks: daily.blocks ?? [],
       obsidianUri: null,
       mtimeMs: null,
       hosted: true,
+      writable: response.bridgeConnected ?? false,
+      projectionUpdatedAt: response.updatedAt ?? null,
     };
   }
 
@@ -61,9 +76,23 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
     tasks: response.tasks,
     evidence: response.evidence,
     journal: response.journal,
+    blocks: response.blocks ?? [],
     obsidianUri: response.obsidianUri,
     mtimeMs: response.mtimeMs,
     hosted: false,
+    writable: true,
+    projectionUpdatedAt: null,
+  };
+}
+
+/** A local-vault snapshot: the API already wrote it, so it is never stale. */
+function fromVaultSnapshot(snapshot: JourneySnapshot): JourneyViewModel {
+  return {
+    ...snapshot,
+    blocks: snapshot.blocks ?? [],
+    hosted: false,
+    writable: true,
+    projectionUpdatedAt: null,
   };
 }
 
@@ -72,7 +101,6 @@ interface JourneyDrafts {
   quickEvidence: string;
   journal: JourneyJournal | null;
 }
-
 let overlay: HTMLDivElement | null = null;
 let current: JourneyViewModel | null = null;
 let lastError: ApiError | null = null;
@@ -160,10 +188,10 @@ export async function openJourney(updateHistory = true): Promise<void> {
   await loadJourney();
 }
 
-export function closeJourney(): void {
+export function closeJourney(updateHistory = true): void {
   captureDrafts();
   hideJourney();
-  if (window.location.hash === '#journey') window.history.back();
+  if (updateHistory && window.location.hash === '#journey') window.history.back();
 }
 
 function hideJourney(): void {
@@ -185,16 +213,24 @@ export function repaintJourney(): void {
 async function loadJourney(): Promise<void> {
   loading = true;
   lastError = null;
+  console.debug('[journey] loading started');
   renderLoading();
 
   try {
     const previousDate = current?.date;
     const loaded = normalizeJourneyToday(await api.journey.today());
+
     if (!loaded) {
       current = null;
       expandedTaskId = null;
       syncTimedOut = false;
-      syncStatus = { state: 'pending', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
+      // Nothing has been synchronized yet, so the next step is the Sync button.
+      // Whether the bridge is reachable is reported once that job exists.
+      syncStatus = {
+        state: 'pending',
+        jobId: null,
+        lastSyncedAt: syncStatus.lastSyncedAt,
+      };
       setAvailability('idle');
       renderEmpty();
       return;
@@ -211,15 +247,28 @@ async function loadJourney(): Promise<void> {
       expandedTaskId = loaded.tasks.find((task) => !task.checked)?.id ?? null;
     }
     syncTimedOut = false;
+    // Reconcile with the server instead of assuming the bridge is away: a
+    // projection that is already current is `synced`, so entering the page
+    // never locks the controls the user can actually use. A durable conflict
+    // or failure survives the reload — it is not a connectivity problem.
+    const durable = syncStatus.state === 'conflict' || syncStatus.state === 'failed';
+    syncStatus = {
+      state: durable ? syncStatus.state : loaded.writable ? 'synced' : 'bridge_offline',
+      jobId: null,
+      lastSyncedAt: loaded.projectionUpdatedAt ?? syncStatus.lastSyncedAt,
+    };
     setAvailability('ok');
     renderJourney(current);
+    console.debug('[journey] loading completed', { date: current.date });
   } catch (error: unknown) {
+    console.error('[journey] loading failed', error);
     current = null;
     lastError = asApiError(error);
     setAvailability('error');
     renderError(lastError);
   } finally {
     loading = false;
+    console.debug('[journey] loading settled');
   }
 }
 
@@ -229,9 +278,10 @@ function shell(title: string, subtitle?: string): { panel: HTMLElement; body: HT
   panel.setAttribute('aria-label', title);
 
   const nav = element('nav', 'journey-nav');
-  const close = actionButton('←', 'journey-back-btn');
+  const close = actionButton('', 'journey-back-btn');
+  close.appendChild(icon(ArrowLeft));
   close.setAttribute('aria-label', t('journey.back'));
-  close.addEventListener('click', closeJourney);
+  close.addEventListener('click', () => closeJourney());
   nav.appendChild(close);
 
   const brand = element('div', 'journey-brand');
@@ -273,7 +323,9 @@ function renderGuest(): void {
   setAvailability('idle');
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state');
-  state.appendChild(element('div', 'journey-state-icon', '🔒'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(LockKeyhole));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', t('journey.loginTitle')));
   state.appendChild(element('p', '', t('journey.loginBody')));
   const login = actionButton(t('journey.login'), 'journey-btn-primary');
@@ -288,7 +340,9 @@ function renderGuest(): void {
 function renderError(error: ApiError): void {
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state journey-state-error');
-  state.appendChild(element('div', 'journey-state-icon', '⚠'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(AlertTriangle));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', errorTitle(error)));
   state.appendChild(element('p', '', errorMessage(error)));
   const retry = actionButton(t('journey.retry'), 'journey-btn-primary');
@@ -304,7 +358,9 @@ function renderError(error: ApiError): void {
 function renderEmpty(): void {
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state journey-empty-state');
-  state.appendChild(element('div', 'journey-state-icon', '☁'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(Cloud));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', t('journey.emptyTitle')));
   state.appendChild(element('p', '', t('journey.emptyBody')));
   state.appendChild(renderSyncControl());
@@ -313,14 +369,27 @@ function renderEmpty(): void {
 }
 
 function renderSyncControl(): HTMLElement {
+  // Local vault mode writes through the API itself, so there is nothing to
+  // synchronize and the control would only offer a request the server 404s.
+  if (current && !current.hosted) {
+    const local = element('div', 'journey-sync-control is-local');
+    local.hidden = true;
+    return local;
+  }
+
   const control = element('div', 'journey-sync-control');
   control.dataset.state = syncStatus.state;
 
   const button = actionButton(t('sync.button'), 'journey-sync-btn');
+  button.prepend(icon(RefreshCw, { className: 'journey-sync-btn-icon' }));
   button.id = 'journeySyncBtn';
   button.addEventListener('click', () => void runSync());
 
+  const toolbar = element('div', 'journey-sync-toolbar');
   const meta = element('div', 'journey-sync-meta');
+  const indicator = element('span', 'journey-sync-indicator');
+  indicator.setAttribute('aria-hidden', 'true');
+  meta.appendChild(indicator);
   const state = element('span', 'journey-sync-state', t(SYNC_STATE_KEYS[syncStatus.state]));
   state.id = 'journeySyncState';
   state.setAttribute('role', 'status');
@@ -335,8 +404,12 @@ function renderSyncControl(): HTMLElement {
   retry.hidden = !isRetryable(syncStatus.state);
   retry.addEventListener('click', () => void runSync());
 
+  const actions = element('div', 'journey-sync-actions');
+  actions.append(button, retry);
+  toolbar.append(meta, actions);
+
   const hint = element('p', 'journey-sync-hint', syncHintLabel(syncStatus, syncTimedOut, t));
-  control.append(button, meta, retry, hint);
+  control.append(toolbar, hint);
   return control;
 }
 
@@ -419,6 +492,7 @@ function renderJourney(data: JourneyViewModel): void {
   summary.appendChild(progress);
 
   const reload = actionButton(t('journey.reload'), 'journey-icon-btn journey-reload-btn');
+  reload.prepend(icon(RefreshCw));
   reload.addEventListener('click', () => {
     captureDrafts();
     void loadJourney();
@@ -449,7 +523,8 @@ function renderJourney(data: JourneyViewModel): void {
 
   body.appendChild(sectionTitle(t('journey.studyTitle'), t('journey.studyHint')));
   const tasks = element('div', 'journey-tasks');
-  data.tasks.forEach((task, index) => tasks.appendChild(renderTask(task, index)));
+  const taskNotes = groupTaskNotes(data.blocks, data.tasks);
+  data.tasks.forEach((task, index) => tasks.appendChild(renderTask(task, index, taskNotes)));
   if (data.tasks.length === 0)
     tasks.appendChild(element('p', 'journey-empty', t('journey.noTasks')));
   body.appendChild(tasks);
@@ -511,7 +586,11 @@ function sectionTitle(title: string, hint: string): HTMLElement {
   return wrapper;
 }
 
-function renderTask(task: JourneyTask, index: number): HTMLElement {
+function renderTask(
+  task: JourneyTask,
+  index: number,
+  taskNotes: Map<string, JourneyBlock[]>,
+): HTMLElement {
   const isExpanded = expandedTaskId === task.id;
   const card = element(
     'article',
@@ -551,7 +630,9 @@ function renderTask(task: JourneyTask, index: number): HTMLElement {
       task.checked ? t('journey.statusDone') : t('journey.statusOpen'),
     ),
   );
-  state.appendChild(element('span', 'journey-task-chevron', '⌄'));
+  const chevron = element('span', 'journey-task-chevron');
+  chevron.appendChild(icon(ChevronDown));
+  state.appendChild(chevron);
   top.appendChild(state);
   const toggle = (): void => {
     captureDrafts();
@@ -583,6 +664,11 @@ function renderTask(task: JourneyTask, index: number): HTMLElement {
     });
     taskBody.appendChild(steps);
   }
+
+  // What the owner wrote under this task in the Daily note: the recall
+  // questions and any sub-heading, shown as-is instead of being dropped.
+  const notes = taskNotes.get(task.id);
+  if (notes) taskBody.appendChild(renderNoteBlocks(notes));
 
   if (task.checked) {
     const reopen = actionButton(t('journey.reopen'), 'journey-link-btn');
@@ -647,7 +733,7 @@ function taskPresentation(task: JourneyTask): TaskPresentation {
 }
 
 function appendInlineContent(target: HTMLElement, value: string): void {
-  const tokenPattern = /(\[[^\]]+\]\(https?:\/\/[^)]+\)|\[\[[^\]]+\]\]|`[^`]+`)/g;
+  const tokenPattern = /(\[[^\]]+\]\(https?:\/\/[^)]+\)|\[\[[^\]]+\]\]|`[^`]+`|\*\*[^*]+\*\*)/g;
   let cursor = 0;
 
   for (const match of value.matchAll(tokenPattern)) {
@@ -664,6 +750,8 @@ function appendInlineContent(target: HTMLElement, value: string): void {
       target.appendChild(link);
     } else if (token.startsWith('[[')) {
       target.appendChild(element('span', 'journey-wikilink', token.slice(2, -2)));
+    } else if (token.startsWith('**')) {
+      target.appendChild(element('strong', '', token.slice(2, -2)));
     } else {
       target.appendChild(element('code', '', token.slice(1, -1)));
     }
@@ -671,6 +759,48 @@ function appendInlineContent(target: HTMLElement, value: string): void {
   }
 
   if (cursor < value.length) target.appendChild(document.createTextNode(value.slice(cursor)));
+}
+
+/** Read-only blocks the owner wrote in the Daily note under a task. */
+function renderNoteBlocks(blocks: JourneyBlock[]): HTMLElement {
+  const wrapper = element('div', 'journey-task-notes');
+
+  blocks.forEach((block) => {
+    if (block.kind === 'heading') {
+      const heading = element('p', 'journey-task-note-heading');
+      appendInlineContent(heading, block.text);
+      wrapper.appendChild(heading);
+      return;
+    }
+
+    if (block.kind === 'paragraph') {
+      const paragraph = element('p', 'journey-task-note-text');
+      appendInlineContent(paragraph, block.text);
+      wrapper.appendChild(paragraph);
+      return;
+    }
+
+    if (block.kind === 'list') {
+      const list = element(block.ordered ? 'ol' : 'ul', 'journey-task-note-list');
+      block.items.forEach((item) => {
+        const row = element('li');
+        appendInlineContent(row, item.text);
+        list.appendChild(row);
+      });
+      wrapper.appendChild(list);
+      return;
+    }
+
+    const quote = element('blockquote', 'journey-task-note-quote');
+    block.lines.forEach((line) => {
+      const paragraph = element('p');
+      appendInlineContent(paragraph, line);
+      quote.appendChild(paragraph);
+    });
+    wrapper.appendChild(quote);
+  });
+
+  return wrapper;
 }
 
 function renderReview(data: JourneyViewModel): HTMLElement {
@@ -683,6 +813,7 @@ function renderReview(data: JourneyViewModel): HTMLElement {
 
   const taskSection = reviewSection(t('journey.reviewTasks'));
   const taskList = element('div', 'journey-review-tasks');
+  const taskNotes = groupTaskNotes(data.blocks, data.tasks);
   data.tasks.forEach((task, index) => {
     const presentation = taskPresentation(task);
     const item = element('article', `journey-review-task${task.checked ? ' is-done' : ''}`);
@@ -709,6 +840,8 @@ function renderReview(data: JourneyViewModel): HTMLElement {
       });
       item.appendChild(steps);
     }
+    const notes = taskNotes.get(task.id);
+    if (notes) item.appendChild(renderNoteBlocks(notes));
     if (task.tags.length > 0) {
       const tags = element('div', 'journey-tags');
       task.tags.forEach((tag) => tags.appendChild(element('span', '', tag)));
@@ -847,7 +980,7 @@ async function recordTask(
       const updated = partial
         ? await api.journey.addEvidence(evidence, current.revision, nextEventId(key))
         : await api.journey.updateTask(task.id, true, evidence, current.revision, nextEventId(key));
-      current = { ...updated, hosted: false };
+      current = fromVaultSnapshot(updated);
       delete drafts.taskEvidence[task.id];
       finishEvent(key);
     },
@@ -859,16 +992,9 @@ async function reopenTask(task: JourneyTask): Promise<void> {
   const key = `reopen:${task.id}`;
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.updateTask(
-        task.id,
-        false,
-        undefined,
-        current.revision,
-        nextEventId(key),
-      )),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(
+      await api.journey.updateTask(task.id, false, undefined, current.revision, nextEventId(key)),
+    );
     finishEvent(key);
   }, t('journey.taskReopened'));
 }
@@ -884,10 +1010,9 @@ async function addQuickEvidence(input: HTMLTextAreaElement): Promise<void> {
   const key = 'quick-evidence';
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.addEvidence(evidence, current.revision, nextEventId(key))),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(
+      await api.journey.addEvidence(evidence, current.revision, nextEventId(key)),
+    );
     drafts.quickEvidence = '';
     finishEvent(key);
   }, t('journey.evidenceSaved'));
@@ -902,10 +1027,7 @@ async function saveJournal(): Promise<void> {
 
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.saveJournal(journal, current.revision)),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(await api.journey.saveJournal(journal, current.revision));
     drafts.journal = null;
   }, t('journey.journalSaved'));
 }

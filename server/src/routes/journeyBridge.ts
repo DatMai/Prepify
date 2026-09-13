@@ -53,6 +53,18 @@ function isSafeText(value: string, maximum: number): boolean {
   );
 }
 
+/**
+ * Block and task text is display-only: the app never sends either back, so it
+ * only has to be single-line and bounded. The stricter `isSafeText` rules stay
+ * for the values the bridge splices into the note (evidence, journal fields).
+ */
+function isDisplayText(value: string, maximum: number): boolean {
+  return value.length <= maximum && !/[\r\n]/.test(value);
+}
+
+const singleLine = (maximum: number, message: string) =>
+  z.string().refine((value) => isDisplayText(value, maximum), message);
+
 /** Mirrors `journey_json_is_tag` in migration 013. */
 const TAG = /^#[^#/\\*`<>\s]{1,80}$/;
 
@@ -111,10 +123,50 @@ const taskSchema = z
   .object({
     id: z.string().regex(SAFE_IDENTIFIER, 'task id must be a safe identifier'),
     checked: z.boolean(),
-    text: z.string().refine((value) => isSafeText(value, 1_000), 'task text must be safe text'),
+    text: singleLine(2_000, 'task text must be single-line text'),
     tags: z.array(z.string().regex(TAG, 'tag must be a safe tag')).max(32),
   })
   .strict();
+
+const listItemSchema = z
+  .object({
+    text: singleLine(2_000, 'list item text must be single-line text'),
+    checked: z.boolean().nullable(),
+  })
+  .strict();
+
+/** Mirrors the block projection `journey_projection_is_safe` accepts. */
+const blockSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('heading'),
+      level: z.number().int().min(1).max(6),
+      text: singleLine(500, 'heading text must be single-line text'),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('paragraph'),
+      text: singleLine(5_000, 'paragraph text must be single-line text'),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('list'),
+      ordered: z.boolean(),
+      items: z.array(listItemSchema).max(200),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('quote'),
+      label: z.union([z.literal(''), z.string().regex(/^[a-z][a-z0-9-]{0,31}$/)]),
+      title: singleLine(500, 'callout title must be single-line text'),
+      lines: z.array(singleLine(5_000, 'quote line must be single-line text')).max(200),
+      collapsed: z.boolean(),
+    })
+    .strict(),
+]);
 
 const projectionSchema = z
   .object({
@@ -137,6 +189,7 @@ const projectionSchema = z
             next: z.string().refine((value) => isSafeText(value, 5_000), 'next must be safe text'),
           })
           .strict(),
+        blocks: z.array(blockSchema).max(500),
       })
       .strict(),
   })

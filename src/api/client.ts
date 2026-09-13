@@ -1,4 +1,4 @@
-import type { JourneyJournal, JourneySnapshot, JourneyTask } from '../journey/types';
+import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
 import type { FeedArticle } from '../feed/types';
 import type { ReviewQuality, ReviewSchedule } from '../review/scheduler';
@@ -102,20 +102,25 @@ export interface JourneyProjectionDaily {
   tasks: JourneyTask[];
   evidence: string[];
   journal: JourneyJournal;
+  blocks: JourneyBlock[];
 }
 
 /**
  * `GET /journey/today` answers differently per mode. Local vault mode returns
  * the `JourneySnapshot`; hosted mode returns the stored projection, or
- * `{ synced: false }` before the first successful synchronization.
+ * `{ synced: false }` before the first successful synchronization. Hosted
+ * answers carry `bridgeConnected` so the UI can reconcile on load instead of
+ * assuming the bridge is away.
  */
 export type JourneyTodayResponse =
   | JourneySnapshot
-  | { synced: false }
+  | { synced: false; bridgeConnected?: boolean }
   | {
       synced: true;
       date: string;
       revision: string;
+      updatedAt?: string;
+      bridgeConnected?: boolean;
       projection: { daily: JourneyProjectionDaily };
     };
 

@@ -3,7 +3,9 @@ import { auth } from '../state/auth';
 import { state } from '../state/progress';
 import { streakState } from '../state/streak';
 import { updateAuthBtn, doLogout } from './authModal';
+import { iconMarkup } from './icon';
 import { t } from '../i18n';
+import { X } from 'lucide';
 
 let overlay: HTMLElement | null = null;
 let onLogoutCb: (() => void) | null = null;
@@ -49,7 +51,7 @@ export function initProfileModal(onLogout: () => void): void {
 function buildProfileModal(): string {
   return `
     <div class="modal profile-modal">
-      <button class="modal-close" id="profileClose">✕</button>
+      <button class="modal-close" id="profileClose" aria-label="${t('review.close')}">${iconMarkup(X)}</button>
       <h2>${t('profile.title')}</h2>
 
       <div class="profile-header">

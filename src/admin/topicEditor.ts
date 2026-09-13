@@ -69,14 +69,25 @@ export async function reloadTopicDetail(): Promise<void> {
   const id = topicId;
   if (!id) return;
 
+  console.debug('[admin-content] topic loading', { topicId: id });
   await runAction(async () => {
-    detail = await api.libraryAdmin.getTopic(id);
+    const loaded = await api.libraryAdmin.getTopic(id);
+    // The editor may have been closed while the request was in flight. Do not
+    // let a stale response resurrect the editor or overwrite a newer topic.
+    if (topicId !== id) return;
+    detail = loaded;
     renderEditor();
+    console.debug('[admin-content] topic loaded', {
+      topicId: id,
+      sections: loaded.sections.length,
+    });
+  }).finally(() => {
+    console.debug('[admin-content] topic loading settled', { topicId: id });
   });
 }
 
 function renderEditor(): void {
-  if (!host) return;
+  if (!host || !topicId) return;
 
   let node = host.querySelector('.la-editor');
   if (!node) {
@@ -88,7 +99,7 @@ function renderEditor(): void {
   node.textContent = '';
 
   if (!detail) {
-    node.appendChild(element('p', 'la-empty', t('admin.loading')));
+    node.appendChild(element('p', 'la-empty admin-loading', t('admin.loading')));
     return;
   }
 

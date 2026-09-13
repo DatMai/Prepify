@@ -69,9 +69,9 @@ export async function openAdmin(updateHistory = true): Promise<void> {
   renderShell();
 }
 
-export function closeAdmin(): void {
+export function closeAdmin(updateHistory = true): void {
   hideAdmin();
-  if (window.location.hash === '#admin') window.history.back();
+  if (updateHistory && window.location.hash === '#admin') window.history.back();
 }
 
 function hideAdmin(): void {
@@ -114,7 +114,7 @@ function renderShell(): void {
   const nav = element('nav', 'admin-nav');
   const back = element('button', 'admin-back', t('admin.back'));
   back.type = 'button';
-  back.addEventListener('click', closeAdmin);
+  back.addEventListener('click', () => closeAdmin());
   nav.appendChild(back);
   panel.appendChild(nav);
 
@@ -175,12 +175,16 @@ function renderDashboardTab(body: HTMLElement): void {
 async function loadStats(): Promise<void> {
   if (loadingStats) return;
   loadingStats = true;
+  console.debug('[admin] stats loading started');
   try {
     stats = await api.admin.stats();
-  } catch {
+    console.debug('[admin] stats loading completed');
+  } catch (error) {
+    console.error('[admin] stats loading failed', error);
     stats = null;
   } finally {
     loadingStats = false;
+    console.debug('[admin] stats loading settled');
   }
   renderStats();
 }
@@ -236,6 +240,7 @@ function renderUsersTab(body: HTMLElement): void {
 async function loadUsers(reset: boolean): Promise<void> {
   if (loadingUsers) return;
   loadingUsers = true;
+  console.debug('[admin] users loading started', { reset, search });
   const root = document.getElementById('adminUsers');
   if (reset) {
     offset = 0;
@@ -249,10 +254,13 @@ async function loadUsers(reset: boolean): Promise<void> {
     users = reset ? result.items : [...users, ...result.items];
     offset += result.items.length;
     renderUsers();
-  } catch {
+    console.debug('[admin] users loading completed', { count: result.items.length });
+  } catch (error) {
+    console.error('[admin] users loading failed', error);
     if (root) root.innerHTML = '<p class="admin-error">' + t('admin.loadError') + '</p>';
   } finally {
     loadingUsers = false;
+    console.debug('[admin] users loading settled');
   }
 }
 

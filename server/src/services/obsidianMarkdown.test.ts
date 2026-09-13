@@ -5,6 +5,7 @@ import { expect, it } from 'vitest';
 import {
   appendEvidence,
   parseDaily,
+  parseDailyBlocks,
   replaceJournal,
   setTaskCompleted,
   touchUpdated,
@@ -50,6 +51,120 @@ it('parses only the journey fields from a Daily note', () => {
   expect(parsed.journal.blocked).toBe('');
   expect(parsed.evidence).toHaveLength(0);
   expect(JSON.stringify(parsed)).not.toContain('private content');
+});
+
+const RICH = `---
+type: daily
+date: 2026-09-13
+stage: S0
+---
+# 2026-09-13
+
+## Study
+Đóng vở, tự recall trước khi mở tài liệu.
+
+- [ ] #az104 21:00 — recall Unit 2
+  > [!question]- Recall Unit 2
+  > Entra ID là gì?
+  > Khác gì AD DS?
+- [x] #english 21:45 — close day, không ghi bù giả.
+
+## Journal (English only)
+
+- **Done:** first line
+  second line
+- **Blocked:**
+- **Next:**
+
+### Bản sửa câu sai
+
+> sửa tối đa 10 phút
+dòng nhắc ngoài quote
+
+## Email
+
+- private content
+`;
+
+it('projects every Study and Journal block, including collapsed callouts', () => {
+  const blocks = parseDailyBlocks(RICH);
+
+  expect(blocks[0]).toEqual({ kind: 'heading', level: 2, text: 'Study' });
+  expect(blocks).toContainEqual({
+    kind: 'quote',
+    label: 'question',
+    title: 'Recall Unit 2',
+    lines: ['Entra ID là gì?', 'Khác gì AD DS?'],
+    collapsed: true,
+  });
+  expect(blocks).toContainEqual({ kind: 'heading', level: 3, text: 'Bản sửa câu sai' });
+  expect(blocks).toContainEqual({
+    kind: 'quote',
+    label: '',
+    title: '',
+    lines: ['sửa tối đa 10 phút'],
+    collapsed: false,
+  });
+  expect(blocks[blocks.length - 1]).toEqual({
+    kind: 'paragraph',
+    text: 'dòng nhắc ngoài quote',
+  });
+  expect(JSON.stringify(blocks)).not.toContain('private content');
+});
+
+it('keeps block order and folds list continuations into their item', () => {
+  const blocks = parseDailyBlocks(RICH);
+  const kinds = blocks.map((block) => block.kind);
+
+  expect(kinds).toEqual([
+    'heading',
+    'paragraph',
+    'list',
+    'quote',
+    'list',
+    'heading',
+    'list',
+    'heading',
+    'quote',
+    'paragraph',
+  ]);
+  expect(blocks[2]).toEqual({
+    kind: 'list',
+    ordered: false,
+    items: [{ text: '#az104 21:00 — recall Unit 2', checked: false }],
+  });
+  expect(blocks[4]).toEqual({
+    kind: 'list',
+    ordered: false,
+    items: [{ text: '#english 21:45 — close day, không ghi bù giả.', checked: true }],
+  });
+  expect(blocks[6]).toEqual({
+    kind: 'list',
+    ordered: false,
+    items: [
+      { text: '**Done:** first line second line', checked: null },
+      { text: '**Blocked:**', checked: null },
+      { text: '**Next:**', checked: null },
+    ],
+  });
+});
+
+it('ignores sections the Journey protocol does not own', () => {
+  const blocks = parseDailyBlocks(`---
+date: 2026-09-13
+---
+# 2026-09-13
+
+## Email
+
+- secret draft
+
+## Tài chính
+
+- secret number
+`);
+
+  expect(blocks).toEqual([]);
 });
 
 it('updates one checkbox and preserves every unrelated byte', () => {

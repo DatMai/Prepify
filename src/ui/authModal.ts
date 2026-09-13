@@ -4,7 +4,9 @@ import { loadProgress, state } from '../state/progress';
 import { render } from '../render/content';
 import { showToast } from './toast';
 import { checkStrength } from './passwordStrength';
+import { icon, iconMarkup } from './icon';
 import { t } from '../i18n';
+import { X } from 'lucide';
 
 let _openProfile: (() => void) | null = null;
 export function setProfileOpener(fn: () => void): void {
@@ -64,7 +66,7 @@ function strengthMeterHtml(): string {
 
 export function buildModal(mode: Mode): string {
   const wrap = (inner: string) =>
-    `<div class="modal" data-mode="${mode}"><button class="modal-close" id="modalClose">✕</button>${inner}</div>`;
+    `<div class="modal" data-mode="${mode}"><button class="modal-close" id="modalClose" aria-label="${t('review.close')}">${iconMarkup(X)}</button>${inner}</div>`;
 
   if (mode === 'forgot') {
     return wrap(`
@@ -316,7 +318,8 @@ export function updateAuthBtn(): void {
       resend.textContent = t('verify.resend');
       const dismiss = document.createElement('button');
       dismiss.id = 'dismissVerifyBtn';
-      dismiss.textContent = '✕';
+      dismiss.replaceChildren(icon(X));
+      dismiss.setAttribute('aria-label', t('review.close'));
       banner.replaceChildren(
         document.createTextNode(`${t('verify.message')} `),
         email,

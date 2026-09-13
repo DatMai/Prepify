@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createRecoveryService, type RecoveryStore } from './recoveryService';
 
 function store(overrides: Partial<RecoveryStore> = {}): RecoveryStore {
@@ -59,5 +59,34 @@ describe('recovery service', () => {
     await expect(service.resetPassword('invalid', 'StrongPass1!')).rejects.toMatchObject({
       code: 'invalid_reset_token',
     });
+  });
+
+  it('logs and surfaces a verification delivery failure', async () => {
+    const onEmailError = vi.fn();
+    const smtpError = new Error('bad credentials');
+    const service = createRecoveryService({
+      store: store({
+        findUserForVerification: async () => ({
+          id: 'user-1',
+          email: 'user@example.com',
+          verified: false,
+        }),
+      }),
+      passwords: { hash: async (value) => `hash:${value}` },
+      randomToken: () => 'verification-token',
+      now: () => new Date(),
+      frontendUrl: 'https://prepify.example',
+      callbackBaseUrl: 'https://prepify.example/api/v1',
+      sendPasswordReset: async () => {},
+      sendVerification: async () => {
+        throw smtpError;
+      },
+      onEmailError,
+    });
+
+    await expect(service.requestEmailVerification('user-1')).rejects.toMatchObject({
+      code: 'email_delivery_failed',
+    });
+    expect(onEmailError).toHaveBeenCalledWith(smtpError, 'verification');
   });
 });

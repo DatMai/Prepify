@@ -97,6 +97,11 @@ function registerRoutes(
 async function main(): Promise<void> {
   const config = loadConfig(process.env);
   const logger = createLogger(config);
+  if (!config.email.enabled) {
+    logger.warn(
+      'Email delivery is disabled; verification and password-reset messages will not be sent',
+    );
+  }
   const pool = createPool(config.databaseUrl, logger);
   initializeDatabase(pool);
   const sessionRepository = createSessionRepository(pool as unknown as SessionQuery);
@@ -117,6 +122,7 @@ async function main(): Promise<void> {
     callbackBaseUrl: `${config.publicApiUrl}/api/v1`,
     sendPasswordReset: mailer.sendPasswordReset,
     sendVerification: mailer.sendVerification,
+    onEmailError: (error, kind) => logger.error({ err: error, kind }, 'Email delivery failed'),
   });
   const oauthAccountService = createOAuthAccountService(
     createOAuthAccountStore(pool as unknown as SessionQuery),

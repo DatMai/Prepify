@@ -1,4 +1,4 @@
-import { DATA, ORDER } from '../data/loader';
+import { DATA, ORDER, loadTopic } from '../data/loader';
 import { keyOf, toggleProgress, state } from '../state/progress';
 import { favoritesState, favKeyOf, toggleFavorite } from '../state/favorites';
 import { blockHTML } from './block';
@@ -6,10 +6,12 @@ import { esc, hl } from './escape';
 import { runCode } from './runCode';
 import { renderTopics, updateGlobalProgress } from './sidebar';
 import { t } from '../i18n';
+import { Heart } from 'lucide';
+import { iconMarkup } from '../ui/icon';
 
 function onTopicChange(key: string): void {
   state.topic = key;
-  render();
+  void loadTopic(key).then(render);
   document.getElementById('sidebar')?.classList.remove('show');
   const content = document.getElementById('content');
   if (content) content.scrollTop = 0;
@@ -61,7 +63,7 @@ export function render(): void {
             <div class="q-head">
               <span class="q-id">${shownFav}</span>
               <span class="q-text">${esc(q.q)}</span>
-              <button class="q-fav faved" title="${t('topbar.favoriteTitle')}">♥</button>
+              <button class="q-fav faved" title="${t('topbar.favoriteTitle')}">${iconMarkup(Heart)}</button>
               <span class="q-check" title="${t('library.markLearned')}">✓</span>
             </div>
             <button class="quiz-reveal-btn">${t('library.reveal')}</button>
@@ -166,7 +168,7 @@ export function render(): void {
         <div class="q-head">
           <span class="q-id">${shown}</span>
           <span class="q-text">${hl(q.q, search)}</span>
-          <button class="q-fav${isFav ? ' faved' : ''}" title="${t('topbar.favoriteTitle')}">♥</button>
+          <button class="q-fav${isFav ? ' faved' : ''}" title="${t('topbar.favoriteTitle')}">${iconMarkup(Heart)}</button>
           <span class="q-check" title="${t('library.markLearned')}">✓</span>
         </div>
         <button class="quiz-reveal-btn">${t('library.reveal')}</button>

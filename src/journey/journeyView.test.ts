@@ -36,11 +36,13 @@ vi.mock('../api/client', async (importOriginal) => {
   };
 });
 
-function hostedToday() {
+function hostedToday({ bridgeConnected = true }: { bridgeConnected?: boolean } = {}) {
   return {
     synced: true,
     date: '2026-09-13',
     revision: 'a'.repeat(64),
+    updatedAt: '2026-09-13T09:00:00.000Z',
+    bridgeConnected,
     projection: {
       daily: {
         date: '2026-09-13',
@@ -100,6 +102,8 @@ describe('journeyView sync control', () => {
 
     const model = normalizeJourneyToday(hostedToday() as never);
     expect(model?.hosted).toBe(true);
+    expect(model?.writable).toBe(true);
+    expect(model?.projectionUpdatedAt).toBe('2026-09-13T09:00:00.000Z');
     expect(model?.date).toBe('2026-09-13');
     expect(model?.revision).toBe('a'.repeat(64));
     expect(model?.tasks).toHaveLength(1);
@@ -107,14 +111,50 @@ describe('journeyView sync control', () => {
     expect(model?.mtimeMs).toBeNull();
   });
 
-  it('renders projected content without claiming it is synced', async () => {
+  it('treats a stored projection as synced while the bridge is connected', async () => {
     todayMock.mockResolvedValue(hostedToday());
     await open();
 
-    expect(syncControlState()).toBe('pending');
+    expect(syncControlState()).toBe('synced');
     expect(document.body.textContent).toContain('Read a paper');
     const complete = document.querySelector<HTMLButtonElement>('.journey-btn-primary');
-    expect(complete?.disabled).toBe(true);
+    expect(complete?.disabled).toBe(false);
+  });
+
+  it('keeps the editable journal free of an added Obsidian badge', async () => {
+    todayMock.mockResolvedValue(hostedToday());
+    await open();
+
+    expect(document.querySelector('.journey-journal-badge')).toBeNull();
+  });
+
+  it('keeps the Journey surface on its default visual theme', async () => {
+    todayMock.mockResolvedValue(hostedToday());
+    await open();
+
+    expect(document.querySelector('.journey-panel')?.classList.contains('is-obsidian')).toBe(false);
+  });
+
+  it('groups the Journey sync action with its current status', async () => {
+    todayMock.mockResolvedValue(hostedToday());
+    await open();
+
+    const toolbar = document.querySelector('.journey-sync-toolbar');
+    expect(toolbar).not.toBeNull();
+    expect(toolbar?.querySelector('#journeySyncBtn')).not.toBeNull();
+    expect(toolbar?.querySelector('.journey-sync-meta')).not.toBeNull();
+  });
+
+  it('reports bridge_offline and locks writes when the bridge is away', async () => {
+    todayMock.mockResolvedValue(hostedToday({ bridgeConnected: false }));
+    await open();
+
+    expect(syncControlState()).toBe('bridge_offline');
+    expect(
+      [...document.querySelectorAll<HTMLButtonElement>('[data-requires-sync]')].every(
+        (button) => button.disabled,
+      ),
+    ).toBe(true);
   });
 
   it('prompts the user to sync when no projection exists yet', async () => {
@@ -147,7 +187,7 @@ describe('journeyView sync control', () => {
   });
 
   it('does not run a mutation when the sync state is offline', async () => {
-    todayMock.mockResolvedValue(hostedToday());
+    todayMock.mockResolvedValue(hostedToday({ bridgeConnected: false }));
     await open();
 
     const { runMutation } = await import('./journeyView');

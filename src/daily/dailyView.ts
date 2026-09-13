@@ -1,3 +1,4 @@
+import { RefreshCw, Trophy, Zap } from 'lucide';
 import type { DailySession } from './types';
 import { renderMcqCard } from './mcqCard';
 import { renderFibCard } from './fibCard';
@@ -5,6 +6,7 @@ import { completeDailyChallenge, fetchDailyQuestions, fetchDailyStatus } from '.
 import { isLoggedIn } from '../state/auth';
 import { streakState } from '../state/streak';
 import { renderStreakBadge } from '../ui/streakBadge';
+import { iconMarkup } from '../ui/icon';
 import { getLang, t } from '../i18n';
 import { api } from '../api/client';
 import {
@@ -55,6 +57,7 @@ export async function openDaily(): Promise<void> {
 
   overlay!.hidden = false;
   overlay!.innerHTML = `<div class="daily-loading">${t('daily.loading')}</div>`;
+  console.debug('[daily] loading started');
 
   try {
     const data = await fetchDailyQuestions(getLang());
@@ -68,9 +71,13 @@ export async function openDaily(): Promise<void> {
     };
 
     renderQuestion();
-  } catch {
+    console.debug('[daily] loading completed', { date: data.date, count: data.questions.length });
+  } catch (error) {
+    console.error('[daily] loading failed', error);
     overlay!.innerHTML = `<div class="daily-error">${t('daily.loadError')}<br><button class="daily-close-btn" id="dailyLoadClose">${t('daily.close')}</button></div>`;
     overlay!.querySelector('#dailyLoadClose')?.addEventListener('click', closeDaily);
+  } finally {
+    console.debug('[daily] loading settled');
   }
 }
 
@@ -92,7 +99,7 @@ function renderQuestion(): void {
     <div class="daily-panel">
       <div class="daily-header">
         <button class="daily-back-btn" id="dailyBack">${t('daily.exit')}</button>
-        <span class="daily-title">⚡ Daily Challenge · ${formatDate(session.date)}</span>
+        <span class="daily-title">${iconMarkup(Zap)}Daily Challenge · ${formatDate(session.date)}</span>
         <span class="daily-counter">${currentIdx + 1} / ${total}</span>
       </div>
       <div class="daily-progress-bar">
@@ -146,13 +153,16 @@ function renderQuestion(): void {
 function renderSyncControlHtml(): string {
   return `
     <div class="daily-sync" data-state="${syncStatus.state}">
-      <div class="daily-sync-actions">
-        <button class="daily-sync-btn" id="dailySyncBtn" type="button">${t('sync.button')}</button>
-        <button class="daily-sync-retry" id="dailySyncRetry" type="button" hidden>${t('sync.retry')}</button>
-      </div>
-      <div class="daily-sync-meta">
-        <span class="daily-sync-state" role="status" aria-live="polite">${t(SYNC_STATE_KEYS[syncStatus.state])}</span>
-        <span class="daily-sync-last">${lastSyncedLabel(syncStatus.lastSyncedAt, t)}</span>
+      <div class="daily-sync-toolbar">
+        <div class="daily-sync-meta">
+          <span class="daily-sync-indicator" aria-hidden="true"></span>
+          <span class="daily-sync-state" role="status" aria-live="polite">${t(SYNC_STATE_KEYS[syncStatus.state])}</span>
+          <span class="daily-sync-last">${lastSyncedLabel(syncStatus.lastSyncedAt, t)}</span>
+        </div>
+        <div class="daily-sync-actions">
+          <button class="daily-sync-btn" id="dailySyncBtn" type="button">${iconMarkup(RefreshCw)}${t('sync.button')}</button>
+          <button class="daily-sync-retry" id="dailySyncRetry" type="button" hidden>${t('sync.retry')}</button>
+        </div>
       </div>
       <p class="daily-sync-hint">${syncHintLabel(syncStatus, syncTimedOut, t)}</p>
     </div>
@@ -262,12 +272,10 @@ async function showSummary(): Promise<void> {
     `;
   }
 
-  const emoji = correct === total ? '🎉' : correct >= Math.ceil(total / 2) ? '👍' : '💪';
-
   overlay.innerHTML = `
     <div class="daily-panel daily-summary">
-      <div class="daily-summary-title">⚡ Daily · ${formatDate(session.date)}</div>
-      <div class="daily-score">${emoji} ${correct} / ${total}</div>
+      <div class="daily-summary-title">${iconMarkup(Zap)}Daily · ${formatDate(session.date)}</div>
+      <div class="daily-score">${iconMarkup(Trophy)}${correct} / ${total}</div>
       ${streakHtml}
       <div class="daily-summary-actions">
         <button class="daily-close-btn" id="dailySummaryClose">${t('daily.backToStudy')}</button>
@@ -287,7 +295,7 @@ function showAlreadyDone(score: number, total: number, streak: number): void {
   overlay.hidden = false;
   overlay.innerHTML = `
     <div class="daily-panel daily-summary">
-      <div class="daily-summary-title">⚡ Daily Challenge</div>
+      <div class="daily-summary-title">${iconMarkup(Zap)}Daily Challenge</div>
       ${renderSyncControlHtml()}
       <div class="daily-score">${t('daily.completedToday')}</div>
       <div class="daily-score-sub">${t('daily.scoreCorrect', { n: score, total })}</div>

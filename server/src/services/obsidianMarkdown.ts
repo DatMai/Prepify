@@ -18,6 +18,7 @@ export interface ParsedDaily {
   tasks: JourneyTask[];
   evidence: string[];
   journal: JourneyJournal;
+  blocks: DailyBlock[];
 }
 
 interface SectionRange {
@@ -195,6 +196,156 @@ export function revisionFor(content: string): string {
   return `sha256:${createHash('sha256').update(content).digest('hex')}`;
 }
 
+export interface DailyListItem {
+  text: string;
+  checked: boolean | null;
+}
+
+/**
+ * A faithful, non-Markdown projection of one Journey-owned Daily section. The
+ * bridge uploads these so the app can show the day's recall blocks and `###`
+ * sub-sections, which the structured task/journal fields alone would drop.
+ */
+export type DailyBlock =
+  | { kind: 'heading'; level: number; text: string }
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; ordered: boolean; items: DailyListItem[] }
+  | { kind: 'quote'; label: string; title: string; lines: string[]; collapsed: boolean };
+
+/**
+ * Only the sections the Journey protocol owns are ever projected. Project,
+ * Email, finance and system sections stay inside the vault (ADR-001).
+ */
+const JOURNEY_SECTION_MATCHERS: ReadonlyArray<(heading: string) => boolean> = [
+  (heading) => heading === '## Study',
+  (heading) => /^## Bằng chứng(?:\s|$)/.test(heading),
+  (heading) => heading === '## Journal (English only)',
+];
+
+const CALLOUT = /^\[!([A-Za-z][A-Za-z0-9-]*)\]([+-]?)\s*(.*)$/;
+const LIST_ITEM = /^\s*(?:[-*]|(\d+)[.)])\s+(.*)$/;
+
+function bodyStart(lines: string[]): number {
+  if (lines[0] !== '---') return 0;
+  const end = lines.indexOf('---', 1);
+  return end < 0 ? 0 : end + 1;
+}
+
+function journeySectionRanges(lines: string[]): SectionRange[] {
+  const ranges: SectionRange[] = [];
+
+  for (let index = bodyStart(lines); index < lines.length; index++) {
+    const heading = lines[index];
+    if (!JOURNEY_SECTION_MATCHERS.some((matches) => matches(heading))) continue;
+
+    let end = lines.length;
+    for (let cursor = index + 1; cursor < lines.length; cursor++) {
+      if (/^##\s/.test(lines[cursor])) {
+        end = cursor;
+        break;
+      }
+    }
+    ranges.push({ start: index, end });
+    index = end - 1;
+  }
+
+  return ranges;
+}
+
+function listItem(text: string): DailyListItem {
+  const checked = text.match(/^\[([ xX])\]\s*(.*)$/);
+  if (!checked) return { text, checked: null };
+  return { text: checked[2].trim(), checked: checked[1].toLowerCase() === 'x' };
+}
+
+function withCalloutLabel(block: Extract<DailyBlock, { kind: 'quote' }>): DailyBlock {
+  const match = CALLOUT.exec(block.lines[0] ?? '');
+  if (!match) return block;
+  return {
+    kind: 'quote',
+    label: match[1].toLowerCase(),
+    title: match[3].trim(),
+    lines: block.lines.slice(1),
+    // `> [!note]-` is collapsed by default; `> [!note]+` starts expanded.
+    collapsed: match[2] === '-',
+  };
+}
+
+function blocksInRange(lines: string[], range: SectionRange): DailyBlock[] {
+  const blocks: DailyBlock[] = [];
+  let current: DailyBlock | null = null;
+
+  const flush = (): void => {
+    if (current === null) return;
+    blocks.push(current.kind === 'quote' ? withCalloutLabel(current) : current);
+    current = null;
+  };
+
+  for (let index = range.start; index < range.end; index++) {
+    const raw = lines[index];
+    const line = raw.trim();
+    if (line === '') {
+      flush();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      flush();
+      blocks.push({ kind: 'heading', level: heading[1].length, text: heading[2].trim() });
+      continue;
+    }
+
+    const quote = raw.match(/^\s*>\s?(.*)$/);
+    if (quote) {
+      const text = quote[1].trimEnd();
+      if (current !== null && current.kind === 'quote') current.lines.push(text);
+      else {
+        flush();
+        current = { kind: 'quote', label: '', title: '', lines: [text], collapsed: false };
+      }
+      continue;
+    }
+
+    const item = LIST_ITEM.exec(raw);
+    if (item) {
+      const ordered = item[1] !== undefined;
+      const next = listItem(item[2].trim());
+      if (current !== null && current.kind === 'list' && current.ordered === ordered) {
+        current.items.push(next);
+      } else {
+        flush();
+        current = { kind: 'list', ordered, items: [next] };
+      }
+      continue;
+    }
+
+    // An indented line with no marker is a lazy continuation of the last item.
+    if (current !== null && current.kind === 'list' && /^\s{2,}\S/.test(raw)) {
+      const last = current.items[current.items.length - 1];
+      last.text = `${last.text} ${line}`.trim();
+      continue;
+    }
+
+    if (current !== null && current.kind === 'paragraph') {
+      current.text = `${current.text} ${line}`.trim();
+      continue;
+    }
+
+    flush();
+    current = { kind: 'paragraph', text: line };
+  }
+
+  flush();
+  return blocks;
+}
+
+/** Every block of the Journey-owned Daily sections, in file order. */
+export function parseDailyBlocks(content: string): DailyBlock[] {
+  const { lines } = splitDocument(content);
+  return journeySectionRanges(lines).flatMap((range) => blocksInRange(lines, range));
+}
+
 export function parseDaily(content: string): ParsedDaily {
   const { lines } = splitDocument(content);
   const journalSection = sectionRange(lines, '## Journal (English only)');
@@ -208,6 +359,7 @@ export function parseDaily(content: string): ParsedDaily {
       blocked: readJournalField(lines, journalSection, 'Blocked'),
       next: readJournalField(lines, journalSection, 'Next'),
     },
+    blocks: parseDailyBlocks(content),
   };
 }
 

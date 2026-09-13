@@ -245,11 +245,78 @@ describe('bridge lifecycle', () => {
     });
     expect(completeBody.projection.daily.tasks).toHaveLength(2);
     expect(completeBody.projection.daily.evidence).toEqual([]);
+    expect(completeBody.projection.daily.blocks).toEqual([
+      { kind: 'heading', level: 2, text: 'Study' },
+      {
+        kind: 'list',
+        ordered: false,
+        items: [
+          { text: '#az104 21:00 — recall Unit 2', checked: false },
+          { text: '#english #journal 21:45 — close day', checked: true },
+        ],
+      },
+      { kind: 'heading', level: 2, text: 'Journal (English only)' },
+      {
+        kind: 'list',
+        ordered: false,
+        items: [
+          { text: '**Done:** first line', checked: null },
+          { text: '**Blocked:**', checked: null },
+          { text: '**Next:** continue tomorrow', checked: null },
+        ],
+      },
+      { kind: 'heading', level: 3, text: 'Bản sửa' },
+      { kind: 'quote', label: '', title: '', lines: ['keep this untouched'], collapsed: false },
+    ]);
+    // Only the Journey-owned sections are ever projected.
+    expect(JSON.stringify(completeBody.projection)).not.toContain('private content');
 
     // The sync pull is read-only.
     expect(await fs.readFile(h.notePath, 'utf8')).toBe(h.original);
     expect(h.vaultCalls).toEqual(['getJourney']);
     expect(h.http.calls.filter((c) => c.path.endsWith('/pending'))).toHaveLength(1);
+  });
+
+  it('fails the job when the server rejects the uploaded projection', async () => {
+    const h = await setup(async (req) => {
+      if (req.method === 'GET' && req.path.endsWith('/pending')) {
+        return { status: 200, body: { jobs: [{ jobId: JOB_ID }] } };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/claim`)) {
+        return {
+          status: 200,
+          body: {
+            job: {
+              jobId: JOB_ID,
+              type: 'sync',
+              payload: {},
+              expectedRevision: null,
+              idempotencyKey: 'sync_event_12345678',
+              state: 'claimed',
+              leaseId: (req.body as { leaseId: string }).leaseId,
+            },
+          },
+        };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/complete`)) {
+        return { status: 400, body: { error: 'rejected', code: 'invalid_request' } };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/fail`)) {
+        return { status: 200, body: { job: { jobId: JOB_ID, state: 'failed' } } };
+      }
+      return { status: 404, body: { error: 'not found', code: 'job_not_found' } };
+    });
+
+    h.sockets[0].emit('open');
+    await until(
+      () => h.http.calls.some((c) => c.path.endsWith('/fail')),
+      'the rejected upload to fail the job',
+    );
+
+    const failCall = h.http.calls.find((c) => c.path.endsWith('/fail'));
+    expect(failCall?.body).toMatchObject({ errorCode: 'projection_rejected' });
+    // A claimed job must never be left dangling: the failure is reported once.
+    expect(h.http.calls.filter((c) => c.path.endsWith('/fail'))).toHaveLength(1);
   });
 
   it('acts on a notification frame delivered as a Buffer, as the ws client does', async () => {

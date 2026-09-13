@@ -25,6 +25,21 @@ const projection = {
     tasks: [{ id: 'task-1', checked: true, text: 'Review the lab', tags: ['#az104'] }],
     evidence: ['Finished the lab'],
     journal: { done: 'Reviewed', blocked: '', next: 'Practice' },
+    blocks: [
+      { kind: 'heading', level: 2, text: 'Study' },
+      {
+        kind: 'list',
+        ordered: false,
+        items: [{ text: '#az104 21:00 — recall Unit 2', checked: true }],
+      },
+      {
+        kind: 'quote',
+        label: 'question',
+        title: 'Recall Unit 2',
+        lines: ['What is Entra ID?'],
+        collapsed: true,
+      },
+    ],
   },
 } as const;
 
@@ -306,7 +321,29 @@ describe('POST /:id/projection', () => {
     expect(sync.recordInboundProjection).not.toHaveBeenCalled();
   });
 
-  it('rejects raw Markdown smuggled into a structured text field', async () => {
+  /**
+   * Task text and blocks are display-only — the app never sends them back — so
+   * they carry the owner's note verbatim. The fields the bridge splices into
+   * the note (evidence, journal) keep rejecting raw Markdown and vault paths.
+   */
+  it.each([
+    ['evidence', { evidence: ['See `Daily/2026-09-13.md` for notes'] }],
+    ['journal.done', { journal: { done: 'Daily/2026-09-13.md', blocked: '', next: '' } }],
+    ['stage', { stage: 'file:///Users/owner/Daily/2026-09-13.md' }],
+  ])('rejects raw Markdown and vault paths smuggled into %s', async (_field, override) => {
+    const sync = fakeSync();
+    const body = {
+      ...validBody,
+      projection: { daily: { ...projection.daily, ...override } },
+    };
+
+    await bearer(request(bridgeApp(sync)).post(`${BASE}/${jobId}/projection`).send(body)).expect(
+      400,
+    );
+    expect(sync.recordInboundProjection).not.toHaveBeenCalled();
+  });
+
+  it('accepts display-only task text a note-splice rule would reject', async () => {
     const sync = fakeSync();
     const body = {
       ...validBody,
@@ -317,7 +354,7 @@ describe('POST /:id/projection', () => {
             {
               id: 'task-1',
               checked: true,
-              text: 'See `Daily/2026-09-13.md` for notes',
+              text: 'đóng vở từ 08/09, Unit 3 recall, Array/Hash Table /7',
               tags: ['#az104'],
             },
           ],
@@ -326,9 +363,9 @@ describe('POST /:id/projection', () => {
     };
 
     await bearer(request(bridgeApp(sync)).post(`${BASE}/${jobId}/projection`).send(body)).expect(
-      400,
+      200,
     );
-    expect(sync.recordInboundProjection).not.toHaveBeenCalled();
+    expect(sync.recordInboundProjection).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a vault identity for a different vault', async () => {
@@ -470,6 +507,48 @@ describe('POST /:id/complete', () => {
       request(bridgeApp(sync))
         .post(`${BASE}/${jobId}/complete`)
         .send({ leaseId, revision, projection }),
+    ).expect(400);
+
+    expect(sync.complete).not.toHaveBeenCalled();
+  });
+
+  it('accepts display-only task text a stricter note-splice rule would reject', async () => {
+    const sync = fakeSync();
+    const day = JSON.parse(JSON.stringify(projection));
+    day.daily.tasks[0].text = 'đóng vở từ 08/09, Unit 3 recall, Array/Hash Table /7';
+
+    await bearer(
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/complete`)
+        .send({ leaseId, revision: sha, projection: day }),
+    ).expect(200);
+
+    expect(sync.complete).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an unknown block kind', async () => {
+    const sync = fakeSync();
+    const day = JSON.parse(JSON.stringify(projection));
+    day.daily.blocks = [{ kind: 'chart', text: 'nope' }];
+
+    await bearer(
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/complete`)
+        .send({ leaseId, revision: sha, projection: day }),
+    ).expect(400);
+
+    expect(sync.complete).not.toHaveBeenCalled();
+  });
+
+  it('rejects a projection without the block key', async () => {
+    const sync = fakeSync();
+    const day = JSON.parse(JSON.stringify(projection));
+    delete day.daily.blocks;
+
+    await bearer(
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/complete`)
+        .send({ leaseId, revision: sha, projection: day }),
     ).expect(400);
 
     expect(sync.complete).not.toHaveBeenCalled();

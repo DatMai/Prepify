@@ -169,6 +169,22 @@ outbound WebSocket, no background polling, bridge-only vault access, offline
 gating, and revision compare-and-swap — shipped as designed and was verified by a
 36/36 smoke matrix.
 
+### Delta 3: the projection also carries a display-only view of the note
+
+`daily.blocks` is added to the stored projection (`heading`, `paragraph`, `list`,
+`quote`) so the Journey page can show the recall callouts and `###` sub-sections
+that the structured fields alone drop. See the second 2026-09-13 entry in
+`docs/ADR-001-obsidian-journey-sync.md` for the decision and evidence. Two
+consequences worth knowing when reading this spec:
+
+- Only the Journey-owned sections are projected; Email, finance and project
+  sections stay in the vault.
+- Validation now has two tiers: display-only fields (`tasks[].text`, `blocks`)
+  carry the owner's verbatim note text, while the fields the bridge splices back
+  (`stage`, `evidence`, `journal.*`) keep rejecting raw Markdown, URIs and vault
+  paths. The old single tier rejected ordinary notes — `08/09` and `Array/Hash`
+  tripped the path-like rule — and left sync jobs stuck in `claimed`.
+
 ## Revision and conflict rules
 
 - Every synchronized note has a stable logical identifier and SHA-256 revision.

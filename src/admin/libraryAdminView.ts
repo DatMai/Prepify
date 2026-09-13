@@ -37,6 +37,10 @@ export function setContentLocale(next: AdminLocale): void {
 }
 
 export function renderContentTab(target: HTMLElement): void {
+  const previousBody = body;
+  // Admin rebuilds the tab body when switching tabs. An open editor must not
+  // keep rendering into the detached body from the previous shell.
+  if (isTopicEditorOpen() && previousBody !== target) closeTopicEditor();
   body = target;
   body.innerHTML = '';
   body.appendChild(renderToolbar());
@@ -47,12 +51,22 @@ export function renderContentTab(target: HTMLElement): void {
 
 export async function reloadTopics(): Promise<void> {
   if (!body || isTopicEditorOpen()) return;
+  const requestLocale = locale;
+  console.debug('[admin-content] topics loading', { locale: requestLocale });
   renderTopicList(null);
 
   await runAction(async () => {
-    const result = await api.libraryAdmin.listTopics(locale, true);
-    topics = result.items;
-    renderTopicList(topics);
+    const result = await api.libraryAdmin.listTopics(requestLocale, true);
+    if (body && locale === requestLocale && !isTopicEditorOpen()) {
+      topics = result.items;
+      renderTopicList(topics);
+    }
+    console.debug('[admin-content] topics loaded', {
+      locale: requestLocale,
+      count: result.items.length,
+    });
+  }).finally(() => {
+    console.debug('[admin-content] topics loading settled', { locale: requestLocale });
   });
 }
 
@@ -85,7 +99,7 @@ function renderTopicList(loaded: AdminTopicListItem[] | null): void {
 
   const list = element('div', 'la-topics');
   if (loaded === null) {
-    list.appendChild(element('p', 'la-empty', '…'));
+    list.appendChild(element('p', 'la-empty admin-loading', t('admin.loading')));
   } else if (loaded.length === 0) {
     list.appendChild(element('p', 'la-empty', t('libAdmin.topicsEmpty')));
   } else {

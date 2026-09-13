@@ -158,6 +158,13 @@ honestly marked as unclassified instead of guessed.
 
 ## Read API (unchanged paths)
 
+The browser first requests only the topic index. It requests a topic body on
+selection and caches it for the active locale; changing locale clears that body
+cache. Features that span topics must opt in explicitly: Favorites loads all
+topics when its aggregate filter is activated, Review loads the distinct topics
+present in the due queue, and the Quiz launcher loads the selected topic before
+deriving question sets or eligibility.
+
 `server/src/routes/library.ts` keeps `requireAuth` + `requireAdmin` and reads
 from the repository instead of the filesystem:
 
@@ -189,6 +196,13 @@ unchanged:
   about the corpus folder.
 
 ## Admin API
+
+The Content UI treats its tab body as an ephemeral render host. Leaving and
+re-entering the tab closes any editor bound to the detached host and reloads the
+topic list. Topic-detail responses are applied only while their topic remains
+active, so Back/navigation cannot resurrect a stale editor. Network-backed
+loading states emit scoped `started`, `completed`, `failed`, and `settled` logs
+to make stuck-loading investigations traceable.
 
 `server/src/routes/libraryAdmin.ts`, mounted at `/api/v1/library/admin`, all
 behind `requireAuth` + `requireAdmin`.
