@@ -586,6 +586,66 @@
   counter-reset: journey-step;
 }
 
+/* ── Recall content the owner wrote under a task in the Daily note ────── */
+
+.journey-task-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(74, 163, 255, 0.28);
+  border-radius: 0 10px 10px 0;
+  background: rgba(74, 163, 255, 0.05);
+}
+
+.journey-task-note-heading {
+  margin: 0;
+  color: var(--accent2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.journey-task-note-text,
+.journey-task-note-quote p {
+  margin: 0;
+  color: var(--txt);
+  font-size: 13.5px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.journey-task-note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--txt);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.journey-task-note-list li {
+  overflow-wrap: anywhere;
+}
+
+.journey-task-note-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 2px solid rgba(107, 120, 136, 0.4);
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.journey-task-notes strong {
+  color: var(--txt);
+  font-weight: 600;
+}
+
 .journey-task-steps li {
   position: relative;
   padding-left: 29px;

@@ -2,6 +2,7 @@ import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
+import { groupTaskNotes } from './noteGroups';
 import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from './types';
 import {
   SYNC_STATE_KEYS,
@@ -499,7 +500,8 @@ function renderJourney(data: JourneyViewModel): void {
 
   body.appendChild(sectionTitle(t('journey.studyTitle'), t('journey.studyHint')));
   const tasks = element('div', 'journey-tasks');
-  data.tasks.forEach((task, index) => tasks.appendChild(renderTask(task, index)));
+  const taskNotes = groupTaskNotes(data.blocks, data.tasks);
+  data.tasks.forEach((task, index) => tasks.appendChild(renderTask(task, index, taskNotes)));
   if (data.tasks.length === 0)
     tasks.appendChild(element('p', 'journey-empty', t('journey.noTasks')));
   body.appendChild(tasks);
@@ -561,7 +563,11 @@ function sectionTitle(title: string, hint: string): HTMLElement {
   return wrapper;
 }
 
-function renderTask(task: JourneyTask, index: number): HTMLElement {
+function renderTask(
+  task: JourneyTask,
+  index: number,
+  taskNotes: Map<string, JourneyBlock[]>,
+): HTMLElement {
   const isExpanded = expandedTaskId === task.id;
   const card = element(
     'article',
@@ -634,6 +640,11 @@ function renderTask(task: JourneyTask, index: number): HTMLElement {
     taskBody.appendChild(steps);
   }
 
+  // What the owner wrote under this task in the Daily note: the recall
+  // questions and any sub-heading, shown as-is instead of being dropped.
+  const notes = taskNotes.get(task.id);
+  if (notes) taskBody.appendChild(renderNoteBlocks(notes));
+
   if (task.checked) {
     const reopen = actionButton(t('journey.reopen'), 'journey-link-btn');
     reopen.dataset.requiresSync = 'true';
@@ -697,7 +708,7 @@ function taskPresentation(task: JourneyTask): TaskPresentation {
 }
 
 function appendInlineContent(target: HTMLElement, value: string): void {
-  const tokenPattern = /(\[[^\]]+\]\(https?:\/\/[^)]+\)|\[\[[^\]]+\]\]|`[^`]+`)/g;
+  const tokenPattern = /(\[[^\]]+\]\(https?:\/\/[^)]+\)|\[\[[^\]]+\]\]|`[^`]+`|\*\*[^*]+\*\*)/g;
   let cursor = 0;
 
   for (const match of value.matchAll(tokenPattern)) {
@@ -714,6 +725,8 @@ function appendInlineContent(target: HTMLElement, value: string): void {
       target.appendChild(link);
     } else if (token.startsWith('[[')) {
       target.appendChild(element('span', 'journey-wikilink', token.slice(2, -2)));
+    } else if (token.startsWith('**')) {
+      target.appendChild(element('strong', '', token.slice(2, -2)));
     } else {
       target.appendChild(element('code', '', token.slice(1, -1)));
     }
@@ -721,6 +734,48 @@ function appendInlineContent(target: HTMLElement, value: string): void {
   }
 
   if (cursor < value.length) target.appendChild(document.createTextNode(value.slice(cursor)));
+}
+
+/** Read-only blocks the owner wrote in the Daily note under a task. */
+function renderNoteBlocks(blocks: JourneyBlock[]): HTMLElement {
+  const wrapper = element('div', 'journey-task-notes');
+
+  blocks.forEach((block) => {
+    if (block.kind === 'heading') {
+      const heading = element('p', 'journey-task-note-heading');
+      appendInlineContent(heading, block.text);
+      wrapper.appendChild(heading);
+      return;
+    }
+
+    if (block.kind === 'paragraph') {
+      const paragraph = element('p', 'journey-task-note-text');
+      appendInlineContent(paragraph, block.text);
+      wrapper.appendChild(paragraph);
+      return;
+    }
+
+    if (block.kind === 'list') {
+      const list = element(block.ordered ? 'ol' : 'ul', 'journey-task-note-list');
+      block.items.forEach((item) => {
+        const row = element('li');
+        appendInlineContent(row, item.text);
+        list.appendChild(row);
+      });
+      wrapper.appendChild(list);
+      return;
+    }
+
+    const quote = element('blockquote', 'journey-task-note-quote');
+    block.lines.forEach((line) => {
+      const paragraph = element('p');
+      appendInlineContent(paragraph, line);
+      quote.appendChild(paragraph);
+    });
+    wrapper.appendChild(quote);
+  });
+
+  return wrapper;
 }
 
 function renderReview(data: JourneyViewModel): HTMLElement {
@@ -733,6 +788,7 @@ function renderReview(data: JourneyViewModel): HTMLElement {
 
   const taskSection = reviewSection(t('journey.reviewTasks'));
   const taskList = element('div', 'journey-review-tasks');
+  const taskNotes = groupTaskNotes(data.blocks, data.tasks);
   data.tasks.forEach((task, index) => {
     const presentation = taskPresentation(task);
     const item = element('article', `journey-review-task${task.checked ? ' is-done' : ''}`);
@@ -759,6 +815,8 @@ function renderReview(data: JourneyViewModel): HTMLElement {
       });
       item.appendChild(steps);
     }
+    const notes = taskNotes.get(task.id);
+    if (notes) item.appendChild(renderNoteBlocks(notes));
     if (task.tags.length > 0) {
       const tags = element('div', 'journey-tags');
       task.tags.forEach((tag) => tags.appendChild(element('span', '', tag)));
