@@ -108,4 +108,94 @@ describe('journey sync migration constraints', () => {
       ),
     ).rejects.toMatchObject({ code: '23514' });
   });
+
+  databaseIt('rejects raw Markdown and vault paths in legal plaintext fields while accepting compact structured text', async () => {
+    const db = await migrationClient();
+    const rawVaultPath = 'Daily/private.md';
+    const rawMarkdown = '## private vault body\nDaily/private.md';
+    const projection = {
+      daily: {
+        date: '2026-09-12',
+        stage: rawVaultPath,
+        tasks: [{ id: 'task-1', checked: true, text: 'Review virtual networks', tags: ['#az104'] }],
+        evidence: ['Completed virtual network lab'],
+        journal: { done: 'Reviewed module.', blocked: '', next: 'Practice firewall rules.' },
+      },
+    };
+
+    await expect(
+      db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [ownerId, 'vault-main', revision, JSON.stringify(projection)],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+
+    await expect(
+      db.query(
+        `INSERT INTO journey_sync_jobs (id, owner_id, vault_id, job_type, payload, idempotency_key)
+         VALUES ($1, $2, $3, 'mutation', $4::jsonb, $5)`,
+        [
+          jobId,
+          ownerId,
+          'vault-main',
+          JSON.stringify({
+            operation: 'journey_mutation',
+            payload: {
+              kind: 'journal',
+              date: '2026-09-12',
+              done: rawMarkdown,
+              blocked: '',
+              next: 'Practice firewall rules.',
+            },
+          }),
+          'event_12345678',
+        ],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+
+    await expect(
+      db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [
+          ownerId,
+          'vault-main',
+          revision,
+          JSON.stringify({
+            daily: {
+              date: '2026-09-12',
+              stage: 'AZ-104',
+              tasks: [{ id: 'task-1', checked: true, text: 'Review networks', tags: ['#az104'] }],
+              evidence: ['Completed lab'],
+              journal: { done: 'Reviewed module.', blocked: '', next: 'Practice firewall rules.' },
+            },
+          }),
+        ],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+
+    await expect(
+      db.query(
+        `INSERT INTO journey_sync_jobs (id, owner_id, vault_id, job_type, payload, idempotency_key)
+         VALUES ($1, $2, $3, 'mutation', $4::jsonb, $5)`,
+        [
+          jobId,
+          ownerId,
+          'vault-main',
+          JSON.stringify({
+            operation: 'journey_mutation',
+            payload: {
+              kind: 'journal',
+              date: '2026-09-12',
+              done: 'Reviewed module.',
+              blocked: '',
+              next: 'Practice firewall rules.',
+            },
+          }),
+          'event_12345679',
+        ],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+  });
 });

@@ -31,7 +31,23 @@ IMMUTABLE
 STRICT
 AS $$
   SELECT jsonb_typeof(value) = 'string'
-     AND length(value #>> '{}') <= maximum_length;
+     AND length(value #>> '{}') <= maximum_length
+     AND value #>> '{}' !~ E'[\r\n]'
+     AND value #>> '{}' !~ E'[`\\[\\]#*_<>]'
+     AND value #>> '{}' !~ E'(^|[[:space:]])[-+][[:space:]]'
+     AND value #>> '{}' !~ E'(^|[[:space:]])[0-9]+\\.[[:space:]]'
+     AND value #>> '{}' !~ E'(^|[[:space:]])/?[[:alnum:]_.-]+(/[[:alnum:]_.-]+)+($|[[:space:]])'
+     AND value #>> '{}' !~ E'\\\\';
+$$;
+
+CREATE OR REPLACE FUNCTION journey_json_is_tag(value JSONB)
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+STRICT
+AS $$
+  SELECT jsonb_typeof(value) = 'string'
+     AND value #>> '{}' ~ '^#[A-Za-z0-9][A-Za-z0-9_-]{0,79}$';
 $$;
 
 CREATE OR REPLACE FUNCTION journey_json_is_identifier(value JSONB)
@@ -89,6 +105,21 @@ AS $$
      );
 $$;
 
+CREATE OR REPLACE FUNCTION journey_json_safe_tag_array(value JSONB, maximum_items INTEGER)
+RETURNS BOOLEAN
+LANGUAGE SQL
+IMMUTABLE
+STRICT
+AS $$
+  SELECT jsonb_typeof(value) = 'array'
+     AND jsonb_array_length(value) <= maximum_items
+     AND NOT EXISTS (
+       SELECT 1
+       FROM jsonb_array_elements(value) AS item
+       WHERE NOT journey_json_is_tag(item)
+     );
+$$;
+
 CREATE OR REPLACE FUNCTION journey_daily_tasks_are_safe(value JSONB)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -107,7 +138,7 @@ BEGIN
       AND journey_json_is_identifier(task->'id')
       AND jsonb_typeof(task->'checked') = 'boolean'
       AND journey_json_is_safe_text(task->'text', 1000)
-      AND journey_json_safe_text_array(task->'tags', 32, 80)
+      AND journey_json_safe_tag_array(task->'tags', 32)
     ) IS NOT TRUE THEN
       RETURN FALSE;
     END IF;
