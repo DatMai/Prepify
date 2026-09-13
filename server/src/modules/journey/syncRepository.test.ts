@@ -115,7 +115,9 @@ describe('createSyncRepository', () => {
     });
 
     expect(result).toMatchObject({ jobId: 'existing-job', state: 'pending' });
-    expect(calls.filter((call) => call.text.includes('INSERT INTO journey_audit_events'))).toHaveLength(0);
+    expect(
+      calls.filter((call) => call.text.includes('INSERT INTO journey_audit_events')),
+    ).toHaveLength(0);
   });
 
   it('captures the current projection revision when a sync request enters the outbox', async () => {
@@ -135,14 +137,9 @@ describe('createSyncRepository', () => {
       idempotencyKey: 'event_12345678',
     });
 
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values).toEqual([
-      'owner-1',
-      'vault-main',
-      'sync',
-      '{}',
-      'event_12345678',
-      expectedRevision,
-    ]);
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values,
+    ).toEqual(['owner-1', 'vault-main', 'sync', '{}', 'event_12345678', expectedRevision]);
   });
 
   it('reclaims an expired lease, increments its attempt count, and writes an audit event', async () => {
@@ -172,11 +169,15 @@ describe('createSyncRepository', () => {
 
     expect(withTransaction).toHaveBeenCalledTimes(1);
     const claim = calls.find((call) => call.text.includes("SET state = 'claimed'"));
-    expect(claim?.text).toContain("state = 'pending' OR (state = 'claimed' AND lease_expires_at <= NOW())");
-    expect(claim?.text).toContain("make_interval(secs => $4::int)");
+    expect(claim?.text).toContain(
+      "state = 'pending' OR (state = 'claimed' AND lease_expires_at <= NOW())",
+    );
+    expect(claim?.text).toContain('make_interval(secs => $4::int)');
     expect(claim?.values).toEqual(['owner-1', 'job-1', 'lease-1', 30]);
     expect(claimed).toMatchObject({ jobId: 'job-1', state: 'claimed', attemptCount: 2 });
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values).toEqual([
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values,
+    ).toEqual([
       'owner-1',
       'job-1',
       'claimed',
@@ -197,7 +198,9 @@ describe('createSyncRepository', () => {
 
     expect(completed).toBeNull();
     expect(calls.some((call) => call.text.includes('INSERT INTO journey_projections'))).toBe(false);
-    expect(calls.some((call) => call.text.includes('INSERT INTO journey_audit_events'))).toBe(false);
+    expect(calls.some((call) => call.text.includes('INSERT INTO journey_audit_events'))).toBe(
+      false,
+    );
   });
 
   it('commits the returned projection, completed state, and sanitized audit event in one transaction', async () => {
@@ -230,10 +233,24 @@ describe('createSyncRepository', () => {
     });
 
     expect(withTransaction).toHaveBeenCalledTimes(1);
-    expect(completed).toMatchObject({ jobId: 'job-1', state: 'synced', completedAt: '2026-09-12T00:01:00.000Z' });
-    const savedProjection = calls.find((call) => call.text.includes('INSERT INTO journey_projections'));
-    expect(savedProjection?.values).toEqual(['owner-1', 'vault-main', sha, JSON.stringify(projection), null]);
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values).toEqual([
+    expect(completed).toMatchObject({
+      jobId: 'job-1',
+      state: 'synced',
+      completedAt: '2026-09-12T00:01:00.000Z',
+    });
+    const savedProjection = calls.find((call) =>
+      call.text.includes('INSERT INTO journey_projections'),
+    );
+    expect(savedProjection?.values).toEqual([
+      'owner-1',
+      'vault-main',
+      sha,
+      JSON.stringify(projection),
+      null,
+    ]);
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values,
+    ).toEqual([
       'owner-1',
       'job-1',
       'completed',
@@ -243,7 +260,7 @@ describe('createSyncRepository', () => {
 
   it('preserves both revisions when a claimed job enters conflict', async () => {
     const { repo, calls } = harness((text) => {
-      if (text.includes("SET state = $4")) {
+      if (text.includes('SET state = $4')) {
         return {
           rows: [
             {
@@ -274,7 +291,7 @@ describe('createSyncRepository', () => {
       conflictExpectedRevision: expectedRevision,
       conflictActualRevision: actualRevision,
     });
-    const conflict = calls.find((call) => call.text.includes("SET state = $4"));
+    const conflict = calls.find((call) => call.text.includes('SET state = $4'));
     expect(conflict?.values).toEqual([
       'owner-1',
       'job-1',
@@ -284,7 +301,9 @@ describe('createSyncRepository', () => {
       expectedRevision,
       actualRevision,
     ]);
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values).toEqual([
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values,
+    ).toEqual([
       'owner-1',
       'job-1',
       'conflicted',
@@ -408,9 +427,9 @@ describe('createSyncRepository', () => {
       conflictExpectedRevision: expectedRevision,
       conflictActualRevision: actualRevision,
     });
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text).toContain(
-      'WHERE journey_projections.revision IS NOT DISTINCT FROM $5',
-    );
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text,
+    ).toContain('WHERE journey_projections.revision IS NOT DISTINCT FROM $5');
     expect(calls.find((call) => call.text.includes("SET state = 'conflict'"))?.values).toEqual([
       'owner-1',
       'job-1',
@@ -604,13 +623,9 @@ describe('createSyncRepository', () => {
       projection,
     });
 
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.values).toEqual([
-      'owner-1',
-      'vault-main',
-      sha,
-      JSON.stringify(projection),
-      null,
-    ]);
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.values,
+    ).toEqual(['owner-1', 'vault-main', sha, JSON.stringify(projection), null]);
     const audit = calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'));
     expect(audit?.values).toEqual([
       'owner-1',
@@ -649,10 +664,12 @@ describe('createSyncRepository', () => {
       payload: { date: '2026-09-12', score: 3, total: 5 },
     });
 
-    expect(calls.some((call) => call.text.includes('SELECT revision FROM journey_projections'))).toBe(
-      true,
-    );
-    expect(calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values).toEqual([
+    expect(
+      calls.some((call) => call.text.includes('SELECT revision FROM journey_projections')),
+    ).toBe(true);
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values,
+    ).toEqual([
       'owner-1',
       'vault-main',
       'mutation',

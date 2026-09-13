@@ -143,7 +143,12 @@ function assertProjection(projection: unknown): asserts projection is JourneyPro
   const invalid = (): never => {
     throw new Error('projection must match the allowlisted schema');
   };
-  if (!isRecord(projection) || !hasKeys(projection, ['daily']) || !hasOnlyKeys(projection, ['daily'])) invalid();
+  if (
+    !isRecord(projection) ||
+    !hasKeys(projection, ['daily']) ||
+    !hasOnlyKeys(projection, ['daily'])
+  )
+    invalid();
   const daily = (projection as Record<string, unknown>).daily;
   if (
     !isRecord(daily) ||
@@ -247,7 +252,12 @@ function assertJobLease(input: { ownerId: string; jobId: string; leaseId: string
 
 async function insertAudit(
   query: JourneyQuery,
-  input: { ownerId: string; jobId: string | null; eventType: string; details: Record<string, string> },
+  input: {
+    ownerId: string;
+    jobId: string | null;
+    eventType: string;
+    details: Record<string, string>;
+  },
 ): Promise<void> {
   await query(
     `INSERT INTO journey_audit_events (owner_id, job_id, event_type, details)
@@ -258,7 +268,13 @@ async function insertAudit(
 
 async function saveProjection(
   query: JourneyQuery,
-  input: { ownerId: string; vaultId: string; revision: string; expectedRevision: string | null; projection: JourneyProjectionData },
+  input: {
+    ownerId: string;
+    vaultId: string;
+    revision: string;
+    expectedRevision: string | null;
+    projection: JourneyProjectionData;
+  },
   options: { unguarded?: boolean } = {},
 ): Promise<boolean> {
   // A recorded expectation keeps a real compare-and-swap. The complete path
@@ -275,12 +291,22 @@ async function saveProjection(
      ON CONFLICT (owner_id, vault_id)
      DO UPDATE SET revision = EXCLUDED.revision, projection = EXCLUDED.projection, updated_at = NOW()${guard}
      RETURNING revision`,
-    [input.ownerId, input.vaultId, input.revision, JSON.stringify(input.projection), input.expectedRevision],
+    [
+      input.ownerId,
+      input.vaultId,
+      input.revision,
+      JSON.stringify(input.projection),
+      input.expectedRevision,
+    ],
   );
   return rows.length > 0;
 }
 
-async function currentRevision(query: JourneyQuery, ownerId: string, vaultId: string): Promise<string | null> {
+async function currentRevision(
+  query: JourneyQuery,
+  ownerId: string,
+  vaultId: string,
+): Promise<string | null> {
   const { rows } = await query<{ revision: string }>(
     `SELECT revision FROM journey_projections WHERE owner_id = $1 AND vault_id = $2`,
     [ownerId, vaultId],
@@ -288,7 +314,10 @@ async function currentRevision(query: JourneyQuery, ownerId: string, vaultId: st
   return rows[0]?.revision ?? null;
 }
 
-export function createSyncRepository(deps: { query: JourneyQuery; withTransaction: JourneyTransaction }) {
+export function createSyncRepository(deps: {
+  query: JourneyQuery;
+  withTransaction: JourneyTransaction;
+}) {
   async function createJob(
     tx: JourneyQuery,
     input: RequestSyncInput & {
@@ -328,7 +357,10 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
     return job;
   }
 
-  async function claimedJob(tx: JourneyQuery, input: { ownerId: string; jobId: string; leaseId: string }): Promise<SyncJob | null> {
+  async function claimedJob(
+    tx: JourneyQuery,
+    input: { ownerId: string; jobId: string; leaseId: string },
+  ): Promise<SyncJob | null> {
     const { rows } = await tx<JobRow>(
       `SELECT ${JOB_COLUMNS}
          FROM journey_sync_jobs
@@ -340,7 +372,10 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
     return rows[0] ? mapJob(rows[0]) : null;
   }
 
-  async function completedRetry(tx: JourneyQuery, input: CompleteSyncJobInput): Promise<SyncJob | null> {
+  async function completedRetry(
+    tx: JourneyQuery,
+    input: CompleteSyncJobInput,
+  ): Promise<SyncJob | null> {
     const { rows } = await tx<JobRow>(
       `SELECT ${JOB_COLUMNS}
          FROM journey_sync_jobs
@@ -353,7 +388,13 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
 
   async function markConflict(
     tx: JourneyQuery,
-    input: { ownerId: string; jobId: string; leaseId: string; expectedRevision: string; actualRevision: string },
+    input: {
+      ownerId: string;
+      jobId: string;
+      leaseId: string;
+      expectedRevision: string;
+      actualRevision: string;
+    },
   ): Promise<SyncJob | null> {
     const { rows } = await tx<JobRow>(
       `UPDATE journey_sync_jobs
@@ -362,7 +403,14 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
               lease_expires_at = NULL, updated_at = NOW()
         WHERE owner_id = $1 AND id = $2 AND state = 'claimed' AND lease_id = $3
         RETURNING ${JOB_COLUMNS}`,
-      [input.ownerId, input.jobId, input.leaseId, input.expectedRevision, input.actualRevision, 'revision_conflict'],
+      [
+        input.ownerId,
+        input.jobId,
+        input.leaseId,
+        input.expectedRevision,
+        input.actualRevision,
+        'revision_conflict',
+      ],
     );
     const row = rows[0];
     if (!row) return null;
@@ -383,7 +431,10 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
   }
 
   return {
-    async getProjection(input: { ownerId: string; vaultId: string }): Promise<JourneyProjection | null> {
+    async getProjection(input: {
+      ownerId: string;
+      vaultId: string;
+    }): Promise<JourneyProjection | null> {
       assertSafeIdentifier(input.ownerId, 'ownerId');
       assertVaultId(input.vaultId);
       const { rows } = await deps.query<ProjectionRow>(
@@ -450,7 +501,11 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
 
     async claim(input: ClaimSyncJobInput): Promise<SyncJob | null> {
       assertJobLease(input);
-      if (!Number.isInteger(input.leaseSeconds) || input.leaseSeconds < 1 || input.leaseSeconds > 300) {
+      if (
+        !Number.isInteger(input.leaseSeconds) ||
+        input.leaseSeconds < 1 ||
+        input.leaseSeconds > 300
+      ) {
         throw new Error('leaseSeconds must be an integer between 1 and 300');
       }
       return deps.withTransaction(async (tx) => {
@@ -501,7 +556,8 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
         );
         if (!saved) {
           const actualRevision = await currentRevision(tx, input.ownerId, job.vaultId);
-          if (!actualRevision) throw new Error('projection revision disappeared during conflict handling');
+          if (!actualRevision)
+            throw new Error('projection revision disappeared during conflict handling');
           return markConflict(tx, {
             ownerId: input.ownerId,
             jobId: input.jobId,
@@ -597,7 +653,8 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
         }
         if (job.expectedRevision !== input.expectedRevision) {
           const actualRevision = await currentRevision(tx, input.ownerId, input.vaultId);
-          if (!actualRevision) throw new Error('projection revision disappeared during conflict handling');
+          if (!actualRevision)
+            throw new Error('projection revision disappeared during conflict handling');
           return markConflict(tx, {
             ownerId: input.ownerId,
             jobId: input.jobId,
@@ -609,7 +666,8 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
         const saved = await saveProjection(tx, input);
         if (!saved) {
           const actualRevision = await currentRevision(tx, input.ownerId, input.vaultId);
-          if (!actualRevision) throw new Error('projection revision disappeared during conflict handling');
+          if (!actualRevision)
+            throw new Error('projection revision disappeared during conflict handling');
           return markConflict(tx, {
             ownerId: input.ownerId,
             jobId: input.jobId,

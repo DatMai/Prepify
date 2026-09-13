@@ -62,7 +62,9 @@ function fakeSync(overrides: Partial<Record<keyof FakeSync, unknown>> = {}): Fak
   return {
     listPending: vi.fn().mockResolvedValue([job()]),
     claim: vi.fn().mockResolvedValue(job({ state: 'claimed', leaseId })),
-    complete: vi.fn().mockResolvedValue(job({ state: 'synced', completedAt: '2026-09-13T01:00:00.000Z' })),
+    complete: vi
+      .fn()
+      .mockResolvedValue(job({ state: 'synced', completedAt: '2026-09-13T01:00:00.000Z' })),
     fail: vi.fn().mockResolvedValue(job({ state: 'failed' })),
     recordInboundProjection: vi.fn().mockResolvedValue(job({ state: 'claimed', leaseId })),
     ...overrides,
@@ -202,7 +204,9 @@ describe('POST /:id/claim', () => {
       request(bridgeApp(sync)).post(`${BASE}/${jobId}/claim`).send({ leaseId, leaseSeconds: 0 }),
     ).expect(400);
     await bearer(
-      request(bridgeApp(sync)).post(`${BASE}/${jobId}/claim`).send({ leaseId, leaseSeconds: 3_600 }),
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/claim`)
+        .send({ leaseId, leaseSeconds: 3_600 }),
     ).expect(400);
 
     expect(sync.claim).not.toHaveBeenCalled();
@@ -321,7 +325,9 @@ describe('POST /:id/projection', () => {
       },
     };
 
-    await bearer(request(bridgeApp(sync)).post(`${BASE}/${jobId}/projection`).send(body)).expect(400);
+    await bearer(request(bridgeApp(sync)).post(`${BASE}/${jobId}/projection`).send(body)).expect(
+      400,
+    );
     expect(sync.recordInboundProjection).not.toHaveBeenCalled();
   });
 

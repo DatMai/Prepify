@@ -121,12 +121,12 @@ const projectionSchema = z
     daily: z
       .object({
         date: z.string().regex(ISO_DATE, 'date must be an ISO calendar date'),
-        stage: z
-          .string()
-          .refine((value) => isSafeText(value, 160), 'stage must be safe text'),
+        stage: z.string().refine((value) => isSafeText(value, 160), 'stage must be safe text'),
         tasks: z.array(taskSchema).max(200),
         evidence: z
-          .array(z.string().refine((value) => isSafeText(value, 1_000), 'evidence must be safe text'))
+          .array(
+            z.string().refine((value) => isSafeText(value, 1_000), 'evidence must be safe text'),
+          )
           .max(100),
         journal: z
           .object({
@@ -184,7 +184,10 @@ const failBody = z
     errorCode: z
       .string()
       .regex(SAFE_ERROR_CODE, 'errorCode must be a sanitized error code')
-      .refine((code) => code !== REVISION_CONFLICT, 'use the conflict route for revision conflicts'),
+      .refine(
+        (code) => code !== REVISION_CONFLICT,
+        'use the conflict route for revision conflicts',
+      ),
     expectedRevision: revision.optional(),
     actualRevision: revision.optional(),
   })
@@ -329,8 +332,14 @@ export function createJourneyBridgeRouter(deps: JourneyBridgeDependencies): Rout
         invalid(res, 'a structured projection with safe revisions is required');
         return;
       }
-      const { vaultId, leaseId: lease, expectedRevision, revision: next, projection, fields } =
-        parsed.data;
+      const {
+        vaultId,
+        leaseId: lease,
+        expectedRevision,
+        revision: next,
+        projection,
+        fields,
+      } = parsed.data;
       if (vaultId !== deps.vaultId) {
         invalid(res, 'vaultId does not match this bridge vault');
         return;
