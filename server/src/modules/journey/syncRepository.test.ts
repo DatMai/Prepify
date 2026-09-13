@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createSyncRepository } from './syncRepository';
-import type { JourneyQuery } from './syncTypes';
+import type { JourneyProjectionData, JourneyQuery } from './syncTypes';
 
 const sha = 'a'.repeat(64);
 const expectedRevision = 'b'.repeat(64);
 const actualRevision = 'c'.repeat(64);
 
-function validProjection() {
+function validProjection(): JourneyProjectionData {
   return {
     daily: {
       date: '2026-09-12',
@@ -25,6 +25,21 @@ function validProjection() {
         blocked: '',
         next: 'Practice firewall rules.',
       },
+      blocks: [
+        { kind: 'heading', level: 2, text: 'Study' },
+        {
+          kind: 'list',
+          ordered: false,
+          items: [{ text: '#az104 21:00 — recall Unit 2', checked: true }],
+        },
+        {
+          kind: 'quote',
+          label: 'question',
+          title: 'Recall Unit 2',
+          lines: ['What is Entra ID?'],
+          collapsed: true,
+        },
+      ],
     },
   };
 }
@@ -340,7 +355,7 @@ describe('createSyncRepository', () => {
 
   it('rejects vault aliases and free-text bodies before they can enter JSONB', async () => {
     const { repo, calls } = harness();
-    const projection = validProjection() as Record<string, unknown>;
+    const projection = validProjection() as unknown as Record<string, unknown>;
     projection.filePath = 'Daily/private.md';
     projection.content = '## Private vault body';
 

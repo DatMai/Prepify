@@ -77,3 +77,40 @@ Phần được cập nhật là **cách** app nói chuyện với vault khi API
 sync theo yêu cầu, upload projection, mutation database→vault ghi được vào note và
 giữ nguyên các section ngoài quyền ghi, reconnect đúng một frame mỗi lần, và
 conflict trả `409` kèm cả hai revision `sha256:` đã sanitize.
+
+## Cập nhật 2026-09-13 (2): projection mang bản xem đầy đủ của note
+
+**Vấn đề.** Trang Hành trình chỉ hiện được `stage`, danh sách `- [ ]` và ba ô
+`Done / Blocked / Next`. Mọi thứ khác trong note — khối callout recall
+(`> [!question]-`), các mục con `###` — bị parser bỏ và **không bao giờ tới UI**.
+Trên note thật ngày 2026-09-13: 27 dòng `>` và 2 mục `###` biến mất.
+
+**Quyết định.** Projection mang thêm một trường `daily.blocks` chỉ để đọc: danh
+sách khối có cấu trúc (`heading`, `paragraph`, `list`, `quote`) của **đúng các
+section thuộc Hành trình** (`## Study`, `## Bằng chứng`, `## Journal (English
+only)`). Các section khác như Email, tài chính, project vẫn không được trả về.
+Callout giữ `label`, `title`, `collapsed` để UI thu gọn/mở đúng như Obsidian.
+
+**Ranh giới nghiêm hay nới, và vì sao.** Từ nay có hai mức kiểm tra:
+
+- **Chỉ-đọc** (`tasks[].text`, `daily.blocks`): mang nguyên văn chữ của note.
+  Chỉ chặn ký tự điều khiển/xuống dòng. `task.text` không bao giờ được gửi
+  ngược lại — app chỉ gửi `taskId` và cờ `completed`.
+- **Ghi ngược vào note** (`stage`, `evidence`, `journal.*`): vẫn giữ luật cũ, từ
+  chối raw Markdown, URI và đường dẫn vault.
+
+Lý do phải tách: luật cũ bị **false positive** trên chính nội dung thật. Rule
+path-like coi `08/09` và `Array/Hash` là đường dẫn, nên **cả 5 task** của note
+thật bị từ chối và job sync kẹt vĩnh viễn ở `claimed`. Kiểm tra chỉ-đọc vì vậy
+dùng luật hiển thị, còn ba field ghi ngược vẫn bị kiểm tra nghiêm.
+
+**Ba chỗ phải khớp nhau.** Contract này được mirror ở `journeyBridge.ts` (zod
+schema), `syncRepository.ts` (`assertProjection`) và migration SQL. Sửa một chỗ
+mà quên chỗ khác thì `POST /complete` trả 400/500 và job không bao giờ xong —
+đúng lỗi đã xảy ra trong lần tích hợp này.
+
+**Bằng chứng (2026-09-13).** End-to-end thật trên vault thật: `POST
+/api/v1/journey/sync` → `pending` → `synced`; projection lưu `blocks` = **16**
+(4 heading gồm cả 2 mục `###`, 2 paragraph, 5 list, 5 quote) với **4 callout
+`question` đánh dấu `collapsed`**; `GET /journey/today` trả `synced: true`.
+Migration `014_add_journey_daily_blocks.sql`.

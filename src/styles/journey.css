@@ -1125,6 +1125,135 @@
   }
 }
 
+/* ── The day's full note (read-only) ──────────────────────────────────── */
+
+.journey-note {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 24px;
+  border: 1px solid rgba(74, 163, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.journey-note-heading {
+  margin: 0;
+  color: var(--txt);
+  font-weight: 600;
+}
+
+.journey-note-heading.is-level-1,
+.journey-note-heading.is-level-2 {
+  color: var(--accent2);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.journey-note-heading.is-level-3,
+.journey-note-heading.is-level-4 {
+  font-size: 14px;
+}
+
+.journey-note-heading.is-level-5,
+.journey-note-heading.is-level-6 {
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.journey-note-paragraph,
+.journey-note-quote-body p {
+  margin: 0;
+  color: var(--txt);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.journey-note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--txt);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.journey-note-list-item {
+  overflow-wrap: anywhere;
+}
+
+.journey-note-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 1px solid rgba(107, 120, 136, 0.5);
+  border-radius: 4px;
+  color: var(--ok);
+  font-size: 11px;
+  vertical-align: -2px;
+}
+
+.journey-note-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(74, 163, 255, 0.35);
+  border-radius: 0 10px 10px 0;
+  background: rgba(74, 163, 255, 0.06);
+}
+
+.journey-note-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.journey-note-callout-label {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(74, 163, 255, 0.16);
+  color: var(--accent2);
+  font:
+    600 11px 'Outfit',
+    sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.journey-note-callout-title {
+  flex: 1;
+  color: var(--txt);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.journey-note-toggle {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(74, 163, 255, 0.28);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent2);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.journey-note-toggle:hover {
+  background: rgba(74, 163, 255, 0.14);
+}
+
 @media (max-width: 460px) {
   .journey-brand {
     display: none;

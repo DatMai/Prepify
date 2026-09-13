@@ -2,7 +2,7 @@ import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
-import type { JourneyJournal, JourneyTask } from './types';
+import type { JourneyBlock, JourneyJournal, JourneyTask } from './types';
 import {
   SYNC_STATE_KEYS,
   canMutate,
@@ -31,6 +31,7 @@ export interface JourneyViewModel {
   tasks: JourneyTask[];
   evidence: string[];
   journal: JourneyJournal;
+  blocks: JourneyBlock[];
   obsidianUri: string | null;
   mtimeMs: number | null;
   /** True when the data came from the hosted projection rather than the local vault. */
@@ -48,6 +49,7 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
       tasks: daily.tasks,
       evidence: daily.evidence,
       journal: daily.journal,
+      blocks: daily.blocks ?? [],
       obsidianUri: null,
       mtimeMs: null,
       hosted: true,
@@ -61,6 +63,7 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
     tasks: response.tasks,
     evidence: response.evidence,
     journal: response.journal,
+    blocks: response.blocks ?? [],
     obsidianUri: response.obsidianUri,
     mtimeMs: response.mtimeMs,
     hosted: false,
@@ -460,6 +463,9 @@ function renderJourney(data: JourneyViewModel): void {
   body.appendChild(sectionTitle(t('journey.journalTitle'), t('journey.journalHint')));
   body.appendChild(renderJournal(data));
 
+  body.appendChild(sectionTitle(t('journey.noteTitle'), t('journey.noteHint')));
+  body.appendChild(renderNote(data));
+
   panel.classList.remove('is-saving');
   applySyncGating();
 }
@@ -747,6 +753,10 @@ function renderReview(data: JourneyViewModel): HTMLElement {
   journalSection.appendChild(journal);
   review.appendChild(journalSection);
 
+  const noteSection = reviewSection(t('journey.noteTitle'));
+  noteSection.appendChild(renderNote(data));
+  review.appendChild(noteSection);
+
   if (data.obsidianUri) {
     const footer = element('footer', 'journey-review-footer');
     const open = element(
@@ -825,6 +835,83 @@ function renderJournal(data: JourneyViewModel): HTMLElement {
   actions.appendChild(save);
   form.appendChild(actions);
   return form;
+}
+
+const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
+
+/**
+ * The whole Journey-owned note of the day, read-only and exactly as the vault
+ * holds it. The structured task/journal fields cannot carry recall callouts or
+ * `###` sub-sections, so this is what makes the page match Obsidian.
+ */
+function renderNote(data: JourneyViewModel): HTMLElement {
+  const wrapper = element('div', 'journey-note');
+
+  if (data.blocks.length === 0) {
+    wrapper.appendChild(element('p', 'journey-empty', t('journey.noNote')));
+    return wrapper;
+  }
+
+  data.blocks.forEach((block) => wrapper.appendChild(renderNoteBlock(block)));
+  return wrapper;
+}
+
+function renderNoteBlock(block: JourneyBlock): HTMLElement {
+  if (block.kind === 'heading') {
+    const level = Math.min(Math.max(block.level, 1), 6);
+    const heading = element(HEADING_TAGS[level - 1], `journey-note-heading is-level-${level}`);
+    heading.textContent = block.text;
+    return heading;
+  }
+
+  if (block.kind === 'paragraph') {
+    return element('p', 'journey-note-paragraph', block.text);
+  }
+
+  if (block.kind === 'list') {
+    const list = element(block.ordered ? 'ol' : 'ul', 'journey-note-list');
+    block.items.forEach((item) => {
+      const row = element('li', 'journey-note-list-item');
+      if (item.checked !== null) {
+        const box = element('span', 'journey-note-checkbox', item.checked ? '✓' : '');
+        box.setAttribute('aria-hidden', 'true');
+        row.appendChild(box);
+      }
+      row.appendChild(element('span', '', item.text));
+      list.appendChild(row);
+    });
+    return list;
+  }
+
+  const quote = element('blockquote', `journey-note-quote${block.label ? ' is-callout' : ''}`);
+  const body = element('div', 'journey-note-quote-body');
+  block.lines.forEach((line) => body.appendChild(element('p', '', line)));
+
+  if (block.label) {
+    const header = element('div', 'journey-note-callout-header');
+    header.appendChild(element('span', 'journey-note-callout-label', block.label));
+    if (block.title) header.appendChild(element('span', 'journey-note-callout-title', block.title));
+
+    const toggle = element('button', 'journey-note-toggle', '⌄');
+    toggle.type = 'button';
+    toggle.setAttribute('aria-label', t('journey.noteToggle'));
+    let expanded = !block.collapsed;
+    const apply = (): void => {
+      body.hidden = !expanded;
+      toggle.textContent = expanded ? '⌃' : '⌄';
+      toggle.setAttribute('aria-expanded', String(expanded));
+    };
+    toggle.addEventListener('click', () => {
+      expanded = !expanded;
+      apply();
+    });
+    header.appendChild(toggle);
+    quote.appendChild(header);
+    apply();
+  }
+
+  quote.appendChild(body);
+  return quote;
 }
 
 async function recordTask(

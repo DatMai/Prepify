@@ -1,5 +1,6 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
+import pino from 'pino';
 import { WebSocket } from 'ws';
 import { loadBridgeConfig } from './config';
 import { runBridge, type BridgeHttp, type BridgeWebSocket } from './bridgeClient';
@@ -36,6 +37,12 @@ async function main(): Promise<void> {
     timeZone: config.timeZone,
   });
 
+  // The bridge credential and the vault path are secrets: they are never logged.
+  const logger = pino({
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    redact: { paths: ['token', '*.token', 'vaultPath', '*.vaultPath'], censor: '[Redacted]' },
+  });
+
   const http: BridgeHttp = {
     async request(method, pathname, body) {
       const response = await fetch(`${config.apiUrl}${pathname}`, {
@@ -56,7 +63,8 @@ async function main(): Promise<void> {
     },
   };
 
-  const handle = runBridge(config, { http, connectWebSocket, vault });
+  const handle = runBridge(config, { http, connectWebSocket, vault, logger });
+  logger.info({ apiUrl: config.apiUrl, vaultId: config.vaultId }, 'obsidian bridge started');
 
   const stop = (): void => {
     void handle.close();

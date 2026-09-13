@@ -99,6 +99,7 @@ const SAFE_ERROR_CODE = /^[a-z][a-z0-9_]{0,63}$/;
  */
 const TAG = /^#[^#/\\*`<>\s]{1,80}$/;
 const INVALID_TAG_ERROR = 'invalid_vault_tag';
+const UPLOAD_REJECTED_ERROR = 'projection_rejected';
 
 function hasInvalidTag(snapshot: JourneySnapshot): boolean {
   return snapshot.tasks.some((task) => task.tags.some((tag) => !TAG.test(tag)));
@@ -276,15 +277,16 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
         tasks: snapshot.tasks,
         evidence: snapshot.evidence,
         journal: snapshot.journal,
+        blocks: snapshot.blocks,
       },
     };
   }
 
   /**
-   * Uploads a snapshot as the structured projection. If the snapshot carries a
-   * tag the server's contract rejects, the job fails with a bounded code
-   * instead of building a projection that would 400 and re-deliver forever.
-   * Truncating or dropping the tag is never an option — it is the owner's data.
+   * Uploads a snapshot as the structured projection. A rejected upload fails
+   * the job with a bounded code instead of being ignored: a job the bridge has
+   * claimed but never completes would otherwise sit in `claimed` forever with
+   * no failure to retry. Truncating or dropping owner data is never an option.
    */
   async function completeProjection(
     jobId: string,
@@ -298,10 +300,24 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
       });
       return;
     }
-    await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
+
+    const response = await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
       leaseId,
       revision: snapshot.revision,
       projection: projectionOf(snapshot),
+    });
+
+    if (response && response.status >= 200 && response.status < 300) return;
+    if (response === null) return;
+
+    const code = (response.body as { code?: unknown } | null | undefined)?.code;
+    log?.error?.(
+      { jobId, status: response.status, code: typeof code === 'string' ? code : null },
+      'bridge projection upload rejected',
+    );
+    await safeRequest('POST', `${jobsUrl(jobId)}/fail`, {
+      leaseId,
+      errorCode: UPLOAD_REJECTED_ERROR,
     });
   }
 

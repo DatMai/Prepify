@@ -1,4 +1,4 @@
-import type { JourneyJournal, JourneySnapshot, JourneyTask } from '../journey/types';
+import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from '../journey/types';
 import type { Topic, TopicIndexEntry } from '../types/quiz';
 import type { FeedArticle } from '../feed/types';
 import type { ReviewQuality, ReviewSchedule } from '../review/scheduler';
@@ -102,6 +102,7 @@ export interface JourneyProjectionDaily {
   tasks: JourneyTask[];
   evidence: string[];
   journal: JourneyJournal;
+  blocks: JourneyBlock[];
 }
 
 /**

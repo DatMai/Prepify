@@ -29,12 +29,28 @@ export interface DailyJournalProjection {
   next: string;
 }
 
+export interface DailyListItemProjection {
+  text: string;
+  checked: boolean | null;
+}
+
+/**
+ * A faithful, non-Markdown view of one Journey-owned Daily section. Without it
+ * the recall callouts and `###` sub-sections of a note never reach the app.
+ */
+export type DailyBlockProjection =
+  | { kind: 'heading'; level: number; text: string }
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; ordered: boolean; items: DailyListItemProjection[] }
+  | { kind: 'quote'; label: string; title: string; lines: string[]; collapsed: boolean };
+
 export interface DailyProjection {
   date: string;
   stage: string;
   tasks: DailyTaskProjection[];
   evidence: string[];
   journal: DailyJournalProjection;
+  blocks: DailyBlockProjection[];
 }
 
 export interface JourneyProjectionData {

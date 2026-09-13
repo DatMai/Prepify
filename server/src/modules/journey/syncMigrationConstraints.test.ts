@@ -32,11 +32,10 @@ async function migrationClient(): Promise<Client> {
   await connected.query(`CREATE SCHEMA ${schema}`);
   await connected.query(`SET search_path TO ${schema}`);
   await connected.query('CREATE TABLE users (id UUID PRIMARY KEY)');
-  const migration = await readFile(
-    path.resolve(__dirname, '../../../migrations/013_add_journey_sync.sql'),
-    'utf8',
-  );
-  await connected.query(migration);
+  const migrationsDir = path.resolve(__dirname, '../../../migrations');
+  for (const file of ['013_add_journey_sync.sql', '014_add_journey_daily_blocks.sql']) {
+    await connected.query(await readFile(path.join(migrationsDir, file), 'utf8'));
+  }
   await connected.query('INSERT INTO users (id) VALUES ($1)', [ownerId]);
   client = connected;
   schemaName = schema;
@@ -273,6 +272,7 @@ stage: AZ-104
                   blocked: '',
                   next: 'Practice firewall rules.',
                 },
+                blocks: [],
               },
             }),
           ],
@@ -303,4 +303,169 @@ stage: AZ-104
       ).resolves.toMatchObject({ rowCount: 1 });
     },
   );
+
+  databaseIt('persists the full Daily block projection, including collapsed callouts', async () => {
+    const db = await migrationClient();
+    const daily = parseDaily(`---
+stage: AZ-104
+---
+## Study
+- [ ] #az104 21:00 — recall Unit 2
+  > [!question]- Recall Unit 2
+  > What is Entra ID?
+### Bản sửa câu sai
+
+> sửa tối đa 10 phút
+## Journal (English only)
+- **Done:** Finished recall.
+- **Blocked:**
+- **Next:** Practice tomorrow.
+`);
+
+    expect(daily.blocks.map((block) => block.kind)).toEqual([
+      'heading',
+      'list',
+      'quote',
+      'heading',
+      'quote',
+      'heading',
+      'list',
+    ]);
+
+    const result = await db.query(
+      `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb) RETURNING projection`,
+      [
+        ownerId,
+        'vault-main',
+        revision,
+        JSON.stringify({ daily: { date: '2026-09-12', ...daily } }),
+      ],
+    );
+
+    expect(result.rowCount).toBe(1);
+    expect(result.rows[0].projection.daily.blocks).toEqual(daily.blocks);
+    expect(result.rows[0].projection.daily.blocks[2]).toEqual({
+      kind: 'quote',
+      label: 'question',
+      title: 'Recall Unit 2',
+      lines: ['What is Entra ID?'],
+      collapsed: true,
+    });
+    expect(result.rows[0].projection.daily.blocks[3]).toEqual({
+      kind: 'heading',
+      level: 3,
+      text: 'Bản sửa câu sai',
+    });
+  });
+
+  databaseIt.each([
+    ['an unknown block kind', [{ kind: 'chart', text: 'nope' }]],
+    ['a block with an unexpected key', [{ kind: 'paragraph', text: 'ok', path: 'Daily/x.md' }]],
+    ['a block with a control character', [{ kind: 'paragraph', text: 'a\r\nb' }]],
+    ['a heading without its level', [{ kind: 'heading', text: 'Study' }]],
+    ['a quote without its collapse flag', [{ kind: 'quote', label: '', title: '', lines: [] }]],
+  ])('rejects %s in the block projection', async (_name, blocks) => {
+    const db = await migrationClient();
+    await expect(
+      db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [
+          ownerId,
+          'vault-main',
+          revision,
+          JSON.stringify({
+            daily: {
+              date: '2026-09-12',
+              stage: 'AZ-104',
+              tasks: [],
+              evidence: [],
+              journal: { done: '', blocked: '', next: '' },
+              blocks,
+            },
+          }),
+        ],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+  });
+
+  databaseIt('requires the block projection key', async () => {
+    const db = await migrationClient();
+    await expect(
+      db.query(
+        `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [
+          ownerId,
+          'vault-main',
+          revision,
+          JSON.stringify({
+            daily: {
+              date: '2026-09-12',
+              stage: 'AZ-104',
+              tasks: [],
+              evidence: [],
+              journal: { done: '', blocked: '', next: '' },
+            },
+          }),
+        ],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+  });
+
+  databaseIt.each([
+    'đóng vở từ 08/09. #leetcode',
+    'Unit 3 recall, Array/Hash Table /7',
+    'sửa tối đa 10p câu recall sai',
+  ])('accepts display-only task text %s', async (text) => {
+    const db = await migrationClient();
+    const result = await db.query(
+      `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+       VALUES ($1, $2, $3, $4::jsonb) RETURNING projection`,
+      [
+        ownerId,
+        'vault-main',
+        revision,
+        JSON.stringify({
+          daily: {
+            date: '2026-09-12',
+            stage: 'AZ-104',
+            tasks: [{ id: 'task-1', checked: false, text, tags: [] }],
+            evidence: [],
+            journal: { done: '', blocked: '', next: '' },
+            blocks: [],
+          },
+        }),
+      ],
+    );
+
+    expect(result.rowCount).toBe(1);
+    expect(result.rows[0].projection.daily.tasks[0].text).toBe(text);
+  });
+
+  databaseIt('still rejects vault paths in the evidence and journal fields', async () => {
+    const db = await migrationClient();
+    for (const field of ['evidence', 'journal'] as const) {
+      const daily = {
+        date: '2026-09-12',
+        stage: 'AZ-104',
+        tasks: [],
+        evidence: field === 'evidence' ? ['Daily/private.md'] : [],
+        journal:
+          field === 'journal'
+            ? { done: 'Daily/private.md', blocked: '', next: '' }
+            : { done: '', blocked: '', next: '' },
+        blocks: [],
+      };
+
+      await expect(
+        db.query(
+          `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
+           VALUES ($1, $2, $3, $4::jsonb)`,
+          [ownerId, 'vault-main', revision, JSON.stringify({ daily })],
+        ),
+      ).rejects.toMatchObject({ code: '23514' });
+    }
+  });
 });
