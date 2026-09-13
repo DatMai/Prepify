@@ -233,6 +233,48 @@ uses revision checks and atomic writes so a stale browser cannot overwrite a
 newer Obsidian note. See [ADR-001](docs/ADR-001-obsidian-journey-sync.md) and
 [ADR-002](docs/ADR-002-private-library-and-obsidian-projection.md).
 
+## HeheVault bridge (on-demand sync)
+
+The deployed API never touches the vault. A local `HeheVault` bridge runs on the
+owner's Mac, holds one authenticated outbound WebSocket, claims sync jobs, and
+applies allowlisted Daily/Journey changes atomically. It is the only component
+permitted to read or write a vault path.
+
+Run it from the repository on the machine that owns the vault:
+
+```bash
+npm --prefix server run bridge:dev     # watch mode for development
+npm --prefix server run bridge:start   # built server/dist/bridge/index.js
+```
+
+Secrets live in an owner-only file `server/.env.bridge.local` (mode `0600`) —
+never in Git and never in the generated launchd plist:
+
+```dotenv
+PREPIFY_API_URL=https://prepify.example.com
+OBSIDIAN_BRIDGE_TOKEN=…   # min 32 chars, same value as the server
+OBSIDIAN_VAULT_PATH=/absolute/path/to/second-brain
+OBSIDIAN_VAULT_ID=vault-main
+```
+
+```bash
+touch server/.env.bridge.local && chmod 600 server/.env.bridge.local
+```
+
+To run it as a macOS background service, install the launchd agent. This is an
+explicit human setup step: the installer only writes
+`~/Library/LaunchAgents/com.prepify.hehevault-bridge.plist` from the resolved
+repository and Node paths, and never embeds the bridge token or the vault path.
+
+```bash
+node scripts/installHehevaultBridge.mjs
+launchctl load ~/Library/LaunchAgents/com.prepify.hehevault-bridge.plist
+```
+
+The bridge resolves only `Daily/YYYY-MM-DD.md` beneath the real vault root,
+rejects symlink escapes and traversal, compares SHA-256 revisions, and writes by
+atomically renaming a sibling temporary file.
+
 ## Agent workflow
 
 `AGENTS.md` is the project router. Superpowers is the process authority:

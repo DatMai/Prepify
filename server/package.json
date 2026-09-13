@@ -10,6 +10,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "bridge:dev": "tsx watch src/bridge/index.ts",
+    "bridge:start": "node dist/bridge/index.js",
     "migrate": "tsx src/db/migrate.ts",
     "seed:library": "tsx src/scripts/seedLibrary.ts",
     "test": "vitest run",

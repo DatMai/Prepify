@@ -48,6 +48,7 @@ interface VaultDependencies {
 
 export interface ObsidianVault {
   getTodayJourney(): Promise<JourneySnapshot>;
+  getJourney(date: string): Promise<JourneySnapshot>;
   updateTodayTask(input: {
     taskId: string;
     completed: boolean;
@@ -55,10 +56,35 @@ export interface ObsidianVault {
     expectedRevision: string;
     eventId?: string;
   }): Promise<JourneySnapshot>;
+  updateTask(input: {
+    date: string;
+    taskId: string;
+    completed: boolean;
+    evidence?: string;
+    expectedRevision: string;
+    eventId?: string;
+  }): Promise<JourneySnapshot>;
   saveTodayJournal(journal: JourneyJournal, expectedRevision: string): Promise<JourneySnapshot>;
+  saveJournal(input: {
+    date: string;
+    journal: JourneyJournal;
+    expectedRevision: string;
+  }): Promise<JourneySnapshot>;
   addTodayEvidence(input: {
     evidence: string;
     expectedRevision: string;
+    eventId: string;
+  }): Promise<JourneySnapshot>;
+  addEvidence(input: {
+    date: string;
+    evidence: string;
+    expectedRevision: string;
+    eventId: string;
+  }): Promise<JourneySnapshot>;
+  addDailySummary(input: {
+    date: string;
+    score: number;
+    total: number;
     eventId: string;
   }): Promise<JourneySnapshot>;
 }
@@ -91,7 +117,19 @@ export function createObsidianVault(
     return path.resolve(config.vaultPath);
   }
 
-  async function resolveTodayFile(date: string): Promise<string> {
+  function assertDate(date: string): void {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new VaultError(400, 'date_invalid', 'Daily date must be an ISO calendar date');
+    }
+    const [year, month, day] = date.split('-').map(Number);
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (month < 1 || month > 12 || day < 1 || day > daysInMonth) {
+      throw new VaultError(400, 'date_invalid', 'Daily date must be an ISO calendar date');
+    }
+  }
+
+  async function resolveDailyFile(date: string): Promise<string> {
+    assertDate(date);
     const configuredRoot = vaultRoot();
     let root: string;
     let dailyDir: string;
@@ -129,7 +167,7 @@ export function createObsidianVault(
   }
 
   async function readRawDaily(date: string): Promise<RawDaily> {
-    const filePath = await resolveTodayFile(date);
+    const filePath = await resolveDailyFile(date);
     const [content, stats] = await Promise.all([fs.readFile(filePath, 'utf8'), fs.stat(filePath)]);
     return { filePath, content, mode: stats.mode, mtimeMs: stats.mtimeMs };
   }
@@ -190,13 +228,13 @@ export function createObsidianVault(
     }
   }
 
-  async function mutateToday(
+  async function mutateDaily(
+    date: string,
     expectedRevision: string,
     transform: (content: string, date: string) => string,
     eventId?: string,
   ): Promise<JourneySnapshot> {
     return withMutationLock(async () => {
-      const date = dateInTimeZone(now(), config.timeZone);
       const raw = await readRawDaily(date);
       const actualRevision = revisionFor(raw.content);
       if (actualRevision !== expectedRevision) {
@@ -220,42 +258,105 @@ export function createObsidianVault(
     });
   }
 
+  async function updateTaskForDate(input: {
+    date: string;
+    taskId: string;
+    completed: boolean;
+    evidence?: string;
+    expectedRevision: string;
+    eventId?: string;
+  }): Promise<JourneySnapshot> {
+    if (input.completed && !input.evidence?.trim()) {
+      throw new VaultError(
+        400,
+        'evidence_required',
+        'Evidence is required before completing a task',
+      );
+    }
+    return mutateDaily(
+      input.date,
+      input.expectedRevision,
+      (content, date) => {
+        let next = setTaskCompleted(content, input.taskId, input.completed);
+        if (input.evidence && input.eventId)
+          next = appendEvidence(next, input.evidence, input.eventId);
+        return touchUpdated(next, date);
+      },
+      input.eventId,
+    );
+  }
+
+  async function saveJournalForDate(input: {
+    date: string;
+    journal: JourneyJournal;
+    expectedRevision: string;
+  }): Promise<JourneySnapshot> {
+    return mutateDaily(input.date, input.expectedRevision, (content, date) =>
+      touchUpdated(replaceJournal(content, input.journal), date),
+    );
+  }
+
+  async function addEvidenceForDate(input: {
+    date: string;
+    evidence: string;
+    expectedRevision: string;
+    eventId: string;
+  }): Promise<JourneySnapshot> {
+    return mutateDaily(
+      input.date,
+      input.expectedRevision,
+      (content, date) => touchUpdated(appendEvidence(content, input.evidence, input.eventId), date),
+      input.eventId,
+    );
+  }
+
   return {
+    async getJourney(date) {
+      return snapshot(date, await readRawDaily(date));
+    },
     async getTodayJourney() {
       const date = dateInTimeZone(now(), config.timeZone);
       return snapshot(date, await readRawDaily(date));
     },
+    updateTask: updateTaskForDate,
     async updateTodayTask(input) {
-      if (input.completed && !input.evidence?.trim()) {
-        throw new VaultError(
-          400,
-          'evidence_required',
-          'Evidence is required before completing a task',
-        );
-      }
-      return mutateToday(
-        input.expectedRevision,
-        (content, date) => {
-          let next = setTaskCompleted(content, input.taskId, input.completed);
-          if (input.evidence && input.eventId)
-            next = appendEvidence(next, input.evidence, input.eventId);
-          return touchUpdated(next, date);
-        },
-        input.eventId,
-      );
+      const date = dateInTimeZone(now(), config.timeZone);
+      return updateTaskForDate({ date, ...input });
     },
+    saveJournal: saveJournalForDate,
     async saveTodayJournal(journal, expectedRevision) {
-      return mutateToday(expectedRevision, (content, date) =>
-        touchUpdated(replaceJournal(content, journal), date),
-      );
+      const date = dateInTimeZone(now(), config.timeZone);
+      return saveJournalForDate({ date, journal, expectedRevision });
     },
+    addEvidence: addEvidenceForDate,
     async addTodayEvidence(input) {
-      return mutateToday(
-        input.expectedRevision,
-        (content, date) =>
-          touchUpdated(appendEvidence(content, input.evidence, input.eventId), date),
-        input.eventId,
-      );
+      const date = dateInTimeZone(now(), config.timeZone);
+      return addEvidenceForDate({ date, ...input });
+    },
+    async addDailySummary(input) {
+      if (
+        !Number.isInteger(input.score) ||
+        !Number.isInteger(input.total) ||
+        input.score < 0 ||
+        input.total < 1 ||
+        input.score > input.total
+      ) {
+        throw new VaultError(400, 'summary_invalid', 'Daily summary must be a valid score');
+      }
+      // The database does not know the vault revision for a Daily completion,
+      // so this append-only write is not revision-guarded. The idempotency
+      // marker in the note makes a replay a no-op instead.
+      return withMutationLock(async () => {
+        const raw = await readRawDaily(input.date);
+        const next = appendEvidence(
+          raw.content,
+          `Daily quiz — ${input.score}/${input.total}`,
+          input.eventId,
+        );
+        if (next === raw.content) return snapshot(input.date, raw);
+        await atomicWrite(raw, next);
+        return snapshot(input.date, await readRawDaily(input.date));
+      });
     },
   };
 }
