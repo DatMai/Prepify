@@ -149,6 +149,26 @@ Changes to narrative sections remain owned by Obsidian. The app stores only the
 projection necessary to display them and does not treat that projection as an
 independent editable copy.
 
+## Implementation status (2026-09-13)
+
+Implemented on `feat/overhaul-completion` (PR #11). Two points below ended up
+different from this spec and are recorded here so the document is not misleading:
+
+- **Field-level merge is not implemented.** The rule "Changes to different owned
+  fields may be merged deterministically" did not ship. Conflicts are
+  **whole-note**: one SHA-256 revision per note, and any concurrent change to the
+  note becomes `conflict`. The bridge supplies the conflicting field names as an
+  advisory, server-validated list; the server does not compute a field diff.
+- **Conflict field names are pass-through, not server-derived.**
+  "Conflict responses include field names and revisions" is satisfied because the
+  bridge sends a validated `fields` array and the server echoes it beside both
+  revisions. The server never reconstructs which fields collided.
+
+Everything else — durable projection/outbox, on-demand user-triggered sync, one
+outbound WebSocket, no background polling, bridge-only vault access, offline
+gating, and revision compare-and-swap — shipped as designed and was verified by a
+36/36 smoke matrix.
+
 ## Revision and conflict rules
 
 - Every synchronized note has a stable logical identifier and SHA-256 revision.

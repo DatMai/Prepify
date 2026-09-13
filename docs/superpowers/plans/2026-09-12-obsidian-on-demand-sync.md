@@ -2,6 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** all seven tasks are implemented, reviewed and
+> committed on `feat/overhaul-completion` (PR #11). Per-task evidence is in
+> `.superpowers/sdd/2026-09-12-obsidian-on-demand-sync/progress.md`. Historical
+> RED/reviewer steps that were not reconstructed are annotated, not ticked. Final
+> gate `npm run check` exits 0; smoke matrix 36/36. Three production defects the
+> matrix found were fixed with regressions (`c598f53`, `9e765d2`, `f2e43c2`).
+
 **Goal:** Let a deployed Prepify instance synchronize allowlisted Daily and Journey state with a private Obsidian vault through an on-demand bridge running on the owner's Mac.
 
 **Architecture:** Hosted requests commit structured state and durable jobs to PostgreSQL. A local bridge maintains one outbound authenticated WebSocket, claims jobs, performs revision-protected atomic vault writes, and uploads projections; the server never receives paths or arbitrary Markdown patches.

@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** Tasks 1–2 were already checked; Tasks 3–6 are
+> now complete via the four follow-up plans (private corpus, learning integrity,
+> Obsidian on-demand sync, release verification) on `feat/overhaul-completion`
+> (PR #11). Steps below without a tick are the ones the follow-up plans superseded;
+> see those plans and their `.superpowers/sdd/` ledgers for evidence.
+
 **Goal:** Close the remaining release gaps in the approved full-overhaul design and produce a locally merged, verified `main` branch without pushing.
 
 **Architecture:** Keep one modular Express process and one Vite frontend. The composition root injects configuration and persistence, every state-changing learning result is server-derived, real corpus files remain local and ignored, and the existing local Obsidian bridge is made an explicit adapter while projection/outbox work is represented by durable PostgreSQL records.

@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** complete on `feat/overhaul-completion` (PR #11).
+> Tasks 1–3 are implemented and verified: `content/` is no longer tracked, the
+> seed CLI reads `CONTENT_ROOT`, synthetic fixtures replace the owner corpus, and
+> the historical plans got post-implementation audit tables. Historical RED/review
+> steps that were not reconstructed are annotated, not ticked.
+
 **Goal:** Reconcile completed historical plans without inventing evidence and remove the real Library corpus from Git while preserving it locally.
 
 **Architecture:** A repository test enforces that `content/` is never tracked, synthetic fixtures replace tests that currently depend on the owner's corpus, and `CONTENT_ROOT` explicitly configures the seed CLI. Historical plans receive evidence tables that distinguish currently verified outcomes from RED/review steps that cannot be reconstructed.

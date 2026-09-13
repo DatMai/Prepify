@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** complete on `feat/overhaul-completion` (PR #11).
+> Daily submission integrity, the non-scored flashcard contract and migration 012
+> are implemented and verified; scored MCQ history stays intentionally unavailable
+> until a server-issued attempt protocol exists.
+
 **Goal:** Prevent clients from forging scored quiz results and close remaining Daily grading edge cases.
 
 **Architecture:** Daily keeps its sealed server-issued challenge. The unused legacy quiz-session endpoint is converted to accept only non-scored flashcard activity; client-asserted MCQ scores are rejected until a complete server-issued attempt protocol is introduced in a separate feature.

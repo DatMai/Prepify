@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Execution status (2026-09-13):** Tasks 1–3 complete on `feat/overhaul-completion`.
+> The whole-branch review verdict was Blocked; its four findings were fixed
+> (`341ef96`, `a197fd8`) and the gate/matrix re-verified (`npm run check` exits 0,
+> smoke matrix 36/36). The user chose to open PR #11 rather than merge locally, so
+> the "merge locally" wording in Task 3 Step 2 is superseded by that choice.
+
 **Goal:** Close the Prepify overhaul with fresh, reproducible evidence and truthful plan status.
 
 **Architecture:** This plan runs only after the corpus, learning-integrity, and Obsidian-sync plans are complete. It adds reproducible repository checks, performs the final smoke matrix, reconciles all current documentation, and prepares a clean local integration without pushing.
