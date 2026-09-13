@@ -570,8 +570,19 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
       return deps.withTransaction(async (tx) => {
         const job = await claimedJob(tx, input);
         if (!job) return null;
-        if (job.vaultId !== input.vaultId || job.expectedRevision !== input.expectedRevision) {
-          throw new Error('inbound projection does not match the claimed job');
+        if (job.vaultId !== input.vaultId) {
+          throw new Error('inbound projection vault does not match the claimed job');
+        }
+        if (job.expectedRevision !== input.expectedRevision) {
+          const actualRevision = await currentRevision(tx, input.ownerId, input.vaultId);
+          if (!actualRevision) throw new Error('projection revision disappeared during conflict handling');
+          return markConflict(tx, {
+            ownerId: input.ownerId,
+            jobId: input.jobId,
+            leaseId: input.leaseId,
+            expectedRevision: input.expectedRevision ?? input.revision,
+            actualRevision,
+          });
         }
         const saved = await saveProjection(tx, input);
         if (!saved) {

@@ -475,6 +475,64 @@ describe('createSyncRepository', () => {
     ]);
   });
 
+  it('records a stale inbound base revision as a conflict instead of throwing', async () => {
+    const staleBase = 'd'.repeat(64);
+    const { repo, calls } = harness((text) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: expectedRevision,
+            },
+          ],
+        };
+      }
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: actualRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'conflict',
+              conflict_expected_revision: staleBase,
+              conflict_actual_revision: actualRevision,
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.recordInboundProjection({
+      ownerId: 'owner-1',
+      vaultId: 'vault-main',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      expectedRevision: staleBase,
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({
+      state: 'conflict',
+      conflictExpectedRevision: staleBase,
+      conflictActualRevision: actualRevision,
+    });
+    expect(calls.find((call) => call.text.includes("SET state = 'conflict'"))?.values).toEqual([
+      'owner-1',
+      'job-1',
+      'lease-1',
+      staleBase,
+      actualRevision,
+      'revision_conflict',
+    ]);
+  });
+
   it('requires both valid revisions before a job can enter conflict', async () => {
     const { repo, calls } = harness();
 

@@ -68,6 +68,45 @@ const revision = z
 
 const leaseId = z.string().regex(SAFE_IDENTIFIER, 'leaseId must be a safe identifier');
 
+/**
+ * Structured field identifiers, relative to the daily projection (for example
+ * `journal.done`, `tasks[0].text`). Advisory conflict metadata asserted by the
+ * bridge; the server does not compute the diff. The grammar rejects anything
+ * that could smuggle a path, a URI, whitespace, or note body text.
+ */
+const FIELD_NAMES = new Set([
+  'daily',
+  'date',
+  'stage',
+  'tasks',
+  'evidence',
+  'journal',
+  'done',
+  'blocked',
+  'next',
+  'id',
+  'checked',
+  'text',
+  'tags',
+]);
+const FIELD_SEGMENT = /^[a-z][a-z0-9_]*(\[[0-9]{1,6}\])?$/;
+const MAX_FIELD_LENGTH = 200;
+const MAX_FIELDS = 64;
+
+function isFieldIdentifier(value: string): boolean {
+  if (value.length === 0 || value.length > MAX_FIELD_LENGTH) return false;
+  return value.split('.').every((segment) => {
+    if (!FIELD_SEGMENT.test(segment)) return false;
+    return FIELD_NAMES.has(segment.replace(/\[[0-9]+\]$/, ''));
+  });
+}
+
+const fieldIdentifier = z
+  .string()
+  .max(MAX_FIELD_LENGTH)
+  .refine(isFieldIdentifier, 'field must be a structured field identifier');
+const fieldsSchema = z.array(fieldIdentifier).max(MAX_FIELDS);
+
 const taskSchema = z
   .object({
     id: z.string().regex(SAFE_IDENTIFIER, 'task id must be a safe identifier'),
@@ -118,6 +157,7 @@ const projectionBody = z
     expectedRevision: revision.nullable(),
     revision,
     projection: projectionSchema,
+    fields: fieldsSchema.optional(),
   })
   .strict();
 
@@ -134,6 +174,7 @@ const conflictBody = z
     leaseId,
     expectedRevision: revision,
     actualRevision: revision,
+    fields: fieldsSchema.optional(),
   })
   .strict();
 
@@ -160,6 +201,15 @@ function invalid(res: Response, message: string): void {
   res.status(400).json({ error: message, code: 'invalid_request' });
 }
 
+/**
+ * Revisions cross the wire in the canonical `sha256:<64 hex>` form. The
+ * repository stores bare hex, so every outbound revision is re-prefixed here.
+ */
+function outboundRevision(value: string | null): string | null {
+  if (value === null) return null;
+  return value.startsWith('sha256:') ? value : `sha256:${value}`;
+}
+
 /** Only structured data and identifiers are ever returned to the bridge. */
 function jobView(job: SyncJob): Json {
   return {
@@ -168,7 +218,7 @@ function jobView(job: SyncJob): Json {
     type: job.type,
     payload: job.payload,
     idempotencyKey: job.idempotencyKey,
-    expectedRevision: job.expectedRevision,
+    expectedRevision: outboundRevision(job.expectedRevision),
     state: job.state,
     leaseId: job.leaseId,
     leaseExpiresAt: job.leaseExpiresAt,
@@ -176,17 +226,18 @@ function jobView(job: SyncJob): Json {
     requestedAt: job.requestedAt,
     completedAt: job.completedAt,
     failureCode: job.failureCode,
-    conflictExpectedRevision: job.conflictExpectedRevision,
-    conflictActualRevision: job.conflictActualRevision,
+    conflictExpectedRevision: outboundRevision(job.conflictExpectedRevision),
+    conflictActualRevision: outboundRevision(job.conflictActualRevision),
   };
 }
 
-function conflictResponse(res: Response, job: SyncJob): void {
+function conflictResponse(res: Response, job: SyncJob, fields?: string[]): void {
   res.status(409).json({
     error: 'The note changed since the job was created',
     code: REVISION_CONFLICT,
-    expectedRevision: job.conflictExpectedRevision,
-    actualRevision: job.conflictActualRevision,
+    expectedRevision: outboundRevision(job.conflictExpectedRevision),
+    actualRevision: outboundRevision(job.conflictActualRevision),
+    ...(fields !== undefined ? { fields } : {}),
   });
 }
 
@@ -278,7 +329,8 @@ export function createJourneyBridgeRouter(deps: JourneyBridgeDependencies): Rout
         invalid(res, 'a structured projection with safe revisions is required');
         return;
       }
-      const { vaultId, leaseId: lease, expectedRevision, revision: next, projection } = parsed.data;
+      const { vaultId, leaseId: lease, expectedRevision, revision: next, projection, fields } =
+        parsed.data;
       if (vaultId !== deps.vaultId) {
         invalid(res, 'vaultId does not match this bridge vault');
         return;
@@ -297,7 +349,7 @@ export function createJourneyBridgeRouter(deps: JourneyBridgeDependencies): Rout
         return;
       }
       if (job.state === 'conflict') {
-        conflictResponse(res, job);
+        conflictResponse(res, job, fields);
         return;
       }
       res.json({ job: jobView(job) });
@@ -356,7 +408,7 @@ export function createJourneyBridgeRouter(deps: JourneyBridgeDependencies): Rout
         notFound(res);
         return;
       }
-      res.json({ job: jobView(job) });
+      conflictResponse(res, job, parsed.data.fields);
     }),
   );
 

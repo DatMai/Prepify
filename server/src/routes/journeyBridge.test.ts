@@ -156,6 +156,23 @@ describe('GET /pending', () => {
     expect(res.body.jobs[0]).not.toHaveProperty('path');
     expect(res.body.jobs[0]).not.toHaveProperty('markdown');
   });
+
+  it('emits sha256-prefixed revisions in the job view', async () => {
+    const sync = fakeSync({
+      listPending: vi.fn().mockResolvedValue([
+        job({
+          expectedRevision: revision,
+          conflictExpectedRevision: otherRevision,
+          conflictActualRevision: revision,
+        }),
+      ]),
+    });
+    const res = await bearer(request(bridgeApp(sync)).get(`${BASE}/pending`)).expect(200);
+
+    expect(res.body.jobs[0].expectedRevision).toBe(sha);
+    expect(res.body.jobs[0].conflictExpectedRevision).toBe(otherSha);
+    expect(res.body.jobs[0].conflictActualRevision).toBe(sha);
+  });
 });
 
 describe('POST /:id/claim', () => {
@@ -336,10 +353,50 @@ describe('POST /:id/projection', () => {
 
     expect(res.body.code).toBe('revision_conflict');
     expect(res.body).toMatchObject({
-      expectedRevision: otherRevision,
-      actualRevision: revision,
+      expectedRevision: otherSha,
+      actualRevision: sha,
     });
     expect(JSON.stringify(res.body)).not.toContain('journal');
+  });
+
+  it('emits sha256-prefixed revisions in the conflict response', async () => {
+    const sync = fakeSync({
+      recordInboundProjection: vi.fn().mockResolvedValue(
+        job({
+          state: 'conflict',
+          failureCode: 'revision_conflict',
+          conflictExpectedRevision: otherRevision,
+          conflictActualRevision: revision,
+        }),
+      ),
+    });
+    const res = await bearer(
+      request(bridgeApp(sync)).post(`${BASE}/${jobId}/projection`).send(validBody),
+    ).expect(409);
+
+    expect(res.body.expectedRevision).toBe(otherSha);
+    expect(res.body.actualRevision).toBe(sha);
+  });
+
+  it('reports a conflict with field names alongside both revisions', async () => {
+    const sync = fakeSync({
+      recordInboundProjection: vi.fn().mockResolvedValue(
+        job({
+          state: 'conflict',
+          failureCode: 'revision_conflict',
+          conflictExpectedRevision: otherRevision,
+          conflictActualRevision: revision,
+        }),
+      ),
+    });
+    const res = await bearer(
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/projection`)
+        .send({ ...validBody, fields: ['stage', 'journal.done'] }),
+    ).expect(409);
+
+    expect(res.body.code).toBe('revision_conflict');
+    expect(res.body.fields).toEqual(['stage', 'journal.done']);
   });
 
   it('answers 404 when no matching claim exists', async () => {
@@ -416,13 +473,19 @@ describe('POST /:id/complete', () => {
 describe('POST /:id/conflict', () => {
   it('records a conflict with both revisions', async () => {
     const sync = fakeSync({
-      fail: vi.fn().mockResolvedValue(job({ state: 'conflict' })),
+      fail: vi.fn().mockResolvedValue(
+        job({
+          state: 'conflict',
+          conflictExpectedRevision: revision,
+          conflictActualRevision: otherRevision,
+        }),
+      ),
     });
     const res = await bearer(
       request(bridgeApp(sync))
         .post(`${BASE}/${jobId}/conflict`)
         .send({ leaseId, expectedRevision: sha, actualRevision: otherSha }),
-    ).expect(200);
+    ).expect(409);
 
     expect(sync.fail).toHaveBeenCalledWith({
       ownerId,
@@ -433,7 +496,65 @@ describe('POST /:id/conflict', () => {
       expectedRevision: revision,
       actualRevision: otherRevision,
     });
-    expect(res.body.job).toMatchObject({ jobId, state: 'conflict' });
+    expect(res.body).toMatchObject({
+      code: 'revision_conflict',
+      expectedRevision: sha,
+      actualRevision: otherSha,
+    });
+  });
+
+  it('returns accepted field identifiers in the conflict response', async () => {
+    const sync = fakeSync({
+      fail: vi.fn().mockResolvedValue(
+        job({
+          state: 'conflict',
+          failureCode: 'revision_conflict',
+          conflictExpectedRevision: revision,
+          conflictActualRevision: otherRevision,
+        }),
+      ),
+    });
+    const res = await bearer(
+      request(bridgeApp(sync))
+        .post(`${BASE}/${jobId}/conflict`)
+        .send({
+          leaseId,
+          expectedRevision: sha,
+          actualRevision: otherSha,
+          fields: ['journal.done', 'tasks[0].text'],
+        }),
+    ).expect(409);
+
+    expect(res.body.code).toBe('revision_conflict');
+    expect(res.body.fields).toEqual(['journal.done', 'tasks[0].text']);
+    expect(sync.fail).toHaveBeenCalledWith({
+      ownerId,
+      jobId,
+      leaseId,
+      state: 'conflict',
+      errorCode: 'revision_conflict',
+      expectedRevision: revision,
+      actualRevision: otherRevision,
+    });
+  });
+
+  it('rejects field entries carrying a path, a URI, whitespace, or note body text', async () => {
+    const sync = fakeSync();
+    const invalid = [
+      ['Daily/2026-09-13.md'],
+      ['http://example.com/notes'],
+      ['journal done'],
+      ['See the vault note for details'],
+    ];
+    for (const fields of invalid) {
+      await bearer(
+        request(bridgeApp(sync))
+          .post(`${BASE}/${jobId}/conflict`)
+          .send({ leaseId, expectedRevision: sha, actualRevision: otherSha, fields }),
+      ).expect(400);
+    }
+
+    expect(sync.fail).not.toHaveBeenCalled();
   });
 
   it('requires both revisions', async () => {
