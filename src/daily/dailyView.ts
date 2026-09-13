@@ -8,12 +8,14 @@ import { renderStreakBadge } from '../ui/streakBadge';
 import { getLang, t } from '../i18n';
 import { api } from '../api/client';
 import {
-  SYNC_HINT_KEYS,
   SYNC_STATE_KEYS,
+  isRetryable,
+  lastSyncedLabel,
+  newSyncEventId,
   readLastSyncedAt,
   runSyncJob,
+  syncHintLabel,
   writeLastSyncedAt,
-  type SyncUiState,
   type SyncUiStatus,
 } from '../journey/syncState';
 
@@ -141,38 +143,18 @@ function renderQuestion(): void {
   bindSyncControl();
 }
 
-function isRetryable(state: SyncUiState): boolean {
-  return state === 'failed' || state === 'bridge_offline';
-}
-
-function lastSyncedLabel(): string {
-  if (!syncStatus.lastSyncedAt) return t('sync.lastNever');
-  const time = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(
-    new Date(syncStatus.lastSyncedAt),
-  );
-  return t('sync.lastAt', { time });
-}
-
-function syncHintLabel(): string {
-  if (syncTimedOut && syncStatus.state === 'pending') return t('sync.timeout');
-  return t(SYNC_HINT_KEYS[syncStatus.state]);
-}
-
 function renderSyncControlHtml(): string {
-  const retry = isRetryable(syncStatus.state)
-    ? `<button class="daily-sync-retry" id="dailySyncRetry" type="button">${t('sync.retry')}</button>`
-    : '';
   return `
     <div class="daily-sync" data-state="${syncStatus.state}">
       <div class="daily-sync-actions">
         <button class="daily-sync-btn" id="dailySyncBtn" type="button">${t('sync.button')}</button>
-        ${retry}
+        <button class="daily-sync-retry" id="dailySyncRetry" type="button" hidden>${t('sync.retry')}</button>
       </div>
       <div class="daily-sync-meta">
         <span class="daily-sync-state" role="status" aria-live="polite">${t(SYNC_STATE_KEYS[syncStatus.state])}</span>
-        <span class="daily-sync-last">${lastSyncedLabel()}</span>
+        <span class="daily-sync-last">${lastSyncedLabel(syncStatus.lastSyncedAt, t)}</span>
       </div>
-      <p class="daily-sync-hint">${syncHintLabel()}</p>
+      <p class="daily-sync-hint">${syncHintLabel(syncStatus, syncTimedOut, t)}</p>
     </div>
   `;
 }
@@ -184,9 +166,9 @@ function updateSyncControl(): void {
   const state = control.querySelector<HTMLElement>('.daily-sync-state');
   if (state) state.textContent = t(SYNC_STATE_KEYS[syncStatus.state]);
   const last = control.querySelector<HTMLElement>('.daily-sync-last');
-  if (last) last.textContent = lastSyncedLabel();
+  if (last) last.textContent = lastSyncedLabel(syncStatus.lastSyncedAt, t);
   const hint = control.querySelector<HTMLElement>('.daily-sync-hint');
-  if (hint) hint.textContent = syncHintLabel();
+  if (hint) hint.textContent = syncHintLabel(syncStatus, syncTimedOut, t);
   const button = control.querySelector<HTMLButtonElement>('#dailySyncBtn');
   if (button) button.disabled = syncing;
   const retry = control.querySelector<HTMLButtonElement>('#dailySyncRetry');
@@ -200,12 +182,8 @@ function bindSyncControl(): void {
   overlay?.querySelector<HTMLButtonElement>('#dailySyncRetry')?.addEventListener('click', () => {
     void runDailySync();
   });
-}
-
-function newSyncEventId(): string {
-  return typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `${Date.now()}_${crypto.getRandomValues(new Uint32Array(2)).join('_')}`;
+  const retry = overlay?.querySelector<HTMLButtonElement>('#dailySyncRetry');
+  if (retry) retry.hidden = !isRetryable(syncStatus.state);
 }
 
 async function runDailySync(): Promise<void> {

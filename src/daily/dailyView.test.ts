@@ -98,6 +98,7 @@ describe('dailyView sync control', () => {
     expect(document.querySelector('.daily-sync')?.getAttribute('data-state')).toBe(
       'bridge_offline',
     );
+    expect(document.querySelector<HTMLButtonElement>('#dailySyncRetry')?.hidden).toBe(false);
     // Gating only touches vault-backed mutations; the quiz itself keeps working.
     expect(document.querySelector('#dailyNext')).not.toBeNull();
     expect(document.querySelector('.daily-card-area')).not.toBeNull();

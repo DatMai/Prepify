@@ -6,9 +6,13 @@ import {
   canMutate,
   deriveSyncState,
   isTerminalSyncState,
+  isRetryable,
+  lastSyncedLabel,
+  newSyncEventId,
   readLastSyncedAt,
   runSyncJob,
   shouldContinuePolling,
+  syncHintLabel,
   syncStatusFromJob,
   writeLastSyncedAt,
 } from './syncState';
@@ -25,6 +29,13 @@ function job(overrides: Partial<JourneySyncStatus> = {}): JourneySyncStatus {
 }
 
 describe('sync state machine', () => {
+  it('keeps shared sync control helpers available to both surfaces', () => {
+    expect(newSyncEventId()).toEqual(expect.any(String));
+    expect(isRetryable('bridge_offline')).toBe(true);
+    expect(isRetryable('synced')).toBe(false);
+    expect(lastSyncedLabel(null, (key) => key)).toBe('sync.lastNever');
+    expect(syncHintLabel({ state: 'synced' }, false, (key) => key)).toBe('sync.hint.synced');
+  });
   it('maps every server job state onto one of the six UI states', () => {
     expect(deriveSyncState({ jobState: 'synced', bridgeConnected: false })).toBe('synced');
     expect(deriveSyncState({ jobState: 'conflict', bridgeConnected: false })).toBe('conflict');

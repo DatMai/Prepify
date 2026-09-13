@@ -50,6 +50,36 @@ export const SYNC_HINT_KEYS: Record<SyncUiState, string> = {
   bridge_offline: 'sync.hint.bridge_offline',
 };
 
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
+export function newSyncEventId(): string {
+  return typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}_${crypto.getRandomValues(new Uint32Array(2)).join('_')}`;
+}
+
+export function isRetryable(state: SyncUiState): boolean {
+  return state === 'failed' || state === 'bridge_offline';
+}
+
+export function lastSyncedLabel(lastSyncedAt: string | null, translate: Translate): string {
+  if (!lastSyncedAt) return translate('sync.lastNever');
+  const time = new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(lastSyncedAt));
+  return translate('sync.lastAt', { time });
+}
+
+export function syncHintLabel(
+  status: Pick<SyncUiStatus, 'state'>,
+  timedOut: boolean,
+  translate: Translate,
+): string {
+  if (timedOut && status.state === 'pending') return translate('sync.timeout');
+  return translate(SYNC_HINT_KEYS[status.state]);
+}
+
 /**
  * Projects a server job state plus bridge connectivity onto the six UI states.
  * Bridge connectivity only downgrades *unfinished* work to `bridge_offline`; a

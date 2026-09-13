@@ -29,6 +29,8 @@ vi.mock('../api/client', async (importOriginal) => {
         today: todayMock,
         requestSync: requestSyncMock,
         syncStatus: syncStatusMock,
+        addEvidence: vi.fn(),
+        saveJournal: vi.fn(),
       },
     },
   };
@@ -105,14 +107,14 @@ describe('journeyView sync control', () => {
     expect(model?.mtimeMs).toBeNull();
   });
 
-  it('renders projected content and keeps mutations enabled while synced', async () => {
+  it('renders projected content without claiming it is synced', async () => {
     todayMock.mockResolvedValue(hostedToday());
     await open();
 
-    expect(syncControlState()).toBe('synced');
+    expect(syncControlState()).toBe('pending');
     expect(document.body.textContent).toContain('Read a paper');
     const complete = document.querySelector<HTMLButtonElement>('.journey-btn-primary');
-    expect(complete?.disabled).toBe(false);
+    expect(complete?.disabled).toBe(true);
   });
 
   it('prompts the user to sync when no projection exists yet', async () => {
@@ -136,8 +138,43 @@ describe('journeyView sync control', () => {
     expect(requestSyncMock).toHaveBeenCalledTimes(1);
     expect(syncStatusMock).toHaveBeenCalledWith('job-1');
     expect(syncControlState()).toBe('bridge_offline');
-    expect(document.querySelector<HTMLButtonElement>('.journey-btn-primary')?.disabled).toBe(true);
+    expect(
+      [...document.querySelectorAll<HTMLButtonElement>('.journey-btn-primary')].every(
+        (button) => button.disabled,
+      ),
+    ).toBe(true);
     expect(document.querySelector('#journeySyncRetry')).not.toBeNull();
+  });
+
+  it('does not run a mutation when the sync state is offline', async () => {
+    todayMock.mockResolvedValue(hostedToday());
+    await open();
+
+    const { runMutation } = await import('./journeyView');
+    const work = vi.fn().mockResolvedValue(undefined);
+    runMutation(work, 'saved');
+    await settled();
+
+    expect(work).not.toHaveBeenCalled();
+  });
+
+  it('keeps conflict state and mutation gating after reloading the projection', async () => {
+    todayMock.mockResolvedValue(hostedToday());
+    requestSyncMock.mockResolvedValue({ jobId: 'job-1', state: 'pending' });
+    syncStatusMock.mockResolvedValue(status({ state: 'conflict' }));
+    await open();
+
+    document.querySelector<HTMLButtonElement>('#journeySyncBtn')!.click();
+    await settled();
+    document.querySelector<HTMLButtonElement>('.journey-reload-btn')!.click();
+    await settled();
+
+    expect(syncControlState()).toBe('conflict');
+    expect(
+      [...document.querySelectorAll<HTMLButtonElement>('[data-requires-sync]')].every(
+        (button) => button.disabled,
+      ),
+    ).toBe(true);
   });
 
   it('surfaces conflict guidance and keeps mutations disabled', async () => {

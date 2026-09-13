@@ -162,7 +162,6 @@ export const en: Record<string, string> = {
   'sync.hint.bridge_offline':
     'The bridge is not connected. Saved content stays readable; editing is paused.',
   'sync.timeout': 'No response after 30 seconds. The request is kept so you can retry.',
-  'sync.required': 'Waiting for an Obsidian sync, so changes cannot be written yet.',
 
   // Quiz launcher
   'ql.title': '🎯 Quiz Mode',

@@ -4,13 +4,15 @@ import { t } from '../i18n';
 import { showToast } from '../ui/toast';
 import type { JourneyJournal, JourneyTask } from './types';
 import {
-  SYNC_HINT_KEYS,
   SYNC_STATE_KEYS,
   canMutate,
+  isRetryable,
+  lastSyncedLabel,
+  newSyncEventId,
   readLastSyncedAt,
   runSyncJob,
+  syncHintLabel,
   writeLastSyncedAt,
-  type SyncUiState,
   type SyncUiStatus,
 } from './syncState';
 
@@ -120,13 +122,6 @@ function finishEvent(key: string): void {
   pendingEventIds.delete(key);
 }
 
-/** A fresh key for one explicit Sync Obsidian request (never reused). */
-function newSyncEventId(): string {
-  return typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `${Date.now()}_${crypto.getRandomValues(new Uint32Array(2)).join('_')}`;
-}
-
 export function initJourneyView(): void {
   if (overlay) return;
 
@@ -216,7 +211,6 @@ async function loadJourney(): Promise<void> {
       expandedTaskId = loaded.tasks.find((task) => !task.checked)?.id ?? null;
     }
     syncTimedOut = false;
-    syncStatus = { state: 'synced', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
     setAvailability('ok');
     renderJourney(current);
   } catch (error: unknown) {
@@ -318,24 +312,6 @@ function renderEmpty(): void {
   applySyncGating();
 }
 
-function isRetryable(state: SyncUiState): boolean {
-  return state === 'failed' || state === 'bridge_offline';
-}
-
-function lastSyncedLabel(): string {
-  if (!syncStatus.lastSyncedAt) return t('sync.lastNever');
-  const time = new Intl.DateTimeFormat(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(syncStatus.lastSyncedAt));
-  return t('sync.lastAt', { time });
-}
-
-function syncHintLabel(): string {
-  if (syncTimedOut && syncStatus.state === 'pending') return t('sync.timeout');
-  return t(SYNC_HINT_KEYS[syncStatus.state]);
-}
-
 function renderSyncControl(): HTMLElement {
   const control = element('div', 'journey-sync-control');
   control.dataset.state = syncStatus.state;
@@ -349,14 +325,17 @@ function renderSyncControl(): HTMLElement {
   state.id = 'journeySyncState';
   state.setAttribute('role', 'status');
   state.setAttribute('aria-live', 'polite');
-  meta.append(state, element('span', 'journey-sync-last', lastSyncedLabel()));
+  meta.append(
+    state,
+    element('span', 'journey-sync-last', lastSyncedLabel(syncStatus.lastSyncedAt, t)),
+  );
 
   const retry = actionButton(t('sync.retry'), 'journey-sync-retry');
   retry.id = 'journeySyncRetry';
   retry.hidden = !isRetryable(syncStatus.state);
   retry.addEventListener('click', () => void runSync());
 
-  const hint = element('p', 'journey-sync-hint', syncHintLabel());
+  const hint = element('p', 'journey-sync-hint', syncHintLabel(syncStatus, syncTimedOut, t));
   control.append(button, meta, retry, hint);
   return control;
 }
@@ -369,9 +348,9 @@ function updateSyncControl(): void {
   const state = control.querySelector<HTMLElement>('.journey-sync-state');
   if (state) state.textContent = t(SYNC_STATE_KEYS[syncStatus.state]);
   const last = control.querySelector<HTMLElement>('.journey-sync-last');
-  if (last) last.textContent = lastSyncedLabel();
+  if (last) last.textContent = lastSyncedLabel(syncStatus.lastSyncedAt, t);
   const hint = control.querySelector<HTMLElement>('.journey-sync-hint');
-  if (hint) hint.textContent = syncHintLabel();
+  if (hint) hint.textContent = syncHintLabel(syncStatus, syncTimedOut, t);
   const retry = control.querySelector<HTMLButtonElement>('#journeySyncRetry');
   if (retry) retry.hidden = !isRetryable(syncStatus.state);
   const button = control.querySelector<HTMLButtonElement>('#journeySyncBtn');
@@ -816,6 +795,7 @@ function renderEvidence(data: JourneyViewModel): HTMLElement {
 
   const actions = element('div', 'journey-actions');
   const save = actionButton(t('journey.addEvidence'), 'journey-btn-primary');
+  save.dataset.requiresSync = 'true';
   save.addEventListener('click', () => void addQuickEvidence(quick));
   actions.appendChild(save);
   wrapper.appendChild(actions);
@@ -840,6 +820,7 @@ function renderJournal(data: JourneyViewModel): HTMLElement {
 
   const actions = element('div', 'journey-actions');
   const save = actionButton(t('journey.saveJournal'), 'journey-btn-primary');
+  save.dataset.requiresSync = 'true';
   save.addEventListener('click', () => void saveJournal());
   actions.appendChild(save);
   form.appendChild(actions);
@@ -929,8 +910,11 @@ async function saveJournal(): Promise<void> {
   }, t('journey.journalSaved'));
 }
 
-async function runMutation(work: () => Promise<void>, successMessage: string): Promise<void> {
-  if (!current) return;
+export async function runMutation(
+  work: () => Promise<void>,
+  successMessage: string,
+): Promise<void> {
+  if (!current || !canMutate(syncStatus)) return;
   captureDrafts();
   const panel = overlay?.querySelector('.journey-panel');
   panel?.classList.add('is-saving');

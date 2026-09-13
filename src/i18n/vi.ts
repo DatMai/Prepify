@@ -161,7 +161,6 @@ export const vi: Record<string, string> = {
   'sync.hint.bridge_offline':
     'Cầu nối chưa kết nối. Nội dung đã lưu vẫn đọc được; tạm khoá chỉnh sửa.',
   'sync.timeout': 'Quá 30 giây chưa có phản hồi. Yêu cầu vẫn được giữ để thử lại.',
-  'sync.required': 'Đang chờ đồng bộ Obsidian nên chưa thể ghi thay đổi.',
 
   // Quiz launcher
   'ql.title': '🎯 Quiz Mode',
