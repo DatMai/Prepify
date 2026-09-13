@@ -620,4 +620,233 @@ describe('createSyncRepository', () => {
     ]);
     expect(JSON.stringify(audit?.values)).not.toContain('Review virtual networks');
   });
+
+  it('captures the current projection revision when a mutation has no explicit expectation', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: expectedRevision }] };
+      }
+      if (text.includes('INSERT INTO journey_sync_jobs')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              job_type: 'mutation',
+              expected_revision: expectedRevision,
+              created: true,
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    await repo.enqueueMutation({
+      ownerId: 'owner-1',
+      vaultId: 'vault-main',
+      idempotencyKey: 'event_12345678',
+      operation: 'daily_summary',
+      payload: { date: '2026-09-12', score: 3, total: 5 },
+    });
+
+    expect(calls.some((call) => call.text.includes('SELECT revision FROM journey_projections'))).toBe(
+      true,
+    );
+    expect(calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values).toEqual([
+      'owner-1',
+      'vault-main',
+      'mutation',
+      JSON.stringify({
+        operation: 'daily_summary',
+        payload: { date: '2026-09-12', score: 3, total: 5 },
+      }),
+      'event_12345678',
+      expectedRevision,
+    ]);
+  });
+
+  it('completes a null-expectation mutation as an unguarded upsert instead of a fabricated conflict', async () => {
+    // A projection row already exists at `expectedRevision`, exactly like the
+    // second daily-summary sync. A null recorded expectation has no precondition
+    // to compare against, so the write must not be blocked by the guard.
+    const { repo, calls } = harness((text, values) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              job_type: 'mutation',
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: null,
+            },
+          ],
+        };
+      }
+      if (text.includes('INSERT INTO journey_projections')) {
+        const guarded = text.includes('IS NOT DISTINCT FROM $5');
+        const matches = !guarded || expectedRevision === values[4];
+        return { rows: matches ? [{ revision: values[2] }] : [] };
+      }
+      if (text.includes("SET state = 'synced'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              job_type: 'mutation',
+              state: 'synced',
+              completed_at: '2026-09-12T00:01:00.000Z',
+            },
+          ],
+        };
+      }
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: expectedRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'conflict',
+              conflict_expected_revision: sha,
+              conflict_actual_revision: expectedRevision,
+              completed_at: '2026-09-12T00:01:00.000Z',
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.complete({
+      ownerId: 'owner-1',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({ state: 'synced' });
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text,
+    ).not.toContain('IS NOT DISTINCT FROM $5');
+    expect(calls.some((call) => call.text.includes("SET state = 'conflict'"))).toBe(false);
+  });
+
+  it('still reports a real conflict when an outbound mutation records a stale expectation', async () => {
+    const { repo, calls } = harness((text, values) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              job_type: 'mutation',
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: expectedRevision,
+            },
+          ],
+        };
+      }
+      if (text.includes('INSERT INTO journey_projections')) {
+        const guarded = text.includes('IS NOT DISTINCT FROM $5');
+        const matches = !guarded || actualRevision === values[4];
+        return { rows: matches ? [{ revision: values[2] }] : [] };
+      }
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: actualRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              job_type: 'mutation',
+              state: 'conflict',
+              conflict_expected_revision: expectedRevision,
+              conflict_actual_revision: actualRevision,
+              completed_at: '2026-09-12T00:01:00.000Z',
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.complete({
+      ownerId: 'owner-1',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({
+      state: 'conflict',
+      conflictExpectedRevision: expectedRevision,
+      conflictActualRevision: actualRevision,
+    });
+    expect(calls.find((call) => call.text.includes("SET state = 'conflict'"))?.values).toEqual([
+      'owner-1',
+      'job-1',
+      'lease-1',
+      expectedRevision,
+      actualRevision,
+      'revision_conflict',
+    ]);
+  });
+
+  it('keeps enforcing the inbound guard for a null expectation when a projection already exists', async () => {
+    const { repo, calls } = harness((text, values) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: null,
+            },
+          ],
+        };
+      }
+      if (text.includes('INSERT INTO journey_projections')) {
+        const guarded = text.includes('IS NOT DISTINCT FROM $5');
+        const matches = !guarded || actualRevision === values[4];
+        return { rows: matches ? [{ revision: values[2] }] : [] };
+      }
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: actualRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'conflict',
+              conflict_expected_revision: sha,
+              conflict_actual_revision: actualRevision,
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.recordInboundProjection({
+      ownerId: 'owner-1',
+      vaultId: 'vault-main',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      expectedRevision: null,
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({ state: 'conflict', conflictActualRevision: actualRevision });
+    expect(
+      calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text,
+    ).toContain('IS NOT DISTINCT FROM $5');
+  });
 });

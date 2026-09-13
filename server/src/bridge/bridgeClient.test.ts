@@ -683,4 +683,49 @@ describe('bridge lifecycle', () => {
     expect(h.http.calls.filter((c) => c.path.endsWith('/complete'))).toHaveLength(0);
     expect(h.vaultCalls).toHaveLength(0);
   });
+
+  it('fails a sync job with a sanitized code instead of looping when a parsed tag is too long', async () => {
+    const longTag = `#${'a'.repeat(81)}`; // 82 characters, beyond the server's 80-character cap
+    const h = await setup(async (req) => {
+      if (req.method === 'GET' && req.path.endsWith('/pending')) {
+        return { status: 200, body: { jobs: [{ jobId: JOB_ID }] } };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/claim`)) {
+        return {
+          status: 200,
+          body: {
+            job: {
+              jobId: JOB_ID,
+              type: 'sync',
+              payload: {},
+              expectedRevision: null,
+              idempotencyKey: 'sync_event_12345678',
+              state: 'claimed',
+              leaseId: 'lease-1',
+            },
+          },
+        };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/fail`)) {
+        return { status: 200, body: { job: { jobId: JOB_ID, state: 'failed' } } };
+      }
+      return { status: 404, body: { error: 'not found', code: 'job_not_found' } };
+    });
+    // A note the owner wrote with an over-long tag: the server would 400 on
+    // /complete, so the bridge must not build that projection at all.
+    await fs.writeFile(h.notePath, sampleNote(NOTE_DATE).replace('#az104', longTag), 'utf8');
+
+    h.sockets[0].emit('open');
+    await until(
+      () => h.http.calls.some((c) => c.method === 'POST' && c.path.endsWith('/fail')),
+      'failure report',
+    );
+
+    const failCall = h.http.calls.find((c) => c.path.endsWith('/fail'))!;
+    expect(failCall.body).toMatchObject({ errorCode: 'invalid_vault_tag' });
+    expect(typeof (failCall.body as { leaseId: unknown }).leaseId).toBe('string');
+    // The owner's own content is never echoed back into the failure report.
+    expect(JSON.stringify(failCall.body)).not.toContain('aaaa');
+    expect(h.http.calls.some((c) => c.path.endsWith('/complete'))).toBe(false);
+  });
 });

@@ -259,13 +259,21 @@ async function insertAudit(
 async function saveProjection(
   query: JourneyQuery,
   input: { ownerId: string; vaultId: string; revision: string; expectedRevision: string | null; projection: JourneyProjectionData },
+  options: { unguarded?: boolean } = {},
 ): Promise<boolean> {
+  // A recorded expectation keeps a real compare-and-swap. The complete path
+  // only drops the guard when the job recorded no expectation at all: there is
+  // no precondition for it to compare against, so the write is an unguarded
+  // upsert. Inbound projections always pass the guard.
+  const guard = options.unguarded
+    ? ''
+    : `
+       WHERE journey_projections.revision IS NOT DISTINCT FROM $5`;
   const { rows } = await query<{ revision: string }>(
     `INSERT INTO journey_projections (owner_id, vault_id, revision, projection)
      VALUES ($1, $2, $3, $4::jsonb)
      ON CONFLICT (owner_id, vault_id)
-     DO UPDATE SET revision = EXCLUDED.revision, projection = EXCLUDED.projection, updated_at = NOW()
-       WHERE journey_projections.revision IS NOT DISTINCT FROM $5
+     DO UPDATE SET revision = EXCLUDED.revision, projection = EXCLUDED.projection, updated_at = NOW()${guard}
      RETURNING revision`,
     [input.ownerId, input.vaultId, input.revision, JSON.stringify(input.projection), input.expectedRevision],
   );
@@ -409,15 +417,21 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
         input.operation === 'daily_summary'
           ? { operation: 'daily_summary', payload: input.payload }
           : { operation: 'journey_mutation', payload: input.payload };
-      return deps.withTransaction((tx) =>
-        createJob(tx, {
+      return deps.withTransaction(async (tx) => {
+        // Mirror `requestSync`: when the caller supplies no expectation, capture
+        // the current projection revision inside the same transaction. A daily
+        // summary otherwise records a null expectation that can never be met by
+        // a compare-and-swap once a projection row exists.
+        const expectedRevision =
+          input.expectedRevision ?? (await currentRevision(tx, input.ownerId, input.vaultId));
+        return createJob(tx, {
           ...input,
           type: 'mutation',
           payload,
-          expectedRevision: input.expectedRevision ?? null,
+          expectedRevision,
           auditEvent: 'enqueued',
-        }),
-      );
+        });
+      });
     },
 
     async listPending(input: { ownerId: string; vaultId: string }): Promise<SyncJob[]> {
@@ -470,13 +484,21 @@ export function createSyncRepository(deps: { query: JourneyQuery; withTransactio
       return deps.withTransaction(async (tx) => {
         const job = await claimedJob(tx, input);
         if (!job) return completedRetry(tx, input);
-        const saved = await saveProjection(tx, {
-          ownerId: input.ownerId,
-          vaultId: job.vaultId,
-          revision: input.revision,
-          expectedRevision: job.expectedRevision,
-          projection: input.projection,
-        });
+        const saved = await saveProjection(
+          tx,
+          {
+            ownerId: input.ownerId,
+            vaultId: job.vaultId,
+            revision: input.revision,
+            expectedRevision: job.expectedRevision,
+            projection: input.projection,
+          },
+          // Complete-path only: a null recorded expectation means there is no
+          // precondition to compare against, so the write is an unguarded
+          // upsert. A non-null expectation keeps the compare-and-swap, and
+          // `recordInboundProjection` never opts out of the guard.
+          { unguarded: job.expectedRevision === null },
+        );
         if (!saved) {
           const actualRevision = await currentRevision(tx, input.ownerId, job.vaultId);
           if (!actualRevision) throw new Error('projection revision disappeared during conflict handling');

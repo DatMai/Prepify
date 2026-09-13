@@ -88,6 +88,20 @@ interface ClaimedJob {
 
 const SAFE_ERROR_CODE = /^[a-z][a-z0-9_]{0,63}$/;
 
+/**
+ * Mirrors `journey_json_is_tag` in migration 013 and `TAG` in
+ * `server/src/routes/journeyBridge.ts`. The bridge refuses to build a
+ * projection the server would reject with a 400 — otherwise a note the owner
+ * wrote with an over-long tag would loop forever on lease-expiry re-delivery.
+ * The offending tag is never logged or echoed back: only this bounded code.
+ */
+const TAG = /^#[^#/\\*`<>\s]{1,80}$/;
+const INVALID_TAG_ERROR = 'invalid_vault_tag';
+
+function hasInvalidTag(snapshot: JourneySnapshot): boolean {
+  return snapshot.tasks.some((task) => task.tags.some((tag) => !TAG.test(tag)));
+}
+
 function sanitizeErrorCode(code: string): string {
   if (code === 'revision_conflict' || !SAFE_ERROR_CODE.test(code)) return 'bridge_job_failed';
   return code;
@@ -254,6 +268,31 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
     };
   }
 
+  /**
+   * Uploads a snapshot as the structured projection. If the snapshot carries a
+   * tag the server's contract rejects, the job fails with a bounded code
+   * instead of building a projection that would 400 and re-deliver forever.
+   * Truncating or dropping the tag is never an option — it is the owner's data.
+   */
+  async function completeProjection(
+    jobId: string,
+    leaseId: string,
+    snapshot: JourneySnapshot,
+  ): Promise<void> {
+    if (hasInvalidTag(snapshot)) {
+      await safeRequest('POST', `${jobsUrl(jobId)}/fail`, {
+        leaseId,
+        errorCode: INVALID_TAG_ERROR,
+      });
+      return;
+    }
+    await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
+      leaseId,
+      revision: snapshot.revision,
+      projection: projectionOf(snapshot),
+    });
+  }
+
   async function applySyncPull(jobId: string, leaseId: string): Promise<void> {
     const date = dateInTimeZone(deps.now?.() ?? new Date(), BRIDGE_TIME_ZONE);
     let snapshot: JourneySnapshot;
@@ -275,11 +314,7 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
     }
     // /complete records the structured projection and marks the job synced in
     // one server-owned transaction, guarded by the job's expected revision.
-    await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
-      leaseId,
-      revision: snapshot.revision,
-      projection: projectionOf(snapshot),
-    });
+    await completeProjection(jobId, leaseId, snapshot);
   }
 
   async function applyMutationPush(jobId: string, leaseId: string, job: ClaimedJob): Promise<void> {
@@ -312,11 +347,7 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
         total: p.total,
         eventId: job.idempotencyKey,
       });
-      await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
-        leaseId,
-        revision: snapshot.revision,
-        projection: projectionOf(snapshot),
-      });
+      await completeProjection(jobId, leaseId, snapshot);
       return;
     }
 
@@ -365,11 +396,7 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
         });
         return;
       }
-      await safeRequest('POST', `${jobsUrl(jobId)}/complete`, {
-        leaseId,
-        revision: snapshot.revision,
-        projection: projectionOf(snapshot),
-      });
+      await completeProjection(jobId, leaseId, snapshot);
     } catch (error) {
       if (error instanceof VaultError && error.code === 'vault_conflict') {
         const current = await readCurrentRevision(String(p?.date));
