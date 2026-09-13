@@ -51,4 +51,16 @@ describe('private bundle scan', () => {
 
     await expect(findPrivateBundleLeaks({ contentRoot, bundleRoot })).resolves.toEqual([]);
   });
+
+  it('passes when the private corpus is absent from a clean checkout', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'prepify-bundle-scan-'));
+    temporaryRoots.push(root);
+    const bundleRoot = path.join(root, 'dist');
+    await fs.mkdir(bundleRoot);
+    await fs.writeFile(path.join(bundleRoot, 'app.js'), 'const label = "Arrays";');
+
+    await expect(
+      findPrivateBundleLeaks({ contentRoot: path.join(root, 'content'), bundleRoot }),
+    ).resolves.toEqual([]);
+  });
 });

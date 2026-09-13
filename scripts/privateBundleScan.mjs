@@ -2,7 +2,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+async function directoryExists(target) {
+  try {
+    return (await fs.stat(target)).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 async function filesUnder(root, extension) {
+  if (!(await directoryExists(root))) return [];
   const entries = await fs.readdir(root, { withFileTypes: true });
   const files = await Promise.all(
     entries.map(async (entry) => {
@@ -59,10 +68,20 @@ export async function findPrivateBundleLeaks({ contentRoot, bundleRoot, minimumL
 
 async function main() {
   const projectRoot = process.cwd();
-  const leaks = await findPrivateBundleLeaks({
-    contentRoot: path.join(projectRoot, 'content'),
-    bundleRoot: path.join(projectRoot, 'dist'),
-  });
+  const contentRoot = path.join(projectRoot, 'content');
+  const bundleRoot = path.join(projectRoot, 'dist');
+
+  // A clean checkout never carries the private corpus; there is nothing to leak.
+  if (!(await directoryExists(contentRoot))) {
+    process.stdout.write('Private bundle scan skipped: content/ is absent from this checkout.\n');
+    return;
+  }
+
+  if (!(await directoryExists(bundleRoot))) {
+    throw new Error('Private bundle scan requires a built frontend: dist/ is missing.');
+  }
+
+  const leaks = await findPrivateBundleLeaks({ contentRoot, bundleRoot });
 
   if (leaks.length > 0) {
     const locations = leaks.map(({ source, bundle }) => `${source} -> ${bundle}`).join('\n');
