@@ -2,7 +2,7 @@ import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
-import type { JourneyBlock, JourneyJournal, JourneyTask } from './types';
+import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from './types';
 import {
   SYNC_STATE_KEYS,
   canMutate,
@@ -36,6 +36,14 @@ export interface JourneyViewModel {
   mtimeMs: number | null;
   /** True when the data came from the hosted projection rather than the local vault. */
   hosted: boolean;
+  /**
+   * Whether vault-backed writes can land. Hosted mode depends on the bridge
+   * being online; local mode writes to the vault directly, so it is always
+   * writable and has no sync concept at all.
+   */
+  writable: boolean;
+  /** ISO timestamp the hosted projection was last refreshed, when known. */
+  projectionUpdatedAt: string | null;
 }
 
 export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyViewModel | null {
@@ -53,6 +61,8 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
       obsidianUri: null,
       mtimeMs: null,
       hosted: true,
+      writable: response.bridgeConnected ?? false,
+      projectionUpdatedAt: response.updatedAt ?? null,
     };
   }
 
@@ -67,6 +77,19 @@ export function normalizeJourneyToday(response: JourneyTodayResponse): JourneyVi
     obsidianUri: response.obsidianUri,
     mtimeMs: response.mtimeMs,
     hosted: false,
+    writable: true,
+    projectionUpdatedAt: null,
+  };
+}
+
+/** A local-vault snapshot: the API already wrote it, so it is never stale. */
+function fromVaultSnapshot(snapshot: JourneySnapshot): JourneyViewModel {
+  return {
+    ...snapshot,
+    blocks: snapshot.blocks ?? [],
+    hosted: false,
+    writable: true,
+    projectionUpdatedAt: null,
   };
 }
 
@@ -75,7 +98,6 @@ interface JourneyDrafts {
   quickEvidence: string;
   journal: JourneyJournal | null;
 }
-
 let overlay: HTMLDivElement | null = null;
 let current: JourneyViewModel | null = null;
 let lastError: ApiError | null = null;
@@ -193,11 +215,18 @@ async function loadJourney(): Promise<void> {
   try {
     const previousDate = current?.date;
     const loaded = normalizeJourneyToday(await api.journey.today());
+
     if (!loaded) {
       current = null;
       expandedTaskId = null;
       syncTimedOut = false;
-      syncStatus = { state: 'pending', jobId: null, lastSyncedAt: syncStatus.lastSyncedAt };
+      // Nothing has been synchronized yet, so the next step is the Sync button.
+      // Whether the bridge is reachable is reported once that job exists.
+      syncStatus = {
+        state: 'pending',
+        jobId: null,
+        lastSyncedAt: syncStatus.lastSyncedAt,
+      };
       setAvailability('idle');
       renderEmpty();
       return;
@@ -214,6 +243,16 @@ async function loadJourney(): Promise<void> {
       expandedTaskId = loaded.tasks.find((task) => !task.checked)?.id ?? null;
     }
     syncTimedOut = false;
+    // Reconcile with the server instead of assuming the bridge is away: a
+    // projection that is already current is `synced`, so entering the page
+    // never locks the controls the user can actually use. A durable conflict
+    // or failure survives the reload — it is not a connectivity problem.
+    const durable = syncStatus.state === 'conflict' || syncStatus.state === 'failed';
+    syncStatus = {
+      state: durable ? syncStatus.state : loaded.writable ? 'synced' : 'bridge_offline',
+      jobId: null,
+      lastSyncedAt: loaded.projectionUpdatedAt ?? syncStatus.lastSyncedAt,
+    };
     setAvailability('ok');
     renderJourney(current);
   } catch (error: unknown) {
@@ -316,6 +355,14 @@ function renderEmpty(): void {
 }
 
 function renderSyncControl(): HTMLElement {
+  // Local vault mode writes through the API itself, so there is nothing to
+  // synchronize and the control would only offer a request the server 404s.
+  if (current && !current.hosted) {
+    const local = element('div', 'journey-sync-control is-local');
+    local.hidden = true;
+    return local;
+  }
+
   const control = element('div', 'journey-sync-control');
   control.dataset.state = syncStatus.state;
 
@@ -934,7 +981,7 @@ async function recordTask(
       const updated = partial
         ? await api.journey.addEvidence(evidence, current.revision, nextEventId(key))
         : await api.journey.updateTask(task.id, true, evidence, current.revision, nextEventId(key));
-      current = { ...updated, hosted: false };
+      current = fromVaultSnapshot(updated);
       delete drafts.taskEvidence[task.id];
       finishEvent(key);
     },
@@ -946,16 +993,9 @@ async function reopenTask(task: JourneyTask): Promise<void> {
   const key = `reopen:${task.id}`;
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.updateTask(
-        task.id,
-        false,
-        undefined,
-        current.revision,
-        nextEventId(key),
-      )),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(
+      await api.journey.updateTask(task.id, false, undefined, current.revision, nextEventId(key)),
+    );
     finishEvent(key);
   }, t('journey.taskReopened'));
 }
@@ -971,10 +1011,9 @@ async function addQuickEvidence(input: HTMLTextAreaElement): Promise<void> {
   const key = 'quick-evidence';
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.addEvidence(evidence, current.revision, nextEventId(key))),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(
+      await api.journey.addEvidence(evidence, current.revision, nextEventId(key)),
+    );
     drafts.quickEvidence = '';
     finishEvent(key);
   }, t('journey.evidenceSaved'));
@@ -989,10 +1028,7 @@ async function saveJournal(): Promise<void> {
 
   await runMutation(async () => {
     if (!current) return;
-    current = {
-      ...(await api.journey.saveJournal(journal, current.revision)),
-      hosted: false,
-    };
+    current = fromVaultSnapshot(await api.journey.saveJournal(journal, current.revision));
     drafts.journal = null;
   }, t('journey.journalSaved'));
 }

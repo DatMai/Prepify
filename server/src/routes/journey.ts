@@ -311,15 +311,21 @@ function createHostedRouter(deps: HostedJourneyDependencies): Router {
     '/today',
     asyncRoute(async (req, res) => {
       const ownerId = req.user!.userId;
+      const connected = deps.isBridgeConnected?.(ownerId) ?? false;
       const projection = await deps.sync.getProjection({ ownerId, vaultId: deps.vaultId });
       if (!projection) {
-        res.json({ synced: false });
+        // No projection yet: the UI must ask for a sync, not report a failure.
+        res.json({ synced: false, bridgeConnected: connected });
         return;
       }
       res.json({
         synced: true,
         date: projection.projection.daily.date,
         revision: projection.revision,
+        updatedAt: projection.updatedAt,
+        // The UI gates vault-backed writes on this: a projection alone is not
+        // enough, because a write is only applied while the bridge is online.
+        bridgeConnected: connected,
         projection: projection.projection,
       });
     }),

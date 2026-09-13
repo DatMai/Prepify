@@ -108,15 +108,19 @@ export interface JourneyProjectionDaily {
 /**
  * `GET /journey/today` answers differently per mode. Local vault mode returns
  * the `JourneySnapshot`; hosted mode returns the stored projection, or
- * `{ synced: false }` before the first successful synchronization.
+ * `{ synced: false }` before the first successful synchronization. Hosted
+ * answers carry `bridgeConnected` so the UI can reconcile on load instead of
+ * assuming the bridge is away.
  */
 export type JourneyTodayResponse =
   | JourneySnapshot
-  | { synced: false }
+  | { synced: false; bridgeConnected?: boolean }
   | {
       synced: true;
       date: string;
       revision: string;
+      updatedAt?: string;
+      bridgeConnected?: boolean;
       projection: { daily: JourneyProjectionDaily };
     };
 

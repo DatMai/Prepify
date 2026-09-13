@@ -99,7 +99,7 @@ describe('hosted journey routes', () => {
     getProjection.mockReset().mockResolvedValue(null);
   });
 
-  function app() {
+  function app(isBridgeConnected?: (ownerId: string) => boolean) {
     const instance = express();
     instance.use(express.json());
     instance.use(fromRemoteAddress('203.0.113.7'));
@@ -117,6 +117,7 @@ describe('hosted journey routes', () => {
         } as unknown as SyncRepository,
         query: vi.fn() as unknown as JourneyQuery,
         vaultId: 'vault-main',
+        isBridgeConnected,
       }),
     );
     return instance;
@@ -149,7 +150,33 @@ describe('hosted journey routes', () => {
   it('reports an unsynced journey when no projection exists', async () => {
     const res = await request(app()).get('/journey/today').expect(200);
 
-    expect(res.body).toEqual({ synced: false });
+    expect(res.body).toEqual({ synced: false, bridgeConnected: false });
+  });
+
+  it('reports the projection with bridge connectivity so the UI can reconcile', async () => {
+    getProjection.mockResolvedValue({
+      ownerId,
+      vaultId: 'vault-main',
+      revision,
+      updatedAt: '2026-09-13T09:00:00.000Z',
+      projection: {
+        daily: {
+          date: '2026-09-13',
+          stage: 'AZ-104',
+          tasks: [],
+          evidence: [],
+          journal: { done: '', blocked: '', next: '' },
+          blocks: [],
+        },
+      },
+    });
+
+    const res = await request(app(() => true))
+      .get('/journey/today')
+      .expect(200);
+
+    expect(res.body).toMatchObject({ synced: true, bridgeConnected: true });
+    expect(res.body.updatedAt).toBe('2026-09-13T09:00:00.000Z');
   });
 
   it('enqueues a structured task mutation instead of writing a note', async () => {
