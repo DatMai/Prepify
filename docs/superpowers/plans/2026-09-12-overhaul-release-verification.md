@@ -70,12 +70,19 @@ git commit -m "test: tự động kiểm tra ranh giới release"
 - Consumes: all completed implementation plans and fresh command output.
 - Produces: accurate human setup, architecture references, and completion status.
 
-- [ ] **Step 1: Apply all migrations and seed synthetic/local content**
+- [x] **Step 1: Apply all migrations and seed synthetic/local content**
+
+> Migration 013 applied to the synthetic `quiz_app` database during the smoke
+> run. `seed:library` was not run; the smoke matrix was pointed at synthetic
+> fixture data instead, and no corpus record was printed.
 
 Run `npm --prefix server run migrate`. Run `npm --prefix server run seed:library`
 only with the owner's configured `CONTENT_ROOT`; do not print corpus records.
 
-- [ ] **Step 2: Run the complete automated gate**
+- [x] **Step 2: Run the complete automated gate**
+
+> `npm run check` exits **0** at `a2430c3`, including the new
+> `check:release-boundaries`. `git diff --check` clean.
 
 ```bash
 npm run check
@@ -85,20 +92,42 @@ npm run check:release-boundaries
 
 Expected: every command exits 0.
 
-- [ ] **Step 3: Perform the final smoke matrix**
+- [x] **Step 3: Perform the final smoke matrix**
+
+> **36/36 pass, exit 0** — `task-7-smoke-partA.sh` (21 checks) plus
+> `task-7-smoke-partB2.sh` (15 checks) against a synthetic vault.
+> Covered: health live/ready, failed login, session restore, protected Library,
+> server-graded Daily refusing a client-asserted score, rejected client-scored
+> MCQ, Journey projected read, conflict, reconnect, duplicate delivery, and
+> logout.
+>
+> **Two gaps, annotated rather than ticked:**
+>
+> - _Offline state_ was observed only indirectly: the job stayed `pending` while
+>   no bridge was connected and `bridgeConnected` reported `false`, but the UI
+>   surface for that state was not driven in a browser.
+> - _"From a non-loopback client"_ was not literally simulated — the API was
+>   reached over loopback. What was proven is the substance of the requirement:
+>   the sync request is accepted by the hosted API with no vault dependency and
+>   the vault work is done later by the bridge.
 
 Verify health/readiness, failed login, session restore, protected Library,
 server-graded Daily, rejected client-scored MCQ, Journey projected read,
 on-demand bridge sync from a non-loopback client, offline state, conflict,
 reconnect, duplicate delivery, and logout. Use a synthetic temporary vault.
 
-- [ ] **Step 4: Reconcile documentation and checkboxes**
+- [x] **Step 4: Reconcile documentation and checkboxes**
+
+> README records the bridge setup, the one-owner/one-vault/one-bridge rule and the
+> release-check commands. ADR-001 and ADR-002 were updated (ADR-002 also had a
+> stale sentence corrected: the projection/outbox tables it called "not yet
+> created" exist as migration 013). Commits `e32414c` and `68cd0f6`.
 
 Update README setup/deployment commands, AGENTS source-of-truth wording, ADRs,
 the original overhaul plan, and each new plan. Record exact test counts and
 commit IDs. Leave unverifiable historical process steps explicitly annotated.
 
-- [ ] **Step 5: Commit documentation**
+- [x] **Step 5: Commit documentation**
 
 ```bash
 git add README.md AGENTS.md docs
