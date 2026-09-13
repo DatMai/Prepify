@@ -86,6 +86,14 @@ export interface ObsidianVault {
     score: number;
     total: number;
     eventId: string;
+    /**
+     * The projection revision the summary was enqueued against. When present the
+     * append is revision-checked exactly like every other vault write, so a stale
+     * summary cannot land on a note that changed in the meantime. A job enqueued
+     * before any projection existed has none, and the idempotency marker in the
+     * note covers a replay instead.
+     */
+    expectedRevision?: string | null;
   }): Promise<JourneySnapshot>;
 }
 
@@ -343,16 +351,21 @@ export function createObsidianVault(
       ) {
         throw new VaultError(400, 'summary_invalid', 'Daily summary must be a valid score');
       }
-      // The database does not know the vault revision for a Daily completion,
-      // so this append-only write is not revision-guarded. The idempotency
-      // marker in the note makes a replay a no-op instead.
-      return withMutationLock(async () => {
-        const raw = await readRawDaily(input.date);
-        const next = appendEvidence(
-          raw.content,
-          `Daily quiz — ${input.score}/${input.total}`,
+      const text = `Daily quiz — ${input.score}/${input.total}`;
+      if (input.expectedRevision) {
+        return mutateDaily(
+          input.date,
+          input.expectedRevision,
+          (content, date) => touchUpdated(appendEvidence(content, text, input.eventId), date),
           input.eventId,
         );
+      }
+      // No recorded expectation: the job was enqueued before any projection
+      // existed, so there is nothing to compare against. The idempotency marker
+      // in the note makes a replay a no-op instead.
+      return withMutationLock(async () => {
+        const raw = await readRawDaily(input.date);
+        const next = appendEvidence(raw.content, text, input.eventId);
         if (next === raw.content) return snapshot(input.date, raw);
         await atomicWrite(raw, next);
         return snapshot(input.date, await readRawDaily(input.date));

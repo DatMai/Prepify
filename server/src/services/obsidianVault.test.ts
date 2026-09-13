@@ -52,6 +52,42 @@ async function makeVault(date = '2026-09-13') {
   return { root, dailyDir, notePath };
 }
 
+describe('Daily summary revision guard', () => {
+  it('refuses a summary whose expected revision no longer matches the note', async () => {
+    const { root, notePath } = await makeVault();
+    const vault = createObsidianVault({ enabled: true, vaultPath: root, timeZone: 'UTC' });
+    const before = await fs.readFile(notePath, 'utf8');
+
+    await expect(
+      vault.addDailySummary({
+        date: '2026-09-13',
+        score: 3,
+        total: 5,
+        eventId: 'summary_event_12345678',
+        expectedRevision: revisionFor('a note body that is not this one'),
+      }),
+    ).rejects.toMatchObject({ code: 'vault_conflict' });
+
+    expect(await fs.readFile(notePath, 'utf8')).toBe(before);
+  });
+
+  it('appends the summary through the revision-checked path when it matches', async () => {
+    const { root, notePath } = await makeVault();
+    const vault = createObsidianVault({ enabled: true, vaultPath: root, timeZone: 'UTC' });
+    const before = await fs.readFile(notePath, 'utf8');
+
+    await vault.addDailySummary({
+      date: '2026-09-13',
+      score: 3,
+      total: 5,
+      eventId: 'summary_event_87654321',
+      expectedRevision: revisionFor(before),
+    });
+
+    expect(await fs.readFile(notePath, 'utf8')).toContain('Daily quiz — 3/5');
+  });
+});
+
 describe('createObsidianVault allowlist boundary', () => {
   it('reads the structured snapshot for an explicit date', async () => {
     const { root } = await makeVault();

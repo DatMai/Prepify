@@ -56,6 +56,8 @@ export interface BridgeVault {
     score: number;
     total: number;
     eventId: string;
+    /** Mirrors `ObsidianVault.addDailySummary`: guarded when the job recorded an expectation. */
+    expectedRevision?: string | null;
   }): Promise<JourneySnapshot>;
 }
 
@@ -356,6 +358,7 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
         score: p.score,
         total: p.total,
         eventId: job.idempotencyKey,
+        expectedRevision: typeof job.expectedRevision === 'string' ? job.expectedRevision : null,
       });
       await completeProjection(jobId, leaseId, snapshot);
       return;
