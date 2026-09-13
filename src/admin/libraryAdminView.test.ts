@@ -253,6 +253,20 @@ describe('topic editor', () => {
     expect(document.body.textContent).toContain('Array là gì?');
   });
 
+  it('rebinds to a fresh host after the admin shell remounts Content', async () => {
+    const { api } = await import('../api/client');
+    await openEditor(api);
+
+    const { renderContentTab } = await import('./libraryAdminView');
+    const freshBody = mount();
+    renderContentTab(freshBody);
+    await settled();
+    await settled();
+
+    expect(freshBody.querySelector('.la-topics')).not.toBeNull();
+    expect(freshBody.querySelector('.la-editor')).toBeNull();
+  });
+
   it('sends a level change for one question only', async () => {
     const { api } = await import('../api/client');
     vi.mocked(api.libraryAdmin.updateQuestion).mockResolvedValue(undefined);

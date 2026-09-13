@@ -21,6 +21,7 @@ interface RecoveryDependencies {
   callbackBaseUrl: string;
   sendPasswordReset(email: string, url: string): Promise<void>;
   sendVerification(email: string, url: string): Promise<void>;
+  onEmailError?: (error: unknown, kind: 'password_reset' | 'verification') => void;
 }
 
 function codedError(code: string): Error & { code: string } {
@@ -40,7 +41,12 @@ export function createRecoveryService(dependencies: RecoveryDependencies) {
         new Date(dependencies.now().getTime() + 30 * 60 * 1000),
       );
       const url = `${dependencies.frontendUrl}/?reset_token=${encodeURIComponent(token)}`;
-      void dependencies.sendPasswordReset(user.email, url).catch(() => {});
+      try {
+        await dependencies.sendPasswordReset(user.email, url);
+      } catch (error) {
+        dependencies.onEmailError?.(error, 'password_reset');
+        throw codedError('email_delivery_failed');
+      }
     },
 
     async resetPassword(token: string, password: string): Promise<void> {
@@ -63,7 +69,12 @@ export function createRecoveryService(dependencies: RecoveryDependencies) {
         new Date(dependencies.now().getTime() + 24 * 60 * 60 * 1000),
       );
       const url = `${dependencies.callbackBaseUrl}/auth/verify-email/${encodeURIComponent(token)}`;
-      void dependencies.sendVerification(user.email, url).catch(() => {});
+      try {
+        await dependencies.sendVerification(user.email, url);
+      } catch (error) {
+        dependencies.onEmailError?.(error, 'verification');
+        throw codedError('email_delivery_failed');
+      }
     },
 
     verifyEmail(token: string): Promise<boolean> {

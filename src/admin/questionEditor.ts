@@ -1,5 +1,7 @@
 import { api, type AdminBlock, type AdminLevel, type AdminQuestion } from '../api/client';
+import { X } from 'lucide';
 import { t } from '../i18n';
+import { icon } from '../ui/icon';
 import { showToast } from '../ui/toast';
 import { button, element } from './adminUi';
 import {
@@ -99,12 +101,13 @@ export function openQuestionEditor(input: OpenQuestionEditorInput): void {
   head.appendChild(
     element('h3', 'qe-title', input.question ? t('libAdmin.edit') : t('libAdmin.newQuestion')),
   );
-  head.appendChild(
-    button('qe-close', '✕', () => {
-      close();
-      input.onCancel();
-    }),
-  );
+  const closeButton = button('qe-close', '', () => {
+    close();
+    input.onCancel();
+  });
+  closeButton.setAttribute('aria-label', t('review.close'));
+  closeButton.appendChild(icon(X));
+  head.appendChild(closeButton);
   panel.appendChild(head);
 
   const codeInput = element('input', 'qe-input');

@@ -1,9 +1,11 @@
-import { DATA } from '../data/loader';
+import { DATA, loadTopic } from '../data/loader';
 import { t as defaultT } from '../i18n';
 import { esc } from '../render/escape';
 import { blockHTML } from '../render/block';
 import { dueCount, gradeQuestion, reviewState } from '../state/review';
+import { iconMarkup } from '../ui/icon';
 import type { ReviewQuality, ReviewSchedule } from './scheduler';
+import { X } from 'lucide';
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -50,7 +52,7 @@ function ensureOverlay(t: Translate): HTMLElement {
     <div class="review-box">
       <div class="review-head">
         <h2 class="review-title"></h2>
-        <button class="review-close" type="button" aria-label="${esc(t('review.close'))}">✕</button>
+        <button class="review-close" type="button" aria-label="${esc(t('review.close'))}">${iconMarkup(X)}</button>
       </div>
       <div class="review-body"></div>
     </div>`;
@@ -143,6 +145,24 @@ export async function openReviewOverlay(deps: ReviewViewDeps = {}): Promise<void
   done = 0;
   ensureOverlay(t);
   overlay!.classList.add('show');
+  const missingTopics = [...new Set(queue.map((item) => item.topic))].filter(
+    (topicKey) => !DATA[topicKey],
+  );
+  if (missingTopics.length > 0) {
+    const body = overlay!.querySelector('.review-body') as HTMLElement;
+    body.innerHTML = `<p class="review-empty">${esc(t('review.loading'))}</p>`;
+    console.debug('[review] topics loading started', { count: missingTopics.length });
+    try {
+      await Promise.all(missingTopics.map((topicKey) => loadTopic(topicKey)));
+      console.debug('[review] topics loading completed', { count: missingTopics.length });
+    } catch (error) {
+      console.error('[review] topics loading failed', error);
+      body.innerHTML = `<p class="review-empty">${esc(t('library.loadError'))}</p>`;
+      return;
+    } finally {
+      console.debug('[review] topics loading settled', { count: missingTopics.length });
+    }
+  }
   renderCard(t);
   document.addEventListener('keydown', onKeydown);
 }

@@ -1,9 +1,12 @@
-import { DATA, ORDER, TOPIC_INDEX } from '../data/loader';
+import { DATA, loadTopic, ORDER, TOPIC_INDEX } from '../data/loader';
 import { state } from '../state/progress';
 import { isMcqEligible } from './mcq';
 import { startQuiz } from './quizView';
 import { t } from '../i18n';
+import { iconMarkup } from '../ui/icon';
+import { showToast } from '../ui/toast';
 import type { QuizConfig, QuizMode, QuestionSet } from './types';
+import { Target, X } from 'lucide';
 
 export function showQuizLauncher(): void {
   let el = document.getElementById('quizLauncher');
@@ -22,8 +25,8 @@ export function showQuizLauncher(): void {
 
   el.innerHTML = `
     <div class="modal quiz-launcher">
-      <button class="modal-close" id="qlClose">✕</button>
-      <h2>${t('ql.title')}</h2>
+      <button class="modal-close" id="qlClose" aria-label="${t('review.close')}">${iconMarkup(X)}</button>
+      <h2 class="ql-title">${iconMarkup(Target)}${t('ql.title')}</h2>
 
       <div class="field">
         <label class="ql-section-label">${t('ql.topicLabel')}</label>
@@ -63,11 +66,10 @@ export function showQuizLauncher(): void {
 
   document.getElementById('qlTopic')?.addEventListener('change', (e) => {
     const key = (e.target as HTMLSelectElement).value;
-    updateSetOptions(el!, key);
-    updateMcqState(el!, key);
+    void loadLauncherTopic(el!, key);
   });
 
-  document.getElementById('qlStart')?.addEventListener('click', () => {
+  document.getElementById('qlStart')?.addEventListener('click', async () => {
     const topicKey = (document.getElementById('qlTopic') as HTMLSelectElement).value;
     const modeEl = document.querySelector('input[name="qlMode"]:checked') as HTMLInputElement;
     const setEl = document.querySelector('input[name="qlSet"]:checked') as HTMLInputElement;
@@ -77,9 +79,41 @@ export function showQuizLauncher(): void {
     const questionSet = setEl.value as QuestionSet;
     const config: QuizConfig = { topicKey, mode, questionSet, randomCount: 20 };
 
-    el!.classList.remove('show');
-    startQuiz(config);
+    try {
+      await loadTopic(topicKey);
+      el!.classList.remove('show');
+      startQuiz(config);
+    } catch (error) {
+      console.error('[quiz-launcher] topic loading failed', { topicKey, error });
+      showToast(t('library.loadError'), 'error');
+    }
   });
+}
+
+async function loadLauncherTopic(el: HTMLElement, topicKey: string): Promise<void> {
+  const select = el.querySelector<HTMLSelectElement>('#qlTopic');
+  const start = el.querySelector<HTMLButtonElement>('#qlStart');
+  const group = el.querySelector<HTMLElement>('#qlSetGroup');
+  if (select) select.disabled = true;
+  if (start) start.disabled = true;
+  if (group) group.textContent = t('ql.loading');
+  console.debug('[quiz-launcher] topic loading started', { topicKey });
+
+  try {
+    await loadTopic(topicKey);
+    if (select?.value === topicKey) {
+      updateSetOptions(el, topicKey);
+      updateMcqState(el, topicKey);
+    }
+    console.debug('[quiz-launcher] topic loading completed', { topicKey });
+  } catch (error) {
+    console.error('[quiz-launcher] topic loading failed', { topicKey, error });
+    showToast(t('library.loadError'), 'error');
+  } finally {
+    if (select) select.disabled = false;
+    if (start) start.disabled = false;
+    console.debug('[quiz-launcher] topic loading settled', { topicKey });
+  }
 }
 
 function updateSetOptions(el: HTMLElement, topicKey: string): void {

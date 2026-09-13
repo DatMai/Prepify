@@ -7,6 +7,16 @@
 > (`341ef96`, `a197fd8`) and the gate/matrix re-verified (`npm run check` exits 0,
 > smoke matrix 36/36). The user chose to open PR #11 rather than merge locally, so
 > the "merge locally" wording in Task 3 Step 2 is superseded by that choice.
+>
+> **Follow-up hardening (2026-09-13):** the current branch adds Library
+> per-topic lazy loading, Admin route/editor lifecycle fixes, consistent loading
+> traces, Lucide UI icons/readability polish, and observable SMTP delivery
+> failures. Whole-tree review identified and corrected lazy-load integration in
+> Quiz/Review plus forgot-password account-enumeration risk. Final gate and PR
+> evidence are recorded at handoff. The fresh canonical gate passed on
+> 2026-09-13: frontend 153/153, server 376/376 with 24 integration tests skipped
+> by environment, both builds, bundle/release-boundary scans, lint, formatting,
+> typechecks, and production dependency audits.
 
 **Goal:** Close the Prepify overhaul with fresh, reproducible evidence and truthful plan status.
 

@@ -85,6 +85,10 @@
 }
 
 .daily-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   font-family: 'Fraunces', serif;
   font-size: 16px;
   font-weight: 600;
@@ -394,6 +398,10 @@
 }
 
 .daily-summary-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-family: 'Fraunces', serif;
   font-size: 18px;
   font-weight: 700;
@@ -401,6 +409,10 @@
 }
 
 .daily-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-family: 'Fraunces', serif;
   font-size: 48px;
   font-weight: 800;

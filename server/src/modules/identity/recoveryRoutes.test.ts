@@ -52,6 +52,46 @@ describe('recovery routes', () => {
     expect(JSON.stringify(response.body)).not.toContain('token');
   });
 
+  it('does not expose account existence when password-reset delivery fails', async () => {
+    const response = await request(
+      appFor(
+        service({
+          requestPasswordReset: async () => {
+            throw Object.assign(new Error('SMTP authentication failed'), {
+              code: 'email_delivery_failed',
+            });
+          },
+        }),
+      ),
+    )
+      .post('/auth/forgot/email')
+      .send({ email: 'user@example.com' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      ok: true,
+      message: 'If the email exists, a reset link has been sent.',
+    });
+    expect(JSON.stringify(response.body)).not.toContain('SMTP');
+  });
+
+  it('reports verification delivery failures to the signed-in client', async () => {
+    const response = await request(
+      appFor(
+        service({
+          requestEmailVerification: async () => {
+            throw Object.assign(new Error('SMTP authentication failed'), {
+              code: 'email_delivery_failed',
+            });
+          },
+        }),
+      ),
+    ).post('/auth/resend-verification');
+
+    expect(response.status).toBe(503);
+    expect(response.body.code).toBe('email_delivery_failed');
+  });
+
   it('redirects email verification with status only', async () => {
     const response = await request(appFor(service({ verifyEmail: async () => true }))).get(
       '/auth/verify-email/raw-token',

@@ -43,10 +43,13 @@
 }
 
 .review-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: transparent;
   color: var(--faint);
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
 }
 

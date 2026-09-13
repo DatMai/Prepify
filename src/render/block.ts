@@ -1,6 +1,8 @@
 import type { Block } from '../types/quiz';
 import { esc } from './escape';
 import { highlightCode } from './highlight';
+import { Play } from 'lucide';
+import { iconMarkup } from '../ui/icon';
 
 export function blockHTML(b: Block, qid: string, bIdx: number): string {
   if (b.type === 'text') {
@@ -21,7 +23,7 @@ export function blockHTML(b: Block, qid: string, bIdx: number): string {
     const runnable = b.lang === 'js' || b.lang === 'ts';
     const cid = qid + '_' + bIdx;
     const runBtn = runnable
-      ? `<button class="run-btn" data-cid="${cid}">▶ Run</button>`
+      ? `<button class="run-btn" data-cid="${cid}">${iconMarkup(Play)}Run</button>`
       : `<span>${esc(b.lang)}</span>`;
     return `<div class="blk"><pre class="code"><span class="clabel"><span>${esc(b.lang)}</span>${runBtn}</span><code id="code_${cid}">${highlightCode(b.text, b.lang)}</code></pre><div class="run-out" id="out_${cid}"></div></div>`;
   }

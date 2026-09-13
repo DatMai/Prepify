@@ -1,3 +1,6 @@
+import { Flame } from 'lucide';
+import { icon } from './icon';
+
 export function renderStreakBadge(current: number): void {
   const btn = document.getElementById('authBtn');
   if (!btn) return;
@@ -14,7 +17,7 @@ export function renderStreakBadge(current: number): void {
     span.className = 'auth-streak';
     btn.appendChild(span);
   }
-  span.textContent = `🔥 ${current}`;
+  span.replaceChildren(icon(Flame), document.createTextNode(` ${current}`));
 }
 
 export function animateStreakIncrease(): void {

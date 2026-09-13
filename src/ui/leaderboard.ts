@@ -1,6 +1,8 @@
 import { fetchLeaderboard, type LeaderboardEntry } from '../api/streak';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
+import { iconMarkup } from './icon';
+import { Flame, X } from 'lucide';
 
 let overlay: HTMLElement | null = null;
 
@@ -27,12 +29,17 @@ export async function openLeaderboard(): Promise<void> {
   overlay!.querySelector('#lbClose')?.addEventListener('click', closeLeaderboard);
   overlay!.classList.add('show');
   setBody(`<div class="lb-loading">${t('lb.loading')}</div>`);
+  console.debug('[leaderboard] loading started');
 
   try {
     const { entries, myRank } = await fetchLeaderboard(20);
     setBody(buildTable(entries, myRank));
-  } catch {
+    console.debug('[leaderboard] loading completed', { count: entries.length });
+  } catch (error) {
+    console.error('[leaderboard] loading failed', error);
     setBody(`<div class="lb-empty">${t('lb.loadError')}</div>`);
+  } finally {
+    console.debug('[leaderboard] loading settled');
   }
 }
 
@@ -48,7 +55,7 @@ function setBody(html: string): void {
 function buildShell(): string {
   return `
     <div class="modal lb-modal">
-      <button class="modal-close" id="lbClose">✕</button>
+      <button class="modal-close" id="lbClose" aria-label="${t('review.close')}">${iconMarkup(X)}</button>
       <h2>${t('lb.title')}</h2>
       <div id="lbBody"><div class="lb-loading">${t('lb.loading')}</div></div>
       ${!isLoggedIn() ? `<p class="lb-guest-cta">${t('lb.loginCta')}</p>` : ''}
@@ -63,15 +70,14 @@ function buildTable(entries: LeaderboardEntry[], myRank: number | null): string 
   const rows = entries
     .map((e) => {
       const isMe = myRank !== null && e.rank === myRank;
-      const medalMap: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-      const rankLabel = medalMap[e.rank] ?? `#${e.rank}`;
+      const rankLabel = `#${e.rank}`;
 
       return `
       <tr class="lb-row${isMe ? ' lb-me' : ''}">
         <td class="lb-rank">${rankLabel}</td>
         <td class="lb-name">${isMe ? t('lb.mePrefix') : ''}${escName(e.displayName)}</td>
         <td class="lb-learned">${e.learnedCount}</td>
-        <td class="lb-streak">${e.streakDays > 0 ? `🔥 ${e.streakDays}` : '—'}</td>
+        <td class="lb-streak">${e.streakDays > 0 ? `${iconMarkup(Flame)} ${e.streakDays}` : '—'}</td>
       </tr>`;
     })
     .join('');

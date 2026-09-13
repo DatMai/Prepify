@@ -65,6 +65,28 @@ npm --prefix server run seed:library
 
 See [ADR-004](docs/ADR-004-library-corpus-in-postgresql.md).
 
+## Email delivery
+
+Verification and password-reset mail uses SMTP and is disabled by default. For
+Gmail, enable two-step verification, create a 16-character App Password, and
+configure the server environment without spaces in the password:
+
+```dotenv
+EMAIL_DELIVERY_ENABLED=true
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=owner@example.com
+EMAIL_PASS=replace-with-app-password
+EMAIL_FROM=Prepify <owner@example.com>
+```
+
+When delivery is disabled the server logs a startup warning. SMTP failures are
+logged with their mail kind but without recipient, token, or credentials.
+Authenticated verification resend returns `503 email_delivery_failed`; forgot
+password keeps the same public response for existing and unknown accounts to
+prevent account enumeration while still logging delivery failures server-side.
+
 ## Current architecture
 
 The Foundation phase has a pure Express app factory, validated configuration,
@@ -155,6 +177,13 @@ reordering or deleting because quiz progress is positional — moving a question
 repoints existing progress to a different question. It can also export and
 import the same JSON document format the seed uses, so a subject can be backed
 up, round-tripped through the editor, or restored from a snapshot.
+
+The reader Library loads only `/library/index` on entry and fetches a topic from
+`/library/topics/:key` when that topic is selected. Topic bodies are cached per
+locale and cleared on locale changes. Aggregate features (Favorites, Review and
+Quiz launcher) explicitly load only the topics they need. Admin Content discards
+an editor bound to a detached tab body before remounting the list, and ignores
+stale topic responses after Back/navigation.
 
 Rules worth knowing before you use them:
 

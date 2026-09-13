@@ -21,15 +21,24 @@
 }
 
 .filter-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   background: none;
   border: 1.5px solid var(--line);
   color: var(--faint);
-  font-size: 15px;
+  font-size: 14px;
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 0;
   cursor: pointer;
   transition: 0.15s;
   white-space: nowrap;
+}
+.filter-fav-btn .app-icon {
+  width: 18px;
+  height: 18px;
 }
 .filter-fav-btn:hover {
   border-color: #e05c6a;

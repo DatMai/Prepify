@@ -17,18 +17,21 @@ import { loadStreak, resetStreak } from './state/streak';
 import { initLeaderboardModal, openLeaderboard } from './ui/leaderboard';
 import { initDailyBtn, refreshDailyDot } from './ui/dailyBtn';
 import { initJourneyBtn } from './ui/journeyBtn';
-import { openJourney, repaintJourney } from './journey/journeyView';
-import { initAdminView, openAdmin, repaintAdmin } from './admin/adminView';
+import { closeJourney, openJourney, repaintJourney } from './journey/journeyView';
+import { closeAdmin, initAdminView, openAdmin, repaintAdmin } from './admin/adminView';
 import { initProfileModal, openProfile } from './ui/profileModal';
 import { showToast } from './ui/toast';
 import { showQuizLauncher } from './quiz/launcher';
 import { repaintQuiz } from './quiz/quizView';
 import { getLang, setLang, t, type Lang } from './i18n';
-import { clearLibrary, loadLibrary } from './data/loader';
+import { clearLibrary, loadLibrary, loadTopic } from './data/loader';
 import { api } from './api/client';
 import { initFeed, repaintFeed } from './feed/feedView';
 import { openReviewOverlay, renderReviewBadge } from './review/reviewView';
 import { loadReviewState } from './state/review';
+import { state as libraryState } from './state/progress';
+import { Heart } from 'lucide';
+import { icon } from './ui/icon';
 
 function isAdmin(): boolean {
   return auth.user?.role === 'admin';
@@ -40,7 +43,14 @@ function updateAccessUI(): void {
   });
 }
 
+function initFavoriteFilterIcon(): void {
+  const favorite = document.getElementById('favFilterBtn');
+  if (favorite && !favorite.querySelector('svg')) favorite.appendChild(icon(Heart));
+}
+
 function showHome(updateHistory = true): void {
+  closeAdmin(false);
+  closeJourney(false);
   document.getElementById('homeView')?.removeAttribute('hidden');
   document.getElementById('libraryView')?.setAttribute('hidden', '');
   document.getElementById('libraryNav')?.classList.remove('is-active');
@@ -53,7 +63,10 @@ async function showLibrary(updateHistory = true): Promise<void> {
     return;
   }
   try {
+    closeAdmin(false);
+    closeJourney(false);
     await loadLibrary();
+    await loadTopic(libraryState.topic);
     document.getElementById('homeView')?.setAttribute('hidden', '');
     document.getElementById('libraryView')?.removeAttribute('hidden');
     document.getElementById('libraryNav')?.classList.add('is-active');
@@ -124,6 +137,7 @@ async function toggleLanguage(): Promise<void> {
 
   try {
     if (isAdmin()) await loadLibrary(next);
+    if (isAdmin()) await loadTopic(libraryState.topic, next);
     setLang(next);
     applyLang();
     if (isAdmin() && !document.getElementById('libraryView')?.hasAttribute('hidden')) render();
@@ -200,8 +214,14 @@ async function init(): Promise<void> {
 
   document.getElementById('homeNav')?.addEventListener('click', () => showHome());
   document.getElementById('libraryNav')?.addEventListener('click', () => void showLibrary());
-  document.getElementById('journeyNav')?.addEventListener('click', () => void openJourney());
-  document.getElementById('adminNav')?.addEventListener('click', () => void openAdmin());
+  document.getElementById('journeyNav')?.addEventListener('click', () => {
+    closeAdmin(false);
+    void openJourney();
+  });
+  document.getElementById('adminNav')?.addEventListener('click', () => {
+    closeJourney(false);
+    void openAdmin();
+  });
 
   document.getElementById('lbBtn')?.addEventListener('click', () => {
     void openLeaderboard();
@@ -212,6 +232,7 @@ async function init(): Promise<void> {
   });
 
   applyLang();
+  initFavoriteFilterIcon();
   const feedRoot = document.getElementById('feedRoot');
   if (feedRoot) {
     initFeed({
@@ -222,7 +243,10 @@ async function init(): Promise<void> {
   await restoreSession();
   updateAuthBtn();
   updateAccessUI();
-  if (isAdmin()) await loadLibrary();
+  if (isAdmin()) {
+    await loadLibrary();
+    await loadTopic(libraryState.topic);
+  }
   await loadProgress();
   loadFavorites();
   bindEvents();

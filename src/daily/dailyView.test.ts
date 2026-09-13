@@ -118,4 +118,20 @@ describe('dailyView sync control', () => {
     expect(document.querySelector('.daily-sync')?.getAttribute('aria-live')).toBeNull();
     expect(document.querySelector('.daily-sync-state')?.getAttribute('aria-live')).toBe('polite');
   });
+
+  it('groups the sync action with its current status', async () => {
+    fetchStatusMock.mockResolvedValue({ completedToday: false });
+    fetchQuestionsMock.mockResolvedValue({
+      date: '2026-09-13',
+      challenge: 'challenge',
+      questions: [{ id: 'q1', type: 'fib', prompt: 'A ___ is a test.', blankCount: 1 }],
+    });
+
+    await open();
+
+    const toolbar = document.querySelector('.daily-sync-toolbar');
+    expect(toolbar).not.toBeNull();
+    expect(toolbar?.querySelector('#dailySyncBtn')).not.toBeNull();
+    expect(toolbar?.querySelector('.daily-sync-meta')).not.toBeNull();
+  });
 });

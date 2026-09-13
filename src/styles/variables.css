@@ -25,6 +25,14 @@ body {
   height: 100%;
 }
 
+.app-icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  stroke-width: 2;
+  vertical-align: -0.125em;
+}
+
 body {
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(74, 163, 255, 0.08), transparent 60%),
@@ -37,4 +45,61 @@ body {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+
+/* Readability pass: keep labels compact, but make app content comfortable to scan. */
+.topbar .title h2,
+.daily-title,
+.sec-head {
+  font-size: 18px;
+}
+
+.topbar .title span,
+.search,
+.toggle,
+.daily-btn,
+.filter-fav-btn,
+.topic .ct,
+.pg-label,
+.sidebar-foot,
+.feed-count,
+.feed-chip,
+.journey-sync-last,
+.journey-sync-hint,
+.journey-section-title p,
+.journey-review-intro > p:last-child {
+  font-size: 14px;
+}
+
+.topic .nm,
+.q-text,
+.daily-q,
+.journey-task-copy h4,
+.journey-task-steps li,
+.feed-card-title {
+  font-size: 18px;
+}
+
+.daily-opt,
+.journey-task-note-text,
+.journey-task-note-quote p,
+.journey-task-note-list,
+.journey-review-evidence-row p,
+.feed-card-summary,
+.feed-card-meta {
+  font-size: 15px;
+}
+
+.journey-btn-primary,
+.journey-btn-secondary,
+.journey-sync-btn,
+.journey-sync-retry,
+.journey-view-btn,
+.journey-obsidian-link,
+.journey-evidence-label,
+.journey-field > span,
+.journey-review-section > h3,
+.journey-review-status,
+.journey-review-empty {
+  font-size: 14px;
 }

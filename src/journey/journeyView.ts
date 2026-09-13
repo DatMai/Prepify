@@ -1,7 +1,9 @@
+import { AlertTriangle, ArrowLeft, ChevronDown, Cloud, LockKeyhole, RefreshCw } from 'lucide';
 import { api, ApiError, type JourneyTodayResponse } from '../api/client';
 import { isLoggedIn } from '../state/auth';
 import { t } from '../i18n';
 import { showToast } from '../ui/toast';
+import { icon } from '../ui/icon';
 import { groupTaskNotes } from './noteGroups';
 import type { JourneyBlock, JourneyJournal, JourneySnapshot, JourneyTask } from './types';
 import {
@@ -186,10 +188,10 @@ export async function openJourney(updateHistory = true): Promise<void> {
   await loadJourney();
 }
 
-export function closeJourney(): void {
+export function closeJourney(updateHistory = true): void {
   captureDrafts();
   hideJourney();
-  if (window.location.hash === '#journey') window.history.back();
+  if (updateHistory && window.location.hash === '#journey') window.history.back();
 }
 
 function hideJourney(): void {
@@ -211,6 +213,7 @@ export function repaintJourney(): void {
 async function loadJourney(): Promise<void> {
   loading = true;
   lastError = null;
+  console.debug('[journey] loading started');
   renderLoading();
 
   try {
@@ -256,13 +259,16 @@ async function loadJourney(): Promise<void> {
     };
     setAvailability('ok');
     renderJourney(current);
+    console.debug('[journey] loading completed', { date: current.date });
   } catch (error: unknown) {
+    console.error('[journey] loading failed', error);
     current = null;
     lastError = asApiError(error);
     setAvailability('error');
     renderError(lastError);
   } finally {
     loading = false;
+    console.debug('[journey] loading settled');
   }
 }
 
@@ -272,9 +278,10 @@ function shell(title: string, subtitle?: string): { panel: HTMLElement; body: HT
   panel.setAttribute('aria-label', title);
 
   const nav = element('nav', 'journey-nav');
-  const close = actionButton('←', 'journey-back-btn');
+  const close = actionButton('', 'journey-back-btn');
+  close.appendChild(icon(ArrowLeft));
   close.setAttribute('aria-label', t('journey.back'));
-  close.addEventListener('click', closeJourney);
+  close.addEventListener('click', () => closeJourney());
   nav.appendChild(close);
 
   const brand = element('div', 'journey-brand');
@@ -316,7 +323,9 @@ function renderGuest(): void {
   setAvailability('idle');
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state');
-  state.appendChild(element('div', 'journey-state-icon', '🔒'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(LockKeyhole));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', t('journey.loginTitle')));
   state.appendChild(element('p', '', t('journey.loginBody')));
   const login = actionButton(t('journey.login'), 'journey-btn-primary');
@@ -331,7 +340,9 @@ function renderGuest(): void {
 function renderError(error: ApiError): void {
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state journey-state-error');
-  state.appendChild(element('div', 'journey-state-icon', '⚠'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(AlertTriangle));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', errorTitle(error)));
   state.appendChild(element('p', '', errorMessage(error)));
   const retry = actionButton(t('journey.retry'), 'journey-btn-primary');
@@ -347,7 +358,9 @@ function renderError(error: ApiError): void {
 function renderEmpty(): void {
   const { body } = shell(t('journey.title'));
   const state = element('div', 'journey-state journey-empty-state');
-  state.appendChild(element('div', 'journey-state-icon', '☁'));
+  const stateIcon = element('div', 'journey-state-icon');
+  stateIcon.appendChild(icon(Cloud));
+  state.appendChild(stateIcon);
   state.appendChild(element('h3', '', t('journey.emptyTitle')));
   state.appendChild(element('p', '', t('journey.emptyBody')));
   state.appendChild(renderSyncControl());
@@ -368,10 +381,15 @@ function renderSyncControl(): HTMLElement {
   control.dataset.state = syncStatus.state;
 
   const button = actionButton(t('sync.button'), 'journey-sync-btn');
+  button.prepend(icon(RefreshCw, { className: 'journey-sync-btn-icon' }));
   button.id = 'journeySyncBtn';
   button.addEventListener('click', () => void runSync());
 
+  const toolbar = element('div', 'journey-sync-toolbar');
   const meta = element('div', 'journey-sync-meta');
+  const indicator = element('span', 'journey-sync-indicator');
+  indicator.setAttribute('aria-hidden', 'true');
+  meta.appendChild(indicator);
   const state = element('span', 'journey-sync-state', t(SYNC_STATE_KEYS[syncStatus.state]));
   state.id = 'journeySyncState';
   state.setAttribute('role', 'status');
@@ -386,8 +404,12 @@ function renderSyncControl(): HTMLElement {
   retry.hidden = !isRetryable(syncStatus.state);
   retry.addEventListener('click', () => void runSync());
 
+  const actions = element('div', 'journey-sync-actions');
+  actions.append(button, retry);
+  toolbar.append(meta, actions);
+
   const hint = element('p', 'journey-sync-hint', syncHintLabel(syncStatus, syncTimedOut, t));
-  control.append(button, meta, retry, hint);
+  control.append(toolbar, hint);
   return control;
 }
 
@@ -470,6 +492,7 @@ function renderJourney(data: JourneyViewModel): void {
   summary.appendChild(progress);
 
   const reload = actionButton(t('journey.reload'), 'journey-icon-btn journey-reload-btn');
+  reload.prepend(icon(RefreshCw));
   reload.addEventListener('click', () => {
     captureDrafts();
     void loadJourney();
@@ -607,7 +630,9 @@ function renderTask(
       task.checked ? t('journey.statusDone') : t('journey.statusOpen'),
     ),
   );
-  state.appendChild(element('span', 'journey-task-chevron', '⌄'));
+  const chevron = element('span', 'journey-task-chevron');
+  chevron.appendChild(icon(ChevronDown));
+  state.appendChild(chevron);
   top.appendChild(state);
   const toggle = (): void => {
     captureDrafts();

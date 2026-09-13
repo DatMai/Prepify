@@ -1,4 +1,6 @@
 import { t as defaultT } from '../i18n';
+import { LayoutGrid, List } from 'lucide';
+import { iconMarkup } from '../ui/icon';
 import { esc } from '../render/escape';
 import type { FeedArticle } from './types';
 
@@ -117,8 +119,8 @@ function render(deps: FeedViewDeps): void {
       ? `<div class="feed-toolbar">
           <span class="feed-count">${esc(t('feed.count', { n: state.items.length }))}</span>
           <div class="feed-view-toggle" role="group">
-            <button class="feed-view-btn${state.view === 'list' ? ' active' : ''}" data-view="list" type="button" aria-label="${esc(t('feed.listView'))}">☰</button>
-            <button class="feed-view-btn${state.view === 'grid' ? ' active' : ''}" data-view="grid" type="button" aria-label="${esc(t('feed.gridView'))}">▦</button>
+            <button class="feed-view-btn${state.view === 'list' ? ' active' : ''}" data-view="list" type="button" aria-label="${esc(t('feed.listView'))}">${iconMarkup(List)}</button>
+            <button class="feed-view-btn${state.view === 'grid' ? ' active' : ''}" data-view="grid" type="button" aria-label="${esc(t('feed.gridView'))}">${iconMarkup(LayoutGrid)}</button>
           </div>
         </div>`
       : '';
@@ -160,13 +162,18 @@ function render(deps: FeedViewDeps): void {
 
 async function load(deps: FeedViewDeps): Promise<void> {
   state.status = 'loading';
+  console.debug('[feed] loading started');
   render(deps);
   try {
     state.items = await deps.load();
     state.status = 'ready';
-  } catch {
+    console.debug('[feed] loading completed', { count: state.items.length });
+  } catch (error) {
+    console.error('[feed] loading failed', error);
     state.items = [];
     state.status = 'error';
+  } finally {
+    console.debug('[feed] loading settled');
   }
   render(deps);
 }

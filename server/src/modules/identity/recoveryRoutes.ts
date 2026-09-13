@@ -46,6 +46,12 @@ export function createRecoveryRoutes({
       await service.requestPasswordReset(parsed.data.email);
       res.json({ ok: true, message: 'If the email exists, a reset link has been sent.' });
     } catch (error) {
+      if ((error as { code?: string }).code === 'email_delivery_failed') {
+        // Preserve the same public response for existing and unknown accounts.
+        // The service logs the SMTP failure through its injected logger.
+        res.json({ ok: true, message: 'If the email exists, a reset link has been sent.' });
+        return;
+      }
       next(error);
     }
   });
@@ -85,6 +91,10 @@ export function createRecoveryRoutes({
       const code = (error as { code?: string }).code;
       if (code === 'email_already_verified') {
         res.status(400).json({ error: 'Email is already verified', code });
+        return;
+      }
+      if (code === 'email_delivery_failed') {
+        res.status(503).json({ error: 'Email delivery is temporarily unavailable', code });
         return;
       }
       next(error);

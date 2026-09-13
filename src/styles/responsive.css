@@ -15,6 +15,16 @@
 }
 
 @media (max-width: 820px) {
+  .journey-sync-toolbar,
+  .daily-sync-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .journey-sync-actions,
+  .daily-sync-actions {
+    width: 100%;
+  }
   .sidebar {
     position: fixed;
     left: -280px;
