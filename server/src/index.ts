@@ -24,7 +24,12 @@ import { createOAuthFlowStore } from './modules/identity/oauthFlowStore';
 import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
-import { createBridgeAuthenticator, createBridgeHub } from './modules/journey/bridgeHub';
+import { createJourneyBridgeRouter } from './routes/journeyBridge';
+import {
+  createBridgeAuthenticator,
+  createBridgeHub,
+  type BridgeAuthenticate,
+} from './modules/journey/bridgeHub';
 import { createSyncRepository } from './modules/journey/syncRepository';
 import type { JourneyQuery, JourneyTransaction } from './modules/journey/syncTypes';
 import leaderboardRouter from './routes/leaderboard';
@@ -58,6 +63,7 @@ function registerRoutes(
     optionalAuth: RequestHandler;
     dailyRoutes: ReturnType<typeof createDailyRouter>;
     journeyRoutes: ReturnType<typeof createJourneyRouter>;
+    bridgeRoutes: ReturnType<typeof createJourneyBridgeRouter>;
     streakRoutes: ReturnType<typeof createStreakRouter>;
     feedRoutes: ReturnType<typeof createFeedRouter>;
     adminRoutes: ReturnType<typeof createAdminRouter>;
@@ -78,6 +84,10 @@ function registerRoutes(
   app.use('/api/v1/leaderboard', identity.optionalAuth, leaderboardRouter);
   app.use('/api/v1/quiz-sessions', identity.quizSessionsRoutes);
   app.use('/api/v1/daily', identity.dailyRoutes);
+  // Registered before the Journey reader router: that router applies session
+  // and vault-owner middleware to every path beneath it, which a bearer-only
+  // bridge request must never traverse.
+  app.use('/api/v1/journey/bridge/jobs', identity.bridgeRoutes);
   app.use('/api/v1/journey', identity.journeyRoutes);
   // The admin prefix is registered first so it wins over the reader router.
   app.use('/api/v1/library/admin', identity.libraryAdminRoutes);
@@ -178,18 +188,22 @@ async function main(): Promise<void> {
   // The hub is built before the routers so they can close over its notifier and
   // connectivity seams; it is attached to the HTTP server only after listening.
   const bridgeToken = config.obsidian.bridge.enabled ? config.obsidian.bridge.token : undefined;
+  // One authenticator instance is shared by the WebSocket hub and the bridge
+  // HTTP contract, so the bearer parsing and constant-time comparison exist in
+  // exactly one place. When the bridge is disabled nobody can authenticate.
+  const bridgeAuthenticate: BridgeAuthenticate = bridgeToken
+    ? createBridgeAuthenticator({
+        token: bridgeToken,
+        resolveOwnerId: async () => {
+          const ownerEmail = config.obsidian.ownerEmail;
+          if (!ownerEmail) return null;
+          const owner = await userRepository.findByEmail(ownerEmail);
+          return owner?.id ?? null;
+        },
+      })
+    : () => null;
   const bridgeHub = createBridgeHub({
-    authenticate: bridgeToken
-      ? createBridgeAuthenticator({
-          token: bridgeToken,
-          resolveOwnerId: async () => {
-            const ownerEmail = config.obsidian.ownerEmail;
-            if (!ownerEmail) return null;
-            const owner = await userRepository.findByEmail(ownerEmail);
-            return owner?.id ?? null;
-          },
-        })
-      : () => null,
+    authenticate: bridgeAuthenticate,
     loadPending: async (ownerId) => {
       const jobs = await syncRepository.listPending({
         ownerId,
@@ -269,6 +283,11 @@ async function main(): Promise<void> {
           isBridgeConnected: (ownerId) => bridgeHub.isConnected(ownerId),
         },
   );
+  const bridgeRoutes = createJourneyBridgeRouter({
+    authenticate: bridgeAuthenticate,
+    sync: syncRepository,
+    vaultId: config.obsidian.vaultId,
+  });
   initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
 
   try {
@@ -297,6 +316,7 @@ async function main(): Promise<void> {
           optionalAuth: createOptionalSessionAuth(sessionRepository, config.session.cookieName),
           dailyRoutes,
           journeyRoutes,
+          bridgeRoutes,
           streakRoutes,
           feedRoutes,
           adminRoutes,
