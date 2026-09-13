@@ -251,6 +251,42 @@ describe('bridge lifecycle', () => {
     expect(h.http.calls.filter((c) => c.path.endsWith('/pending'))).toHaveLength(1);
   });
 
+  it('acts on a notification frame delivered as a Buffer, as the ws client does', async () => {
+    const h = await setup(async (req) => {
+      if (req.method === 'GET' && req.path.endsWith('/pending')) {
+        return { status: 200, body: { jobs: [] } };
+      }
+      if (req.method === 'POST' && req.path.endsWith(`/${JOB_ID}/claim`)) {
+        // A non-200 stops the job right here. This test only needs to prove the
+        // frame was handled at all, so it deliberately avoids the vault and the
+        // completion endpoints.
+        return { status: 500, body: { error: 'probe', code: 'probe' } };
+      }
+      return { status: 404, body: { error: 'not found', code: 'job_not_found' } };
+    });
+
+    h.sockets[0].emit('open');
+    await until(
+      () => h.http.calls.some((c) => c.method === 'GET' && c.path.endsWith('/pending')),
+      'pending fetch',
+    );
+
+    // `ws` delivers a text frame to a Node client as a Buffer with
+    // `isBinary === false`. A client that only accepts `typeof payload ===
+    // 'string'` therefore ignores every notification the hub sends, while every
+    // test that emits a string stays green.
+    h.sockets[0].emit(
+      'message',
+      Buffer.from(JSON.stringify({ type: 'sync_available', jobIds: [JOB_ID] })),
+    );
+
+    await until(
+      () => h.http.calls.some((c) => c.method === 'POST' && c.path.endsWith('/claim')),
+      'claim',
+    );
+    expect(h.http.calls.filter((c) => c.path.endsWith('/claim'))).toHaveLength(1);
+  });
+
   it('completes a sync job delivered by a notification frame', async () => {
     let leaseId: string | null = null;
     const h = await setup(async (req) => {

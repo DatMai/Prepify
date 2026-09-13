@@ -212,7 +212,17 @@ export function runBridge(config: BridgeConfig, deps: BridgeDependencies): Bridg
       void drainPending();
     });
     nextSocket.on('message', (payload) => {
-      if (typeof payload === 'string') handleFrame(payload);
+      // A Node `ws` client hands a text frame over as a Buffer with
+      // `isBinary === false`, not as a string. Accepting only strings silently
+      // discarded every notification the hub sent, so the bridge worked once on
+      // connect and then never again.
+      const frame =
+        typeof payload === 'string'
+          ? payload
+          : Buffer.isBuffer(payload)
+            ? payload.toString('utf8')
+            : null;
+      if (frame !== null) handleFrame(frame);
     });
     nextSocket.on('error', (payload) => {
       log?.warn?.({ err: payload }, 'bridge socket error');
