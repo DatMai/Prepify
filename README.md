@@ -275,6 +275,24 @@ The bridge resolves only `Daily/YYYY-MM-DD.md` beneath the real vault root,
 rejects symlink escapes and traversal, compares SHA-256 revisions, and writes by
 atomically renaming a sibling temporary file.
 
+**Run exactly one bridge per vault.** The server notifies _every_ bridge
+connection it holds for the owner, so a second bridge pointed at a different
+vault will claim the same jobs and write its own vault's revision into the
+projection. The deployed assumption is one owner, one vault, one bridge.
+
+While the bridge is offline the UI reports that state and vault-backed Journey
+mutations stay disabled; the database-owned Daily quiz keeps working and queues a
+summary for the next sync. There is deliberately no hosted cloud mirror of the
+vault — that is a non-goal, not a gap.
+
+## Release checks
+
+```bash
+npm run check                     # the single green gate
+npm run check:bundle              # private corpus must not reach the browser bundle
+npm run check:release-boundaries  # tracked corpus, .env files, migration order, required docs
+```
+
 ## Agent workflow
 
 `AGENTS.md` is the project router. Superpowers is the process authority:
