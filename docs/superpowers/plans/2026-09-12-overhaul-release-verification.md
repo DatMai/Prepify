@@ -32,22 +32,22 @@
 - Consumes: repository paths and migration filenames.
 - Produces: `npm run check:release-boundaries` covering tracked corpus, migration ordering, secret filename patterns, legacy Claude surfaces, and required docs.
 
-- [ ] **Step 1: Write failing scanner tests**
+- [x] **Step 1: Write failing scanner tests**
 
 Use a temporary directory fixture and prove detection of a tracked `content/`
 path, duplicate migration prefix, `.env` tracking, missing `AGENTS.md`, and
 missing ADR/spec references. Never scan or print file contents.
 
-- [ ] **Step 2: Run to verify RED**
+- [x] **Step 2: Run to verify RED**
 
 Run: `npm test -- src/security/releaseBoundaryScan.test.ts`
 
-- [ ] **Step 3: Implement the scanner and npm script**
+- [x] **Step 3: Implement the scanner and npm script**
 
 The scanner returns structured issue codes and prints only safe path metadata.
 Add it to `npm run check` after `check:bundle`.
 
-- [ ] **Step 4: Run GREEN and commit**
+- [x] **Step 4: Run GREEN and commit**
 
 ```bash
 npm test -- src/security/releaseBoundaryScan.test.ts

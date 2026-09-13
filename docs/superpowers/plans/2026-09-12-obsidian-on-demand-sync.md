@@ -375,20 +375,45 @@ git commit -m "feat: nút đồng bộ Obsidian theo yêu cầu"
 - Consumes: all preceding tasks and a temporary synthetic vault.
 - Produces: documented deployment boundary and completed release-plan Task 5.
 
-- [ ] **Step 1: Run a local HTTP/WebSocket smoke test**
+- [x] **Step 1: Run a local HTTP/WebSocket smoke test**
+
+> Completed 2026-09-13 as a scripted matrix rather than a one-off manual pass:
+> `task-7-smoke-partA.sh` (21 checks, HTTP API surface) and
+> `task-7-smoke-partB2.sh` (15 checks, real bridge against a synthetic vault).
+> **36/36 pass, exit 0.** The run also found and fixed three real production
+> breaks no mocked test could see: the `403` origin guard that rejected every
+> bridge write, the `500` from binding five parameters to a four-placeholder
+> statement, and the transport bug where the bridge discarded every notification
+> because `ws` delivers a text frame as a Buffer. Evidence and full write-up:
+> `.superpowers/sdd/2026-09-12-obsidian-on-demand-sync/task-7-evidence.md`.
+> Two earlier findings were retracted as test-environment artifacts — a missing
+> `notifyOwner` call (it was always wired) and a revision mismatch caused by two
+> stray bridge processes on different vaults.
 
 Using test credentials without printing them, prove: owner login, non-owner 403,
 bridge authentication, phone-originated sync request, projection upload,
 database-to-vault mutation, conflict, reconnect, duplicate notification, and
 logout. Use a temporary synthetic vault, never the personal vault.
 
-- [ ] **Step 2: Run the full gate**
+- [x] **Step 2: Run the full gate**
+
+> `npm run check` exits **0** at `a2430c3`: prettier clean, lint clean, both
+> typechecks, frontend 137 tests, server 358 passed / 13 skipped, private bundle
+> scan passed, release boundary scan passed, 0 production vulnerabilities.
 
 Run: `npm run check`
 
 Expected: exit 0.
 
-- [ ] **Step 3: Update ADRs and plan status**
+- [x] **Step 3: Update ADRs and plan status**
+
+> ADR-001 and ADR-002 now record the hybrid ownership boundary, the on-demand
+> local bridge, the WebSocket transport, the offline behaviour, the cloud-mirror
+> non-goal, and the one-owner/one-vault/one-bridge operational rule. README
+> documents the bridge setup, the single-bridge rule and the release-check
+> commands. The original overhaul plan's Task 5 checkbox is left unmarked on
+> purpose: that decision belongs to the release verification's docs step, which
+> has not run yet.
 
 Record the hybrid ownership boundary, local on-demand bridge, WebSocket
 transport, offline behavior, and future cloud-mirror non-goal. Mark Task 5 only
