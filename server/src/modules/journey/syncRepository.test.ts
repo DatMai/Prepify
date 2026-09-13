@@ -3,6 +3,31 @@ import { createSyncRepository } from './syncRepository';
 import type { JourneyQuery } from './syncTypes';
 
 const sha = 'a'.repeat(64);
+const expectedRevision = 'b'.repeat(64);
+const actualRevision = 'c'.repeat(64);
+
+function validProjection() {
+  return {
+    daily: {
+      date: '2026-09-12',
+      stage: 'AZ-104',
+      tasks: [
+        {
+          id: 'task-1',
+          checked: true,
+          text: 'Review virtual networks',
+          tags: ['#az104'],
+        },
+      ],
+      evidence: ['Completed the virtual-network lab'],
+      journal: {
+        done: 'Reviewed the virtual network module.',
+        blocked: '',
+        next: 'Practice firewall rules.',
+      },
+    },
+  };
+}
 
 const pendingJob = {
   id: 'job-1',
@@ -63,8 +88,8 @@ describe('createSyncRepository', () => {
 
     expect(withTransaction).toHaveBeenCalledTimes(1);
     const insert = calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'));
-    expect(insert?.text).toContain('VALUES ($1, $2, $3, $4::jsonb, $5)');
-    expect(insert?.values).toEqual(['owner-1', 'vault-main', 'sync', '{}', 'event_12345678']);
+    expect(insert?.text).toContain('VALUES ($1, $2, $3, $4::jsonb, $5, $6)');
+    expect(insert?.values).toEqual(['owner-1', 'vault-main', 'sync', '{}', 'event_12345678', null]);
     const audit = calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'));
     expect(audit?.values).toEqual([
       'owner-1',
@@ -91,6 +116,33 @@ describe('createSyncRepository', () => {
 
     expect(result).toMatchObject({ jobId: 'existing-job', state: 'pending' });
     expect(calls.filter((call) => call.text.includes('INSERT INTO journey_audit_events'))).toHaveLength(0);
+  });
+
+  it('captures the current projection revision when a sync request enters the outbox', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: expectedRevision }] };
+      }
+      if (text.includes('INSERT INTO journey_sync_jobs')) {
+        return { rows: [{ ...pendingJob, expected_revision: expectedRevision, created: true }] };
+      }
+      return undefined;
+    });
+
+    await repo.requestSync({
+      ownerId: 'owner-1',
+      vaultId: 'vault-main',
+      idempotencyKey: 'event_12345678',
+    });
+
+    expect(calls.find((call) => call.text.includes('INSERT INTO journey_sync_jobs'))?.values).toEqual([
+      'owner-1',
+      'vault-main',
+      'sync',
+      '{}',
+      'event_12345678',
+      expectedRevision,
+    ]);
   });
 
   it('reclaims an expired lease, increments its attempt count, and writes an audit event', async () => {
@@ -140,18 +192,20 @@ describe('createSyncRepository', () => {
       jobId: 'job-1',
       leaseId: 'wrong-lease',
       revision: sha,
-      projection: { daily: { date: '2026-09-12', tasks: [] } },
+      projection: validProjection(),
     });
 
     expect(completed).toBeNull();
-    const completion = calls.find((call) => call.text.includes("SET state = 'synced'"));
-    expect(completion?.text).toContain("state = 'claimed' AND lease_id = $3");
     expect(calls.some((call) => call.text.includes('INSERT INTO journey_projections'))).toBe(false);
     expect(calls.some((call) => call.text.includes('INSERT INTO journey_audit_events'))).toBe(false);
   });
 
   it('commits the returned projection, completed state, and sanitized audit event in one transaction', async () => {
     const { repo, calls, withTransaction } = harness((text) => {
+      if (text.includes('FOR UPDATE')) {
+        return { rows: [{ ...pendingJob, state: 'claimed', lease_id: 'lease-1' }] };
+      }
+      if (text.includes('INSERT INTO journey_projections')) return { rows: [{ revision: sha }] };
       if (text.includes("SET state = 'synced'")) {
         return {
           rows: [
@@ -165,7 +219,7 @@ describe('createSyncRepository', () => {
       }
       return undefined;
     });
-    const projection = { daily: { date: '2026-09-12', tasks: [{ id: 'task-1', done: true }] } };
+    const projection = validProjection();
 
     const completed = await repo.complete({
       ownerId: 'owner-1',
@@ -178,7 +232,7 @@ describe('createSyncRepository', () => {
     expect(withTransaction).toHaveBeenCalledTimes(1);
     expect(completed).toMatchObject({ jobId: 'job-1', state: 'synced', completedAt: '2026-09-12T00:01:00.000Z' });
     const savedProjection = calls.find((call) => call.text.includes('INSERT INTO journey_projections'));
-    expect(savedProjection?.values).toEqual(['owner-1', 'vault-main', sha, JSON.stringify(projection)]);
+    expect(savedProjection?.values).toEqual(['owner-1', 'vault-main', sha, JSON.stringify(projection), null]);
     expect(calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'))?.values).toEqual([
       'owner-1',
       'job-1',
@@ -188,8 +242,6 @@ describe('createSyncRepository', () => {
   });
 
   it('preserves both revisions when a claimed job enters conflict', async () => {
-    const expectedRevision = 'b'.repeat(64);
-    const actualRevision = 'c'.repeat(64);
     const { repo, calls } = harness((text) => {
       if (text.includes("SET state = $4")) {
         return {
@@ -262,13 +314,234 @@ describe('createSyncRepository', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('records an inbound structured projection without putting it in the audit event', async () => {
+  it('rejects vault aliases and free-text bodies before they can enter JSONB', async () => {
     const { repo, calls } = harness();
-    const projection = { journey: { next: 'Implement claim endpoint' } };
+    const projection = validProjection() as Record<string, unknown>;
+    projection.filePath = 'Daily/private.md';
+    projection.content = '## Private vault body';
+
+    await expect(
+      repo.complete({
+        ownerId: 'owner-1',
+        jobId: 'job-1',
+        leaseId: 'lease-1',
+        revision: sha,
+        projection: projection as never,
+      }),
+    ).rejects.toThrow('projection must match the allowlisted schema');
+    await expect(
+      repo.requestSync({
+        ownerId: 'owner-1',
+        vaultId: 'vault-main/Daily',
+        idempotencyKey: 'event_12345678',
+      }),
+    ).rejects.toThrow('vaultId must be a safe identifier');
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it('rejects an unallowlisted mutation body before it can enter the outbox', async () => {
+    const { repo, calls } = harness();
+
+    await expect(
+      repo.enqueueMutation({
+        ownerId: 'owner-1',
+        vaultId: 'vault-main',
+        idempotencyKey: 'event_12345678',
+        operation: 'daily_summary',
+        payload: {
+          date: '2026-09-12',
+          score: 3,
+          total: 5,
+          content: '## Arbitrary vault body',
+        },
+      } as never),
+    ).rejects.toThrow('payload must match the allowlisted schema');
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it('records a stale completion as a conflict instead of replacing a newer projection', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: expectedRevision,
+            },
+          ],
+        };
+      }
+      if (text.includes('INSERT INTO journey_projections')) return { rows: [] };
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: actualRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'conflict',
+              conflict_expected_revision: expectedRevision,
+              conflict_actual_revision: actualRevision,
+              completed_at: '2026-09-12T00:01:00.000Z',
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.complete({
+      ownerId: 'owner-1',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({
+      state: 'conflict',
+      conflictExpectedRevision: expectedRevision,
+      conflictActualRevision: actualRevision,
+    });
+    expect(calls.find((call) => call.text.includes('INSERT INTO journey_projections'))?.text).toContain(
+      'WHERE journey_projections.revision IS NOT DISTINCT FROM $5',
+    );
+    expect(calls.find((call) => call.text.includes("SET state = 'conflict'"))?.values).toEqual([
+      'owner-1',
+      'job-1',
+      'lease-1',
+      expectedRevision,
+      actualRevision,
+      'revision_conflict',
+    ]);
+  });
+
+  it('records a stale inbound projection as a lease-bound conflict', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes('FOR UPDATE')) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'claimed',
+              lease_id: 'lease-1',
+              expected_revision: expectedRevision,
+            },
+          ],
+        };
+      }
+      if (text.includes('INSERT INTO journey_projections')) return { rows: [] };
+      if (text.includes('SELECT revision FROM journey_projections')) {
+        return { rows: [{ revision: actualRevision }] };
+      }
+      if (text.includes("SET state = 'conflict'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'conflict',
+              conflict_expected_revision: expectedRevision,
+              conflict_actual_revision: actualRevision,
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.recordInboundProjection({
+      ownerId: 'owner-1',
+      vaultId: 'vault-main',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      expectedRevision,
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({ state: 'conflict', conflictActualRevision: actualRevision });
+    expect(calls.find((call) => call.text.includes("SET state = 'conflict'"))?.values).toEqual([
+      'owner-1',
+      'job-1',
+      'lease-1',
+      expectedRevision,
+      actualRevision,
+      'revision_conflict',
+    ]);
+  });
+
+  it('requires both valid revisions before a job can enter conflict', async () => {
+    const { repo, calls } = harness();
+
+    await expect(
+      repo.fail({
+        ownerId: 'owner-1',
+        jobId: 'job-1',
+        leaseId: 'lease-1',
+        state: 'conflict',
+        errorCode: 'revision_conflict',
+        expectedRevision,
+      } as never),
+    ).rejects.toThrow('conflict requires both revision hashes');
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it('returns the stored successful completion to a bridge retry with the same lease and revision', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes("SET state = 'synced'")) return { rows: [] };
+      if (text.includes("state = 'synced'")) {
+        return {
+          rows: [
+            {
+              ...pendingJob,
+              state: 'synced',
+              lease_id: 'lease-1',
+              result_revision: sha,
+              completed_at: '2026-09-12T00:01:00.000Z',
+            },
+          ],
+        };
+      }
+      return undefined;
+    });
+
+    const result = await repo.complete({
+      ownerId: 'owner-1',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      revision: sha,
+      projection: validProjection(),
+    });
+
+    expect(result).toMatchObject({ jobId: 'job-1', state: 'synced' });
+    expect(calls.find((call) => call.text.includes("state = 'synced'"))?.text).toContain(
+      'lease_id = $3 AND result_revision = $4',
+    );
+    expect(calls.some((call) => call.text.includes('INSERT INTO journey_projections'))).toBe(false);
+  });
+
+  it('records an inbound structured projection without putting it in the audit event', async () => {
+    const { repo, calls } = harness((text) => {
+      if (text.includes('FOR UPDATE')) {
+        return { rows: [{ ...pendingJob, state: 'claimed', lease_id: 'lease-1' }] };
+      }
+      if (text.includes('INSERT INTO journey_projections')) return { rows: [{ revision: sha }] };
+      return undefined;
+    });
+    const projection = validProjection();
 
     await repo.recordInboundProjection({
       ownerId: 'owner-1',
       vaultId: 'vault-main',
+      jobId: 'job-1',
+      leaseId: 'lease-1',
+      expectedRevision: null,
       revision: sha,
       projection,
     });
@@ -278,14 +551,15 @@ describe('createSyncRepository', () => {
       'vault-main',
       sha,
       JSON.stringify(projection),
+      null,
     ]);
     const audit = calls.find((call) => call.text.includes('INSERT INTO journey_audit_events'));
     expect(audit?.values).toEqual([
       'owner-1',
-      null,
+      'job-1',
       'projection_recorded',
-      JSON.stringify({ vaultId: 'vault-main', revision: sha }),
+      JSON.stringify({ jobId: 'job-1', vaultId: 'vault-main', revision: sha }),
     ]);
-    expect(JSON.stringify(audit?.values)).not.toContain('Implement claim endpoint');
+    expect(JSON.stringify(audit?.values)).not.toContain('Review virtual networks');
   });
 });

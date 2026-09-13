@@ -4,12 +4,6 @@ export interface JourneyQuery {
 
 export type JourneyTransaction = <T>(fn: (tx: JourneyQuery) => Promise<T>) => Promise<T>;
 
-export type JsonPrimitive = boolean | number | string | null;
-export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
-export interface JsonObject {
-  [key: string]: JsonValue;
-}
-
 export type SyncState = 'pending' | 'claimed' | 'synced' | 'conflict' | 'failed';
 export type SyncJobType = 'sync' | 'mutation';
 
@@ -21,20 +15,62 @@ export interface SyncStatus {
   bridgeConnected: boolean;
 }
 
+/** The only note-shaped data permitted in PostgreSQL. It is never raw Markdown. */
+export interface DailyTaskProjection {
+  id: string;
+  checked: boolean;
+  text: string;
+  tags: string[];
+}
+
+export interface DailyJournalProjection {
+  done: string;
+  blocked: string;
+  next: string;
+}
+
+export interface DailyProjection {
+  date: string;
+  stage: string;
+  tasks: DailyTaskProjection[];
+  evidence: string[];
+  journal: DailyJournalProjection;
+}
+
+export interface JourneyProjectionData {
+  daily: DailyProjection;
+}
+
 export interface JourneyProjection {
   ownerId: string;
   vaultId: string;
   revision: string;
-  projection: JsonObject;
+  projection: JourneyProjectionData;
   updatedAt: string;
 }
+
+export interface DailySummaryPayload {
+  date: string;
+  score: number;
+  total: number;
+}
+
+export type JourneyMutationPayload =
+  | { kind: 'task'; date: string; taskId: string; completed: boolean; evidence?: string }
+  | { kind: 'journal'; date: string; done: string; blocked: string; next: string }
+  | { kind: 'evidence'; date: string; evidence: string };
+
+export type SyncJobPayload =
+  | { operation: 'daily_summary'; payload: DailySummaryPayload }
+  | { operation: 'journey_mutation'; payload: JourneyMutationPayload }
+  | Record<string, never>;
 
 export interface SyncJob {
   jobId: string;
   ownerId: string;
   vaultId: string;
   type: SyncJobType;
-  payload: JsonObject;
+  payload: SyncJobPayload;
   idempotencyKey: string;
   expectedRevision: string | null;
   state: SyncState;
@@ -54,11 +90,19 @@ export interface RequestSyncInput {
   idempotencyKey: string;
 }
 
-export interface EnqueueMutationInput extends RequestSyncInput {
-  operation: 'daily_summary' | 'journey_mutation';
-  payload: JsonObject;
-  expectedRevision?: string | null;
-}
+export type EnqueueMutationInput = RequestSyncInput &
+  (
+    | {
+        operation: 'daily_summary';
+        payload: DailySummaryPayload;
+        expectedRevision?: string | null;
+      }
+    | {
+        operation: 'journey_mutation';
+        payload: JourneyMutationPayload;
+        expectedRevision: string;
+      }
+  );
 
 export interface ClaimSyncJobInput {
   ownerId: string;
@@ -72,22 +116,36 @@ export interface CompleteSyncJobInput {
   jobId: string;
   leaseId: string;
   revision: string;
-  projection: JsonObject;
+  projection: JourneyProjectionData;
 }
 
-export interface FailSyncJobInput {
-  ownerId: string;
-  jobId: string;
-  leaseId: string;
-  state: 'conflict' | 'failed';
-  errorCode: string;
-  expectedRevision?: string | null;
-  actualRevision?: string | null;
-}
+export type FailSyncJobInput =
+  | {
+      ownerId: string;
+      jobId: string;
+      leaseId: string;
+      state: 'conflict';
+      errorCode: 'revision_conflict';
+      expectedRevision: string;
+      actualRevision: string;
+    }
+  | {
+      ownerId: string;
+      jobId: string;
+      leaseId: string;
+      state: 'failed';
+      errorCode: string;
+      expectedRevision?: string | null;
+      actualRevision?: string | null;
+    };
 
 export interface RecordInboundProjectionInput {
   ownerId: string;
   vaultId: string;
+  jobId: string;
+  leaseId: string;
+  /** Null is valid only for the first projection for a vault. */
+  expectedRevision: string | null;
   revision: string;
-  projection: JsonObject;
+  projection: JourneyProjectionData;
 }
