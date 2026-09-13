@@ -24,6 +24,8 @@ import { createOAuthFlowStore } from './modules/identity/oauthFlowStore';
 import { createOAuthRoutes } from './modules/identity/oauthRoutes';
 import { createDailyRouter, type DailyQuery } from './routes/daily';
 import { createJourneyRouter } from './routes/journey';
+import { createSyncRepository } from './modules/journey/syncRepository';
+import type { JourneyQuery, JourneyTransaction } from './modules/journey/syncTypes';
 import leaderboardRouter from './routes/leaderboard';
 import { createLibraryRouter } from './routes/library';
 import { createLibraryAdminRouter } from './routes/libraryAdmin';
@@ -45,6 +47,12 @@ import { createMailer } from './utils/email';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local'), override: true, quiet: true });
+
+/**
+ * Interim identity for the single hosted vault. The bridge task replaces this
+ * with the configured bridge owner/vault identity.
+ */
+const JOURNEY_VAULT_ID = 'vault-main';
 
 function registerRoutes(
   app: Express,
@@ -154,6 +162,24 @@ async function main(): Promise<void> {
     requireAuth,
     requireAdmin,
   });
+  const withJourneyTransaction: JourneyTransaction = async (fn) => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client.query.bind(client) as unknown as JourneyQuery);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
+  const syncRepository = createSyncRepository({
+    query: pool.query.bind(pool) as unknown as JourneyQuery,
+    withTransaction: withJourneyTransaction,
+  });
   const dailyRoutes = createDailyRouter({
     query: pool.query.bind(pool) as unknown as DailyQuery,
     repo: libraryRepository,
@@ -162,6 +188,22 @@ async function main(): Promise<void> {
     secret: config.sessionSecret,
     timeZone: config.timeZone,
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
+    withTransaction: withJourneyTransaction,
+    enqueueDailySummary: async (input, tx) => {
+      // Reuse the repository against the Daily transaction so the completion
+      // row and its outbox job commit together.
+      const scoped = createSyncRepository({
+        query: tx as unknown as JourneyQuery,
+        withTransaction: (fn) => fn(tx as unknown as JourneyQuery),
+      });
+      await scoped.enqueueMutation({
+        ownerId: input.ownerId,
+        vaultId: JOURNEY_VAULT_ID,
+        idempotencyKey: input.idempotencyKey,
+        operation: 'daily_summary',
+        payload: { date: input.date, score: input.score, total: input.total },
+      });
+    },
   });
   const quizSessionsRoutes = createQuizSessionsRouter({
     query: pool.query.bind(pool) as unknown as QuizSessionQuery,
@@ -186,12 +228,26 @@ async function main(): Promise<void> {
     timeZone: config.timeZone,
     recordStudyDay: async (userId) => recordStudyDay(userId, pool, config.timeZone),
   });
-  const journeyRoutes = createJourneyRouter({
-    requireAuth,
-    requireAdmin,
-    ownerEmail: config.obsidian.ownerEmail,
-    vault: createObsidianVault(config.obsidian),
-  });
+  const journeyRoutes = createJourneyRouter(
+    config.obsidian.enabled
+      ? {
+          mode: 'local',
+          requireAuth,
+          requireAdmin,
+          ownerEmail: config.obsidian.ownerEmail,
+          vault: createObsidianVault(config.obsidian),
+        }
+      : {
+          mode: 'hosted',
+          requireAuth,
+          requireAdmin,
+          ownerEmail: config.obsidian.ownerEmail,
+          sync: syncRepository,
+          query: pool.query.bind(pool) as unknown as JourneyQuery,
+          vaultId: JOURNEY_VAULT_ID,
+          timeZone: config.obsidian.timeZone,
+        },
+  );
   initializeAuthMiddleware(createSessionAuth(sessionRepository, config.session.cookieName));
 
   try {

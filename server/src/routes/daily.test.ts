@@ -34,7 +34,7 @@ describe('daily routes', () => {
     listSiblingBlocks.mockReset();
   });
 
-  function app() {
+  function app(overrides: Record<string, unknown> = {}) {
     const instance = express();
     instance.use(express.json());
     instance.use(
@@ -51,7 +51,8 @@ describe('daily routes', () => {
         secret: '0123456789abcdef0123456789abcdef',
         timeZone: 'Asia/Ho_Chi_Minh',
         recordStudyDay: vi.fn().mockResolvedValue(undefined),
-      }),
+        ...overrides,
+      } as never),
     );
     return instance;
   }
@@ -178,5 +179,97 @@ describe('daily routes', () => {
 
     expect(res.body.code).toBe('unsupported_language');
     expect(listDailyEntries).not.toHaveBeenCalled();
+  });
+
+  it('enqueues the Daily summary inside the completion transaction', async () => {
+    const challenge = await request(app()).get('/daily').expect(200);
+    const tx = vi.fn().mockResolvedValue({ rows: [] });
+    const withTransaction = vi.fn(async (fn: (q: typeof tx) => Promise<unknown>) => fn(tx));
+    const enqueueDailySummary = vi.fn().mockResolvedValue(undefined);
+    query.mockResolvedValue({ rows: [{ activity_date: challenge.body.date }] });
+
+    await request(app({ withTransaction, enqueueDailySummary }))
+      .post('/daily/complete')
+      .send({
+        date: challenge.body.date,
+        challenge: challenge.body.challenge,
+        answers: [{ questionId: 'fib-1', blanks: ['Hash Table'] }],
+      })
+      .expect(200);
+
+    expect(withTransaction).toHaveBeenCalledTimes(1);
+    expect(tx.mock.calls[0]?.[0]).toContain('INSERT INTO daily_completions');
+    expect(enqueueDailySummary).toHaveBeenCalledTimes(1);
+    const [input, transaction] = enqueueDailySummary.mock.calls[0] as [
+      { ownerId: string; date: string; score: number; total: number; idempotencyKey: string },
+      unknown,
+    ];
+    expect(input).toMatchObject({
+      ownerId: 'user-1',
+      date: challenge.body.date,
+      score: 1,
+      total: 1,
+    });
+    expect(input.idempotencyKey).toBe(`daily_${challenge.body.date}_user-1`);
+    expect(transaction).toBe(tx);
+  });
+
+  it('reuses the completion\u2019s stable idempotency key on a retry', async () => {
+    const enqueueDailySummary = vi.fn().mockResolvedValue(undefined);
+    const first = await request(app()).get('/daily').expect(200);
+    const second = await request(app()).get('/daily').expect(200);
+    query.mockResolvedValue({ rows: [{ activity_date: first.body.date }] });
+
+    for (const challenge of [first, second]) {
+      await request(app({ enqueueDailySummary }))
+        .post('/daily/complete')
+        .send({
+          date: challenge.body.date,
+          challenge: challenge.body.challenge,
+          answers: [{ questionId: 'fib-1', blanks: ['Hash Table'] }],
+        })
+        .expect(200);
+    }
+
+    expect(enqueueDailySummary).toHaveBeenCalledTimes(2);
+    const keys = enqueueDailySummary.mock.calls.map(
+      (call) => (call[0] as { idempotencyKey: string }).idempotencyKey,
+    );
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[0]).toBe(`daily_${first.body.date}_user-1`);
+  });
+
+  it('rolls back the completion when the summary job cannot be enqueued', async () => {
+    const challenge = await request(app()).get('/daily').expect(200);
+    query.mockResolvedValue({ rows: [{ activity_date: challenge.body.date }] });
+    const committed: unknown[] = [];
+    const withTransaction = vi.fn(
+      async (
+        fn: (
+          q: (text: string, values?: unknown[]) => Promise<{ rows: unknown[] }>,
+        ) => Promise<unknown>,
+      ) => {
+        const draft: unknown[] = [];
+        const tx = vi.fn(async (text: string, values: unknown[] = []) => {
+          draft.push({ text, values });
+          return { rows: [] };
+        });
+        const result = await fn(tx);
+        committed.push(...draft);
+        return result;
+      },
+    );
+    const enqueueDailySummary = vi.fn().mockRejectedValue(new Error('outbox unavailable'));
+
+    await request(app({ withTransaction, enqueueDailySummary }))
+      .post('/daily/complete')
+      .send({
+        date: challenge.body.date,
+        challenge: challenge.body.challenge,
+        answers: [{ questionId: 'fib-1', blanks: ['Hash Table'] }],
+      })
+      .expect(500);
+
+    expect(committed).toHaveLength(0);
   });
 });

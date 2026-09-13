@@ -20,6 +20,14 @@ export interface DailyQuery {
   <Row = Record<string, unknown>>(text: string, values?: unknown[]): Promise<QueryResult<Row>>;
 }
 
+export interface DailySummaryInput {
+  ownerId: string;
+  date: string;
+  score: number;
+  total: number;
+  idempotencyKey: string;
+}
+
 interface DailyRouterDependencies {
   query: DailyQuery;
   repo: LibraryRepository;
@@ -28,6 +36,14 @@ interface DailyRouterDependencies {
   secret: string;
   timeZone: string;
   recordStudyDay: (userId: string) => Promise<void>;
+  /** Runs the completion insert and its outbox job in one transaction. */
+  withTransaction?: <T>(fn: (tx: DailyQuery) => Promise<T>) => Promise<T>;
+  /**
+   * Durably enqueues the Daily completion summary on the completion's
+   * transaction. Bridge availability is irrelevant: the job is stored and
+   * delivered on the next explicit sync.
+   */
+  enqueueDailySummary?: (input: DailySummaryInput, tx: DailyQuery) => Promise<void>;
 }
 
 const completionSchema = z.object({
@@ -191,10 +207,32 @@ export function createDailyRouter(deps: DailyRouterDependencies): Router {
       return;
     }
     try {
-      await deps.query(
-        'INSERT INTO daily_completions (user_id, challenge_date, score, total) VALUES ($1, $2::date, $3, $4)',
-        [req.user!.userId, today, grade.score, grade.total],
-      );
+      const userId = req.user!.userId;
+      /**
+       * Stable per completion so a retried submission reuses the same outbox
+       * job instead of creating a duplicate.
+       */
+      const idempotencyKey = `daily_${today}_${userId}`;
+      const runInTransaction: <T>(fn: (tx: DailyQuery) => Promise<T>) => Promise<T> =
+        deps.withTransaction ?? ((fn) => fn(deps.query));
+      await runInTransaction(async (tx) => {
+        await tx(
+          'INSERT INTO daily_completions (user_id, challenge_date, score, total) VALUES ($1, $2::date, $3, $4)',
+          [userId, today, grade.score, grade.total],
+        );
+        if (deps.enqueueDailySummary) {
+          await deps.enqueueDailySummary(
+            {
+              ownerId: userId,
+              date: today,
+              score: grade.score,
+              total: grade.total,
+              idempotencyKey,
+            },
+            tx,
+          );
+        }
+      });
     } catch (error: unknown) {
       if ((error as { code?: string }).code === '23505') {
         res
